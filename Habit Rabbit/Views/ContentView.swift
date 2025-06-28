@@ -10,18 +10,26 @@ struct ContentView: View {
             ScrollView {
                 HStack(spacing: 16) {
                     HabitCard(
-                        habit: .example,
+                        habit: .examples[0],
                         habitCardType: .barChart,
                         currentValue: $value1
                     )
                     HabitCard(
-                        habit: .example,
+                        habit: .examples[1],
                         habitCardType: .barChart,
                         currentValue: $value2
                     )
                 }
                 .padding()
                 .navigationTitle("Habit Rabbit")
+            }
+            .toolbar {
+                ToolbarItem(placement: .topBarTrailing) {
+                    Button("", systemImage: "trash") {
+                        value1 = 0
+                        value2 = 0
+                    }
+                }
             }
         }
     }
