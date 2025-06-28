@@ -6,12 +6,16 @@
 	objectVersion = 77;
 	objects = {
 
+/* Begin PBXBuildFile section */
+		9ADDBE072E0C4FAC006E599C /* AppComponents in Frameworks */ = {isa = PBXBuildFile; productRef = 9ADDBE062E0C4FAC006E599C /* AppComponents */; };
+/* End PBXBuildFile section */
+
 /* Begin PBXFileReference section */
 		9A2409F92E0584930088539D /* Habit Rabbit.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = "Habit Rabbit.app"; sourceTree = BUILT_PRODUCTS_DIR; };
 /* End PBXFileReference section */
 
 /* Begin PBXFileSystemSynchronizedRootGroup section */
-		9A2409FB2E0584930088539D /* Habit Rabbit */ = {
+		9A6364292E058AC2002F16C9 /* Habit Rabbit */ = {
 			isa = PBXFileSystemSynchronizedRootGroup;
 			path = "Habit Rabbit";
 			sourceTree = "<group>";
@@ -23,6 +27,7 @@
 			isa = PBXFrameworksBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				9ADDBE072E0C4FAC006E599C /* AppComponents in Frameworks */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -32,7 +37,7 @@
 		9A2409F02E0584930088539D = {
 			isa = PBXGroup;
 			children = (
-				9A2409FB2E0584930088539D /* Habit Rabbit */,
+				9A6364292E058AC2002F16C9 /* Habit Rabbit */,
 				9A2409FA2E0584930088539D /* Products */,
 			);
 			sourceTree = "<group>";
@@ -61,10 +66,11 @@
 			dependencies = (
 			);
 			fileSystemSynchronizedGroups = (
-				9A2409FB2E0584930088539D /* Habit Rabbit */,
+				9A6364292E058AC2002F16C9 /* Habit Rabbit */,
 			);
 			name = "Habit Rabbit";
 			packageProductDependencies = (
+				9ADDBE062E0C4FAC006E599C /* AppComponents */,
 			);
 			productName = "Habit Rabbit";
 			productReference = 9A2409F92E0584930088539D /* Habit Rabbit.app */;
@@ -94,6 +100,9 @@
 			);
 			mainGroup = 9A2409F02E0584930088539D;
 			minimizedProjectReferenceProxies = 1;
+			packageReferences = (
+				9A63641B2E058A83002F16C9 /* XCLocalSwiftPackageReference "../Components/Habit Rabbit/FirstComponent" */,
+			);
 			preferredProjectObjectVersion = 77;
 			productRefGroup = 9A2409FA2E0584930088539D /* Products */;
 			projectDirPath = "";
@@ -324,6 +333,21 @@
 			defaultConfigurationName = Release;
 		};
 /* End XCConfigurationList section */
+
+/* Begin XCLocalSwiftPackageReference section */
+		9A63641B2E058A83002F16C9 /* XCLocalSwiftPackageReference "../Components/Habit Rabbit/FirstComponent" */ = {
+			isa = XCLocalSwiftPackageReference;
+			relativePath = "../Components/Habit Rabbit/FirstComponent";
+		};
+/* End XCLocalSwiftPackageReference section */
+
+/* Begin XCSwiftPackageProductDependency section */
+		9ADDBE062E0C4FAC006E599C /* AppComponents */ = {
+			isa = XCSwiftPackageProductDependency;
+			package = 9A63641B2E058A83002F16C9 /* XCLocalSwiftPackageReference "../Components/Habit Rabbit/FirstComponent" */;
+			productName = AppComponents;
+		};
+/* End XCSwiftPackageProductDependency section */
 	};
 	rootObject = 9A2409F12E0584930088539D /* Project object */;
 }
