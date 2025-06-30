@@ -2,23 +2,23 @@ import SwiftUI
 import AppComponents
 
 struct ContentView: View {
-    @State private var value1 = 0
-    @State private var value2 = 0
+    @State private var habitValues = Habit.examples.map { habit in
+        Int.random(in: 0...habit.target * 2)
+    }
+    
+    let gridColumns = Array(repeating: GridItem(.flexible(), spacing: 16), count: 2)
     
     var body: some View {
         NavigationStack {
             ScrollView {
-                HStack(spacing: 16) {
-                    HabitCard(
-                        habit: .examples[0],
-                        habitCardType: .barChart,
-                        currentValue: $value1
-                    )
-                    HabitCard(
-                        habit: .examples[1],
-                        habitCardType: .barChart,
-                        currentValue: $value2
-                    )
+                LazyVGrid(columns: gridColumns, spacing: 16) {
+                    ForEach(Habit.examples.indices, id: \.self) { index in
+                        HabitCard(
+                            habit: Habit.examples[index],
+                            habitCardType: .barChart,
+                            currentValue: $habitValues[index]
+                        )
+                    }
                 }
                 .padding()
                 .navigationTitle("Habit Rabbit")
@@ -26,8 +26,7 @@ struct ContentView: View {
             .toolbar {
                 ToolbarItem(placement: .topBarTrailing) {
                     Button("", systemImage: "trash") {
-                        value1 = 0
-                        value2 = 0
+                        habitValues = Array(repeating: 0, count: habitValues.count)
                     }
                 }
             }
