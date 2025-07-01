@@ -25,6 +25,13 @@ struct ContentView: View {
             }
             .toolbar {
                 ToolbarItem(placement: .topBarTrailing) {
+                    Button("", systemImage: "sparkles") {
+                        habitValues = Habit.examples.map { habit in
+                            Int.random(in: 0...habit.target * 2)
+                        }
+                    }
+                }
+                ToolbarItem(placement: .topBarTrailing) {
                     Button("", systemImage: "trash") {
                         habitValues = Array(repeating: 0, count: habitValues.count)
                     }
