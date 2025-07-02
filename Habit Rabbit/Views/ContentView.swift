@@ -1,30 +1,15 @@
 import SwiftUI
 import AppComponents
 
-extension Array {
-    func chunks(of size: Int) -> [[Element]] {
-        return stride(from: 0, to: count, by: size).map {
-            Array(self[$0..<Swift.min($0 + size, count)])
-        }
-    }
-    
-    func randomElements(count n: Int) -> [Element] {
-        guard n > 0 else { return [] }
-        return Array(shuffled().prefix(n))
-    }
-}
-
 struct ContentView: View {
-    @State private var habits: [Habit] = []
+    @State private var habitModels: [Habit] = []
     @State private var habitValues: [Habit.ID: Int] = [:]
     
-//    let gridColumns = Array(repeating: GridItem(.flexible(), spacing: 16), count: 2)
-
     var body: some View {
         NavigationStack {
             ScrollView {
                 VStack(spacing: 16) {
-                    ForEach(habits.chunks(of: 2), id: \.first?.id) { habits in
+                    ForEach(habitModels.chunks(of: 2), id: \.first?.id) { habits in
                         HStack(spacing: 16) {
                             ForEach(habits) { habit in
                                 HabitCard(
@@ -43,23 +28,10 @@ struct ContentView: View {
                         }
                     }
                 }
-//                // animation glitch (triggering delayed off screen animations on scroll)
-//                LazyVGrid(columns: gridColumns, spacing: 16) {
-//                    ForEach(habits) { habit in
-//                        HabitCard(
-//                            habit: habit,
-//                            habitCardType: .barChart,
-//                            currentValue: Binding(
-//                                get: { habitValues[habit.id] ?? 0 },
-//                                set: { habitValues[habit.id] = $0 }
-//                            )
-//                        )
-//                    }
-//                }
                 .padding()
                 .navigationTitle("Habit Rabbit")
                 .onAppear {
-                    loadHabits()
+                    loadHabitModels()
                     loadHabitValues()
                 }
                 .onChange(of: habitValues) {
@@ -67,56 +39,85 @@ struct ContentView: View {
                 }
             }
             .toolbar {
-                ToolbarItem(placement: .topBarLeading) {
-                    Button("", systemImage: "trash") {
-                        removeHabits()
-                        removeHabitValues()
-                    }
-                }
-                ToolbarItem(placement: .topBarLeading) {
-                    Button("", systemImage: "0.circle") {
-                        resetHabitValues()
-                    }
-                }
-                ToolbarItem(placement: .topBarLeading) {
-                    Button("", systemImage: "sparkles") {
-                        randomizeHabitValues()
-                    }
-                }
-                ToolbarItem(placement: .topBarTrailing) {
-                    Button("", systemImage: "plus") {
-                        let examples = Habit.examples()
-                        let randomExamples = examples.randomElements(count: Int.random(in: 1...examples.count))
-                        
-                        for habit in randomExamples {
-                            habitValues[habit.id] = 0
-                            habits.append(habit)
-                            saveHabits()
-                        }
-                    }
-                }
+                ToolbarItem(placement: .topBarLeading) { removeHabitsButton }
+                ToolbarItem(placement: .topBarLeading) { resetValuesButton }
+                ToolbarItem(placement: .topBarLeading) { randomizeButton }
+                ToolbarItem(placement: .topBarTrailing) { addExampleHabitButton }
             }
         }
     }
 }
 
 extension ContentView {
-    private func removeHabits() {
-        habits = []
-        saveHabits()
-    }
-    
-    private func randomizeHabitValues() {
-        for key in habitValues.keys {
-            if let habit = habits.first(where: { $0.id == key }) {
-                habitValues[key] = Int.random(in: 0...(habit.target * 2))
-            }
+    var removeHabitsButton: some View {
+        Button("", systemImage: "trash") {
+            removeHabitModels()
+            removeHabitValues()
         }
     }
     
-    private func resetHabitValues() {
-        habitValues = habitValues.mapValues { _ in 0 }
-        saveHabitValues()
+    var resetValuesButton: some View {
+        Button("", systemImage: "0.circle") {
+            resetHabitValues()
+        }
+    }
+    
+    var randomizeButton: some View {
+        Button("", systemImage: "sparkles") {
+            randomizeHabitValues()
+        }
+    }
+    
+    var addExampleHabitButton: some View {
+        Button("", systemImage: "plus") {
+            let examples = Habit.examples()
+            let randomExamples = examples.randomElements(count: Int.random(in: 1...examples.count))
+            
+            for habit in randomExamples {
+                habitValues[habit.id] = 0
+                habitModels.append(habit)
+                saveHabitModels()
+            }
+        }
+    }
+}
+
+extension ContentView {
+    private func loadHabitData() {
+        loadHabitModels()
+        loadHabitValues()
+    }
+    
+    private func loadHabitModels() {
+        guard let data = UserDefaults.standard.data(forKey: "habitModels") else { return }
+        guard let decoded = try? JSONDecoder().decode([Habit].self, from: data) else { return }
+        habitModels = decoded
+    }
+    
+    private func loadHabitValues() {
+        guard let data = UserDefaults.standard.data(forKey: "habitValues") else { return }
+        guard let decoded = try? JSONDecoder().decode([UUID: Int].self, from: data) else { return }
+        habitValues = decoded
+    }
+    
+    private func saveHabitModels() {
+        guard let data = try? JSONEncoder().encode(habitModels) else { return }
+        UserDefaults.standard.set(data, forKey: "habitModels")
+    }
+    
+    private func saveHabitValues() {
+        guard let data = try? JSONEncoder().encode(habitValues) else { return }
+        UserDefaults.standard.set(data, forKey: "habitValues")
+    }
+    
+    private func removeHabitData() {
+        removeHabitModels()
+        removeHabitValues()
+    }
+    
+    private func removeHabitModels() {
+        habitModels = []
+        saveHabitModels()
     }
     
     private func removeHabitValues() {
@@ -124,28 +125,17 @@ extension ContentView {
         saveHabitValues()
     }
     
-    private func loadHabits() {
-        guard let data = UserDefaults.standard.data(forKey: "habits") else { return }
-        let s = try? JSONDecoder().decode([Habit].self, from: data)
-        
-        habits = s ?? []
+    private func resetHabitValues() {
+        habitValues = habitValues.mapValues { _ in 0 }
+        saveHabitValues()
     }
     
-    private func saveHabits() {
-        guard let data = try? JSONEncoder().encode(habits) else { return }
-        UserDefaults.standard.set(data, forKey: "habits")
-    }
-    
-    private func loadHabitValues() {
-        guard let data = UserDefaults.standard.data(forKey: "habitValues") else { return }
-        let s = try? JSONDecoder().decode([UUID: Int].self, from: data)
-        
-        habitValues = s ?? [:]
-    }
-    
-    private func saveHabitValues() {
-        guard let data = try? JSONEncoder().encode(habitValues) else { return }
-        UserDefaults.standard.set(data, forKey: "habitValues")
+    private func randomizeHabitValues() {
+        for key in habitValues.keys {
+            if let habit = habitModels.first(where: { $0.id == key }) {
+                habitValues[key] = Int.random(in: 0...(habit.target * 2))
+            }
+        }
     }
 }
 
