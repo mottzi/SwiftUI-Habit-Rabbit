@@ -2,7 +2,7 @@ import SwiftUI
 import AppComponents
 
 extension Array {
-    func chunked(into size: Int) -> [[Element]] {
+    func chunks(of size: Int) -> [[Element]] {
         return stride(from: 0, to: count, by: size).map {
             Array(self[$0..<Swift.min($0 + size, count)])
         }
@@ -16,17 +16,17 @@ extension Array {
 
 struct ContentView: View {
     @State private var habits: [Habit] = []
-    @State private var habitValues: [UUID: Int] = [:]
-        
-    let columns = 2
+    @State private var habitValues: [Habit.ID: Int] = [:]
     
+//    let gridColumns = Array(repeating: GridItem(.flexible(), spacing: 16), count: 2)
+
     var body: some View {
         NavigationStack {
             ScrollView {
                 VStack(spacing: 16) {
-                    ForEach(Array(habits.chunked(into: 2).enumerated()), id: \.offset) { _, habitChunk in
+                    ForEach(habits.chunks(of: 2), id: \.first?.id) { habits in
                         HStack(spacing: 16) {
-                            ForEach(habitChunk) { habit in
+                            ForEach(habits) { habit in
                                 HabitCard(
                                     habit: habit,
                                     habitCardType: .barChart,
@@ -37,20 +37,32 @@ struct ContentView: View {
                                 )
                             }
                             
-                            // Fill remaining space if odd number of items in last row
-                            if habitChunk.count < 2 {
-                                Spacer()
+                            if habits.count < 2 {
+                                Color.clear.frame(maxWidth: .infinity)
                             }
                         }
                     }
                 }
+//                // animation glitch (triggering delayed off screen animations on scroll)
+//                LazyVGrid(columns: gridColumns, spacing: 16) {
+//                    ForEach(habits) { habit in
+//                        HabitCard(
+//                            habit: habit,
+//                            habitCardType: .barChart,
+//                            currentValue: Binding(
+//                                get: { habitValues[habit.id] ?? 0 },
+//                                set: { habitValues[habit.id] = $0 }
+//                            )
+//                        )
+//                    }
+//                }
                 .padding()
                 .navigationTitle("Habit Rabbit")
                 .onAppear {
                     loadHabits()
                     loadHabitValues()
                 }
-                .onChange(of: habitValues) { oldValue, newValue in
+                .onChange(of: habitValues) {
                     saveHabitValues()
                 }
             }
@@ -74,7 +86,7 @@ struct ContentView: View {
                 ToolbarItem(placement: .topBarTrailing) {
                     Button("", systemImage: "plus") {
                         let examples = Habit.examples()
-                        let randomExamples = examples.randomElements(count: Int.random(in: 0...examples.count))
+                        let randomExamples = examples.randomElements(count: Int.random(in: 1...examples.count))
                         
                         for habit in randomExamples {
                             habitValues[habit.id] = 0
