@@ -14,22 +14,11 @@ struct ContentView: View {
                             ForEach(habits) { habit in
                                 HabitCard(
                                     habit: habit,
-                                    habitCardType: .barChart,
-                                    currentValue: Binding(
-                                        get: {
-                                            habitValues[habit.id] ?? 0
-                                        },
-                                        set: {
-                                            habitValues[habit.id] = $0
-                                            saveHabitValues()
-                                        }
-                                    )
+                                    currentValue: binding(for: habit.id)
                                 )
                             }
                             
-                            if habits.count < 2 {
-                                Color.clear.frame(maxWidth: .infinity)
-                            }
+                            if habits.count < 2 { horizontalSpacer }
                         }
                     }
                 }
@@ -44,6 +33,12 @@ struct ContentView: View {
                 ToolbarItem(placement: .topBarTrailing) { addExampleHabitButton }
             }
         }
+    }
+}
+
+extension ContentView {
+    var horizontalSpacer: some View {
+        Color.clear.frame(maxWidth: .infinity)
     }
 }
 
@@ -81,6 +76,18 @@ extension ContentView {
 }
 
 extension ContentView {
+    private func binding(for habitID: Habit.ID) -> Binding<Int> {
+        Binding(
+            get: {
+                habitValues[habitID] ?? 0
+            },
+            set: { newValue in
+                habitValues[habitID] = newValue
+                saveHabitValues()
+            }
+        )
+    }
+    
     private func loadHabitData() {
         loadHabitModels()
         loadHabitValues()
