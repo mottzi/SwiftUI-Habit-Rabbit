@@ -7,7 +7,7 @@
 	objects = {
 
 /* Begin PBXBuildFile section */
-		9ADDBE072E0C4FAC006E599C /* AppComponents in Frameworks */ = {isa = PBXBuildFile; productRef = 9ADDBE062E0C4FAC006E599C /* AppComponents */; };
+		9A7CB4472E169913004869D7 /* AppComponents in Frameworks */ = {isa = PBXBuildFile; productRef = 9A7CB4462E169913004869D7 /* AppComponents */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXFileReference section */
@@ -27,7 +27,7 @@
 			isa = PBXFrameworksBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
-				9ADDBE072E0C4FAC006E599C /* AppComponents in Frameworks */,
+				9A7CB4472E169913004869D7 /* AppComponents in Frameworks */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -70,7 +70,7 @@
 			);
 			name = "Habit Rabbit";
 			packageProductDependencies = (
-				9ADDBE062E0C4FAC006E599C /* AppComponents */,
+				9A7CB4462E169913004869D7 /* AppComponents */,
 			);
 			productName = "Habit Rabbit";
 			productReference = 9A2409F92E0584930088539D /* Habit Rabbit.app */;
@@ -101,7 +101,7 @@
 			mainGroup = 9A2409F02E0584930088539D;
 			minimizedProjectReferenceProxies = 1;
 			packageReferences = (
-				9A63641B2E058A83002F16C9 /* XCLocalSwiftPackageReference "../Components/Habit Rabbit/FirstComponent" */,
+				9A7CB4452E169913004869D7 /* XCLocalSwiftPackageReference "../Components/Habit Rabbit/AppComponents" */,
 			);
 			preferredProjectObjectVersion = 77;
 			productRefGroup = 9A2409FA2E0584930088539D /* Products */;
@@ -335,16 +335,15 @@
 /* End XCConfigurationList section */
 
 /* Begin XCLocalSwiftPackageReference section */
-		9A63641B2E058A83002F16C9 /* XCLocalSwiftPackageReference "../Components/Habit Rabbit/FirstComponent" */ = {
+		9A7CB4452E169913004869D7 /* XCLocalSwiftPackageReference "../Components/Habit Rabbit/AppComponents" */ = {
 			isa = XCLocalSwiftPackageReference;
-			relativePath = "../Components/Habit Rabbit/FirstComponent";
+			relativePath = "../Components/Habit Rabbit/AppComponents";
 		};
 /* End XCLocalSwiftPackageReference section */
 
 /* Begin XCSwiftPackageProductDependency section */
-		9ADDBE062E0C4FAC006E599C /* AppComponents */ = {
+		9A7CB4462E169913004869D7 /* AppComponents */ = {
 			isa = XCSwiftPackageProductDependency;
-			package = 9A63641B2E058A83002F16C9 /* XCLocalSwiftPackageReference "../Components/Habit Rabbit/FirstComponent" */;
 			productName = AppComponents;
 		};
 /* End XCSwiftPackageProductDependency section */
