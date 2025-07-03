@@ -9,15 +9,20 @@ struct ContentView: View {
         NavigationStack {
             ScrollView {
                 VStack(spacing: 16) {
-                    ForEach(habitModels.chunks(of: 2), id: \.first?.id) { habits in
+                    ForEach(habitModels.pairs, id: \.first?.id) { habits in
                         HStack(spacing: 16) {
                             ForEach(habits) { habit in
                                 HabitCard(
                                     habit: habit,
                                     habitCardType: .barChart,
                                     currentValue: Binding(
-                                        get: { habitValues[habit.id] ?? 0 },
-                                        set: { habitValues[habit.id] = $0 }
+                                        get: {
+                                            habitValues[habit.id] ?? 0
+                                        },
+                                        set: {
+                                            habitValues[habit.id] = $0
+                                            saveHabitValues()
+                                        }
                                     )
                                 )
                             }
@@ -30,13 +35,7 @@ struct ContentView: View {
                 }
                 .padding()
                 .navigationTitle("Habit Rabbit")
-                .onAppear {
-                    loadHabitModels()
-                    loadHabitValues()
-                }
-                .onChange(of: habitValues) {
-                    saveHabitValues()
-                }
+                .onAppear { loadHabitData() }
             }
             .toolbar {
                 ToolbarItem(placement: .topBarLeading) { removeHabitsButton }
@@ -51,8 +50,7 @@ struct ContentView: View {
 extension ContentView {
     var removeHabitsButton: some View {
         Button("", systemImage: "trash") {
-            removeHabitModels()
-            removeHabitValues()
+            removeHabitData()
         }
     }
     
@@ -76,8 +74,8 @@ extension ContentView {
             for habit in randomExamples {
                 habitValues[habit.id] = 0
                 habitModels.append(habit)
-                saveHabitModels()
             }
+            saveHabitData()
         }
     }
 }
@@ -96,8 +94,13 @@ extension ContentView {
     
     private func loadHabitValues() {
         guard let data = UserDefaults.standard.data(forKey: "habitValues") else { return }
-        guard let decoded = try? JSONDecoder().decode([UUID: Int].self, from: data) else { return }
+        guard let decoded = try? JSONDecoder().decode([Habit.ID: Int].self, from: data) else { return }
         habitValues = decoded
+    }
+    
+    private func saveHabitData() {
+        saveHabitModels()
+        saveHabitValues()
     }
     
     private func saveHabitModels() {
@@ -111,16 +114,9 @@ extension ContentView {
     }
     
     private func removeHabitData() {
-        removeHabitModels()
-        removeHabitValues()
-    }
-    
-    private func removeHabitModels() {
         habitModels = []
         saveHabitModels()
-    }
-    
-    private func removeHabitValues() {
+        
         habitValues = [:]
         saveHabitValues()
     }
@@ -131,17 +127,14 @@ extension ContentView {
     }
     
     private func randomizeHabitValues() {
-        for key in habitValues.keys {
-            if let habit = habitModels.first(where: { $0.id == key }) {
-                habitValues[key] = Int.random(in: 0...(habit.target * 2))
-            }
+        let habitTargets = Dictionary(uniqueKeysWithValues: habitModels.map { ($0.id, $0.target) })
+        
+        for habitID in habitValues.keys {
+            guard let target = habitTargets[habitID] else { continue }
+            habitValues[habitID] = Int.random(in: 0...(target * 2))
         }
-    }
-}
-
-extension View {
-    func debug(_ color: Color? = nil, _ width: CGFloat? = nil) -> some View {
-        self.border(color ?? .orange, width: width ?? 2)
+        
+        saveHabitValues()
     }
 }
 
