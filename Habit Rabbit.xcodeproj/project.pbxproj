@@ -7,7 +7,7 @@
 	objects = {
 
 /* Begin PBXBuildFile section */
-		9A7CB4472E169913004869D7 /* AppComponents in Frameworks */ = {isa = PBXBuildFile; productRef = 9A7CB4462E169913004869D7 /* AppComponents */; };
+		9A7CB4562E18AFC5004869D7 /* AppComponents in Frameworks */ = {isa = PBXBuildFile; productRef = 9A7CB4552E18AFC5004869D7 /* AppComponents */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXFileReference section */
@@ -27,7 +27,7 @@
 			isa = PBXFrameworksBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
-				9A7CB4472E169913004869D7 /* AppComponents in Frameworks */,
+				9A7CB4562E18AFC5004869D7 /* AppComponents in Frameworks */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -38,6 +38,7 @@
 			isa = PBXGroup;
 			children = (
 				9A6364292E058AC2002F16C9 /* Habit Rabbit */,
+				9A7CB4542E18AFC5004869D7 /* Frameworks */,
 				9A2409FA2E0584930088539D /* Products */,
 			);
 			sourceTree = "<group>";
@@ -48,6 +49,13 @@
 				9A2409F92E0584930088539D /* Habit Rabbit.app */,
 			);
 			name = Products;
+			sourceTree = "<group>";
+		};
+		9A7CB4542E18AFC5004869D7 /* Frameworks */ = {
+			isa = PBXGroup;
+			children = (
+			);
+			name = Frameworks;
 			sourceTree = "<group>";
 		};
 /* End PBXGroup section */
@@ -70,7 +78,7 @@
 			);
 			name = "Habit Rabbit";
 			packageProductDependencies = (
-				9A7CB4462E169913004869D7 /* AppComponents */,
+				9A7CB4552E18AFC5004869D7 /* AppComponents */,
 			);
 			productName = "Habit Rabbit";
 			productReference = 9A2409F92E0584930088539D /* Habit Rabbit.app */;
@@ -342,8 +350,9 @@
 /* End XCLocalSwiftPackageReference section */
 
 /* Begin XCSwiftPackageProductDependency section */
-		9A7CB4462E169913004869D7 /* AppComponents */ = {
+		9A7CB4552E18AFC5004869D7 /* AppComponents */ = {
 			isa = XCSwiftPackageProductDependency;
+			package = 9A7CB4452E169913004869D7 /* XCLocalSwiftPackageReference "../Components/Habit Rabbit/AppComponents" */;
 			productName = AppComponents;
 		};
 /* End XCSwiftPackageProductDependency section */

@@ -1,9 +1,25 @@
 import SwiftUI
+import SwiftData
 import AppComponents
 
-struct ContentView: View {
-    @State private var habitModels: [Habit] = []
-    @State private var habitValues: [Habit.ID: Int] = [:]
+struct ContentView: View, HabitManager {
+    @Environment(\.modelContext) var modelContext
+    
+    @Query var habitModels: [Habit]
+    @Query var habitValues: [HabitValue]
+
+    init() {
+        let todayStart = Calendar.current.startOfDay(for: .now)
+        let todayEnd = Calendar.current.date(byAdding: .day, value: 1, to: todayStart)!
+        
+        _habitModels = Query(filter: #Predicate<Habit> { habit in
+            habit.dateCreated >= todayStart && habit.dateCreated < todayEnd
+        })
+        
+        _habitValues = Query(filter: #Predicate<HabitValue> { habitValue in
+            habitValue.dateCreated >= todayStart && habitValue.dateCreated < todayEnd
+        })
+    }
     
     var body: some View {
         NavigationStack {
@@ -24,7 +40,7 @@ struct ContentView: View {
                 }
                 .padding()
                 .navigationTitle("Habit Rabbit")
-                .onAppear { loadHabitData() }
+                .onAppear { createMissingHabitValues() }
             }
             .toolbar {
                 ToolbarItem(placement: .topBarLeading) { removeHabitsButton }
@@ -63,86 +79,12 @@ extension ContentView {
     
     var addExampleHabitButton: some View {
         Button("", systemImage: "plus") {
-            let examples = Habit.examples()
-            let randomExamples = examples.randomElements(count: Int.random(in: 1...examples.count))
-            
-            for habit in randomExamples {
-                habitValues[habit.id] = 0
-                habitModels.append(habit)
-            }
-            saveHabitData()
+            addExampleHabits()
         }
     }
 }
 
-extension ContentView {
-    private func binding(for habitID: Habit.ID) -> Binding<Int> {
-        Binding(
-            get: {
-                habitValues[habitID] ?? 0
-            },
-            set: { newValue in
-                habitValues[habitID] = newValue
-                saveHabitValues()
-            }
-        )
-    }
-    
-    private func loadHabitData() {
-        loadHabitModels()
-        loadHabitValues()
-    }
-    
-    private func loadHabitModels() {
-        guard let data = UserDefaults.standard.data(forKey: "habitModels") else { return }
-        guard let decoded = try? JSONDecoder().decode([Habit].self, from: data) else { return }
-        habitModels = decoded
-    }
-    
-    private func loadHabitValues() {
-        guard let data = UserDefaults.standard.data(forKey: "habitValues") else { return }
-        guard let decoded = try? JSONDecoder().decode([Habit.ID: Int].self, from: data) else { return }
-        habitValues = decoded
-    }
-    
-    private func saveHabitData() {
-        saveHabitModels()
-        saveHabitValues()
-    }
-    
-    private func saveHabitModels() {
-        guard let data = try? JSONEncoder().encode(habitModels) else { return }
-        UserDefaults.standard.set(data, forKey: "habitModels")
-    }
-    
-    private func saveHabitValues() {
-        guard let data = try? JSONEncoder().encode(habitValues) else { return }
-        UserDefaults.standard.set(data, forKey: "habitValues")
-    }
-    
-    private func removeHabitData() {
-        habitModels = []
-        saveHabitModels()
-        
-        habitValues = [:]
-        saveHabitValues()
-    }
-    
-    private func resetHabitValues() {
-        habitValues = habitValues.mapValues { _ in 0 }
-        saveHabitValues()
-    }
-    
-    private func randomizeHabitValues() {
-        let habitTargets = Dictionary(uniqueKeysWithValues: habitModels.map { ($0.id, $0.target) })
-        
-        for habitID in habitValues.keys {
-            guard let target = habitTargets[habitID] else { continue }
-            habitValues[habitID] = Int.random(in: 0...(target * 2))
-        }
-        
-        saveHabitValues()
-    }
+#Preview {
+    ContentView()
+        .modelContainer(for: [Habit.self, HabitValue.self])
 }
-
-#Preview { ContentView() }
