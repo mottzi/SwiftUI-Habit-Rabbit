@@ -1,19 +1,18 @@
 import SwiftUI
+import SwiftData
 import AppComponents
 
-@main struct HabitRabbit: App
-{
-    var body: some Scene
-    {
-        WindowGroup
-        {
-            ContentView()
+@main
+struct HabitRabbitApp: App {
+    var body: some Scene {
+        WindowGroup {
+            ContentView(for: .now)
                 .modelContainer(for: [Habit.self, HabitValue.self])
         }
     }
 }
 
 #Preview {
-    ContentView()
+    ContentView(for: .now)
         .modelContainer(for: [Habit.self, HabitValue.self])
 }

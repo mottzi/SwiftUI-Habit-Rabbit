@@ -2,35 +2,29 @@ import SwiftUI
 import SwiftData
 import AppComponents
 
-struct ContentView: View, HabitManager {
-    @Environment(\.modelContext) var modelContext
+struct ContentView: View {
+    @Environment(\.modelContext) private var modelContext
     
-    @Query var habitModels: [Habit]
-    @Query var habitValues: [HabitValue]
-
-    init() {
-        let todayStart = Calendar.current.startOfDay(for: .now)
-        let todayEnd = Calendar.current.date(byAdding: .day, value: 1, to: todayStart)!
-        
-        _habitModels = Query(filter: #Predicate<Habit> { habit in
-            habit.dateCreated >= todayStart && habit.dateCreated < todayEnd
-        })
-        
-        _habitValues = Query(filter: #Predicate<HabitValue> { habitValue in
-            habitValue.dateCreated >= todayStart && habitValue.dateCreated < todayEnd
-        })
+    var habitDate: Date
+    @Query private var allHabits: [Habit]
+    @Query private var todayValues: [HabitValue]
+    
+    init(for date: Date) {
+        self.habitDate = date
+        _allHabits = Query(sort: \Habit.date)
+        _todayValues = Query(filter: HabitValue.todayFilter(for: date))
     }
     
     var body: some View {
         NavigationStack {
             ScrollView {
                 VStack(spacing: 16) {
-                    ForEach(habitModels.pairs, id: \.first?.id) { habits in
+                    ForEach(allHabits.pairs, id: \.first?.id) { habits in
                         HStack(spacing: 16) {
                             ForEach(habits) { habit in
                                 HabitCard(
                                     habit: habit,
-                                    currentValue: binding(for: habit.id)
+                                    habitValue: getTodayValue(of: habit, date: habitDate)
                                 )
                             }
                             
@@ -40,14 +34,37 @@ struct ContentView: View, HabitManager {
                 }
                 .padding()
                 .navigationTitle("Habit Rabbit")
-                .onAppear { createMissingHabitValues() }
+                .onAppear { insertDefaultValues(date: habitDate) }
             }
             .toolbar {
                 ToolbarItem(placement: .topBarLeading) { removeHabitsButton }
                 ToolbarItem(placement: .topBarLeading) { resetValuesButton }
                 ToolbarItem(placement: .topBarLeading) { randomizeButton }
-                ToolbarItem(placement: .topBarTrailing) { addExampleHabitButton }
+                ToolbarItem(placement: .topBarTrailing) { addExampleButton }
             }
+        }
+    }
+}
+
+extension ContentView {
+    private var lookup: [Habit.ID: HabitValue] {
+        Dictionary(uniqueKeysWithValues: todayValues.compactMap { value in
+            return (value.habit.id, value)
+        })
+    }
+    
+    private func getTodayValue(of habit: Habit, date: Date) -> HabitValue {
+        lookup[habit.id] ?? HabitValue(habit: habit, date: date)
+    }
+    
+    private func insertDefaultValues(date: Date) {
+        for habit in allHabits {
+            guard lookup[habit.id] == nil else { continue }
+            modelContext.insert(HabitValue(habit: habit, date: date))
+        }
+        
+        if modelContext.hasChanges {
+            try? modelContext.save()
         }
     }
 }
@@ -56,35 +73,43 @@ extension ContentView {
     var horizontalSpacer: some View {
         Color.clear.frame(maxWidth: .infinity)
     }
-}
-
-extension ContentView {
+    
     var removeHabitsButton: some View {
         Button("", systemImage: "trash") {
-            removeHabitData()
+            try? modelContext.delete(model: Habit.self)
+            try? modelContext.delete(model: HabitValue.self)
         }
     }
     
     var resetValuesButton: some View {
         Button("", systemImage: "0.circle") {
-            resetHabitValues()
+            todayValues.forEach { $0.currentValue = 0 }
+            try? modelContext.save()
         }
     }
     
     var randomizeButton: some View {
         Button("", systemImage: "sparkles") {
-            randomizeHabitValues()
+            todayValues.forEach { $0.currentValue = Int.random(in: 0...$0.habit.target * 2) }
+            try? modelContext.save()
         }
     }
     
-    var addExampleHabitButton: some View {
+    var addExampleButton: some View {
         Button("", systemImage: "plus") {
-            addExampleHabits()
+            for example in Habit.examples() {
+                let value = HabitValue(habit: example, date: habitDate)
+                modelContext.insert(value)
+                modelContext.insert(example)
+            }
+            try? modelContext.save()
         }
     }
 }
 
+
 #Preview {
-    ContentView()
+    ContentView(for: .now)
         .modelContainer(for: [Habit.self, HabitValue.self])
 }
+
