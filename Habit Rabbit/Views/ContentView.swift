@@ -3,11 +3,16 @@ import SwiftData
 import AppComponents
 
 struct ContentView: View {
+    var habitDate: Date
     @Environment(\.modelContext) private var modelContext
     
-    var habitDate: Date
     @Query private var allHabits: [Habit]
     @Query private var todayValues: [HabitValue]
+    @State private var lookup: [Habit.ID: HabitValue] = [:]
+    
+    private var readyHabits: [Habit] {
+        allHabits.filter { lookup[$0.id] != nil }
+    }
     
     init(for date: Date) {
         self.habitDate = date
@@ -19,12 +24,12 @@ struct ContentView: View {
         NavigationStack {
             ScrollView {
                 VStack(spacing: 16) {
-                    ForEach(allHabits.pairs, id: \.first?.id) { habits in
+                    ForEach(readyHabits.pairs, id: \.first?.id) { habits in
                         HStack(spacing: 16) {
                             ForEach(habits) { habit in
                                 HabitCard(
                                     habit: habit,
-                                    habitValue: getTodayValue(of: habit, date: habitDate)
+                                    habitValue: lookupValue(of: habit)
                                 )
                             }
                             
@@ -34,7 +39,10 @@ struct ContentView: View {
                 }
                 .padding()
                 .navigationTitle("Habit Rabbit")
-                .onAppear { insertDefaultValues(date: habitDate) }
+                .onChange(of: allHabits.map(\.id), initial: true) {
+                    updateLookup()
+                    insertDefaultValues(date: habitDate)
+                }
             }
             .toolbar { debugToolbar }
         }
@@ -42,18 +50,29 @@ struct ContentView: View {
 }
 
 extension ContentView {
-    private var lookup: [Habit.ID: HabitValue] {
-        Dictionary(uniqueKeysWithValues: todayValues.map { ($0.habitID, $0) })
+    private func updateLookup() {
+        lookup = Dictionary(uniqueKeysWithValues: todayValues.map { ($0.habitID, $0) })
+        print("Lookup updated. Current lookup count: \(lookup.count)")
     }
     
-    private func getTodayValue(of habit: Habit, date: Date) -> HabitValue {
-        lookup[habit.id] ?? HabitValue(habit: habit, date: date)
+    private func lookupValue(of habit: Habit) -> HabitValue {
+        guard let value = lookup[habit.id] else {
+            print("WARNING: HabitValue for habit '\(habit.name)' (ID: \(habit.id)).")
+            return HabitValue(habit: habit, date: habitDate)
+        }
+        
+        return value
     }
     
     private func insertDefaultValues(date: Date) {
+        // we check against `todayValues` directly to see what's missing.
+        let habitValueHabitIDs = Set(todayValues.map { $0.habitID } )
+        
         for habit in allHabits {
-            guard lookup[habit.id] == nil else { continue }
+            // skip if habit.id is found in todayValues [HabitValue.habitID]
+            guard habitValueHabitIDs.contains(habit.id) == false else { continue }
             modelContext.insert(HabitValue(habit: habit, date: date))
+            print("previously not existing HabitValue inserted for \(habit.id)")
         }
         
         if modelContext.hasChanges {
