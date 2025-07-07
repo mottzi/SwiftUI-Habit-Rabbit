@@ -10,9 +10,7 @@ struct ContentView: View {
     @Query private var todayValues: [HabitValue]
     @State private var lookup: [Habit.ID: HabitValue] = [:]
     
-    private var readyHabits: [Habit] {
-        allHabits.filter { lookup[$0.id] != nil }
-    }
+    private var loadedHabits: [Habit] { allHabits.filter { lookup[$0.id] != nil } }
     
     init(for date: Date) {
         self.habitDate = date
@@ -24,7 +22,7 @@ struct ContentView: View {
         NavigationStack {
             ScrollView {
                 VStack(spacing: 16) {
-                    ForEach(readyHabits.pairs, id: \.first?.id) { habits in
+                    ForEach(loadedHabits.pairs, id: \.first?.id) { habits in
                         HStack(spacing: 16) {
                             ForEach(habits) { habit in
                                 HabitCard(
@@ -57,7 +55,7 @@ extension ContentView {
     
     private func lookupValue(of habit: Habit) -> HabitValue {
         guard let value = lookup[habit.id] else {
-            print("WARNING: HabitValue for habit '\(habit.name)' (ID: \(habit.id)).")
+            print("WARNING: No HabitValue found in lookup for '\(habit.name)' (ID: \(habit.id)).")
             return HabitValue(habit: habit, date: habitDate)
         }
         
