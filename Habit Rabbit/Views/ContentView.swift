@@ -36,21 +36,14 @@ struct ContentView: View {
                 .navigationTitle("Habit Rabbit")
                 .onAppear { insertDefaultValues(date: habitDate) }
             }
-            .toolbar {
-                ToolbarItem(placement: .topBarLeading) { removeHabitsButton }
-                ToolbarItem(placement: .topBarLeading) { resetValuesButton }
-                ToolbarItem(placement: .topBarLeading) { randomizeButton }
-                ToolbarItem(placement: .topBarTrailing) { addExampleButton }
-            }
+            .toolbar { debugToolbar }
         }
     }
 }
 
 extension ContentView {
     private var lookup: [Habit.ID: HabitValue] {
-        Dictionary(uniqueKeysWithValues: todayValues.compactMap { value in
-            return (value.habit.id, value)
-        })
+        Dictionary(uniqueKeysWithValues: todayValues.map { ($0.habitID, $0) })
     }
     
     private func getTodayValue(of habit: Habit, date: Date) -> HabitValue {
@@ -72,6 +65,14 @@ extension ContentView {
 extension ContentView {
     var horizontalSpacer: some View {
         Color.clear.frame(maxWidth: .infinity)
+    }
+    
+    @ToolbarContentBuilder
+    var debugToolbar: some ToolbarContent {
+        ToolbarItem(placement: .topBarLeading) { removeHabitsButton }
+        ToolbarItem(placement: .topBarLeading) { resetValuesButton }
+        ToolbarItem(placement: .topBarLeading) { randomizeButton }
+        ToolbarItem(placement: .topBarTrailing) { addExampleButton }
     }
     
     var removeHabitsButton: some View {
@@ -99,8 +100,8 @@ extension ContentView {
         Button("", systemImage: "plus") {
             for example in Habit.examples() {
                 let value = HabitValue(habit: example, date: habitDate)
-                modelContext.insert(value)
                 modelContext.insert(example)
+                modelContext.insert(value)
             }
             try? modelContext.save()
         }
@@ -110,6 +111,6 @@ extension ContentView {
 
 #Preview {
     ContentView(for: .now)
-        .modelContainer(for: [Habit.self, HabitValue.self])
+        .modelContainer(for: [Habit.self, HabitValue.self], inMemory: true)
 }
 
