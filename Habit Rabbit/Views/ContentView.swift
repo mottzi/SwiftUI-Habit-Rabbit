@@ -37,10 +37,8 @@ struct ContentView: View {
                 }
                 .padding()
                 .navigationTitle("Habit Rabbit")
-                .onChange(of: allHabits.map(\.id), initial: true) {
-                    updateLookup()
-                    insertDefaultValues(date: habitDate)
-                }
+                .onChange(of: allHabits.count, initial: true) { insertDefaultValues(date: habitDate) }
+                .onChange(of: todayValues.count, initial: true) { updateLookup() }
             }
             .toolbar { debugToolbar }
         }
@@ -48,34 +46,37 @@ struct ContentView: View {
 }
 
 extension ContentView {
-    private func updateLookup() {
-        lookup = Dictionary(uniqueKeysWithValues: todayValues.map { ($0.habitID, $0) })
-        print("Lookup updated. Current lookup count: \(lookup.count)")
-    }
-    
-    private func lookupValue(of habit: Habit) -> HabitValue {
-        guard let value = lookup[habit.id] else {
-            print("WARNING: No HabitValue found in lookup for '\(habit.name)' (ID: \(habit.id)).")
-            return HabitValue(habit: habit, date: habitDate)
-        }
-        
-        return value
-    }
-    
     private func insertDefaultValues(date: Date) {
-        // we check against `todayValues` directly to see what's missing.
-        let habitValueHabitIDs = Set(todayValues.map { $0.habitID } )
+        let existingHabitIDs = Set(todayValues.map { $0.habitID } )
         
         for habit in allHabits {
-            // skip if habit.id is found in todayValues [HabitValue.habitID]
-            guard habitValueHabitIDs.contains(habit.id) == false else { continue }
+            guard existingHabitIDs.contains(habit.id) == false else { continue }
             modelContext.insert(HabitValue(habit: habit, date: date))
-            print("previously not existing HabitValue inserted for \(habit.id)")
+            print("default value inserted for \(habit.id)")
         }
         
         if modelContext.hasChanges {
             try? modelContext.save()
         }
+        
+        print("default values checked. Current lookup count: \(lookup.count)")
+    }
+    
+    private func updateLookup() {
+        var tempLookup: [Habit.ID: HabitValue] = [:]
+        
+        for value in todayValues {
+            guard tempLookup[value.habitID] == nil else { continue }
+            tempLookup[value.habitID] = value
+        }
+        
+        lookup = tempLookup
+        print("Lookup updated. Current lookup count: \(lookup.count)")
+    }
+    
+    private func lookupValue(of habit: Habit) -> HabitValue {
+        if let value = lookup[habit.id] { return value }
+        fatalError("Value lookup failed for habit: '\(habit.name)' (ID: \(habit.id))")
     }
 }
 
