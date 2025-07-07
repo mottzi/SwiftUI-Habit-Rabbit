@@ -6,39 +6,52 @@ struct ContentView: View {
     var habitDate: Date
     @Environment(\.modelContext) private var modelContext
     
-    @Query private var allHabits: [Habit]
-    @Query private var todayValues: [HabitValue]
-    @State private var lookup: [Habit.ID: HabitValue] = [:]
-        
+    @Query private var habits: [Habit]
+    @Query private var values: [HabitValue]
+    
     init(for date: Date) {
         self.habitDate = date
-        _allHabits = Query(sort: \Habit.date)
-        _todayValues = Query(filter: HabitValue.todayFilter(for: date))
+        // sort habits based on date (oldest last)
+        _habits = Query(sort: \Habit.date)
+        // create query description for habit values descriptor to configure the query
+        var descriptor = FetchDescriptor<HabitValue>(
+            // filter for date
+            predicate: HabitValue.dayFilter(for: date),
+            // sort by parent habit creation date, then by name
+            sortBy: [
+                SortDescriptor(\.habit.date), // primary
+            ]
+        )
+        // prefetch relationships
+        descriptor.relationshipKeyPathsForPrefetching = [\.habit]
+        
+        _values = Query(descriptor)
     }
     
-    private var loadedHabits: [Habit] { allHabits.filter { lookup[$0.id] != nil } }
+//    private var loadedHabits: [Habit] { allHabits.filter { lookup[$0.id] != nil } }
 
     var body: some View {
         NavigationStack {
             ScrollView {
                 VStack(spacing: 16) {
-                    ForEach(loadedHabits.pairs, id: \.first?.id) { habits in
+                    ForEach(values.pairs, id: \.first?.id) { values in
                         HStack(spacing: 16) {
-                            ForEach(habits) { habit in
+                            ForEach(values) { value in
                                 HabitCard(
-                                    habit: habit,
-                                    habitValue: lookupValue(of: habit)
+                                    habit: value.habit,
+                                    habitValue: value
                                 )
                             }
                             
-                            if habits.count < 2 { horizontalSpacer }
+                            if values.count < 2 { horizontalSpacer }
                         }
                     }
                 }
                 .padding()
                 .navigationTitle("Habit Rabbit")
-                .onChange(of: allHabits.count, initial: true) { insertDefaultValues(date: habitDate) }
-                .onChange(of: todayValues.count, initial: true) { updateLookup() }
+//                .onChange(of: allHabits.count, initial: true) { insertDefaultValues(date: habitDate) }
+//                .onChange(of: todayValues.count, initial: true) { updateLookup() }
+                .onChange(of: habits.count, initial: true) { insertDefaultValues(date: habitDate) }
             }
             .toolbar { debugToolbar }
         }
@@ -47,9 +60,9 @@ struct ContentView: View {
 
 extension ContentView {
     private func insertDefaultValues(date: Date) {
-        let existingHabitIDs = Set(todayValues.map { $0.habitID } )
+        let existingHabitIDs = Set(values.map { $0.habit.id } )
         
-        for habit in allHabits {
+        for habit in habits {
             guard existingHabitIDs.contains(habit.id) == false else { continue }
             modelContext.insert(HabitValue(habit: habit, date: date))
             print("default value inserted for \(habit.id)")
@@ -59,25 +72,25 @@ extension ContentView {
             try? modelContext.save()
         }
         
-        print("default values checked. Current lookup count: \(lookup.count)")
+        print("default values checked")// Current lookup count: \(lookup.count)")
     }
     
-    private func updateLookup() {
-        var tempLookup: [Habit.ID: HabitValue] = [:]
-        
-        for value in todayValues {
-            guard tempLookup[value.habitID] == nil else { continue }
-            tempLookup[value.habitID] = value
-        }
-        
-        lookup = tempLookup
-        print("Lookup updated. Current lookup count: \(lookup.count)")
-    }
-    
-    private func lookupValue(of habit: Habit) -> HabitValue {
-        if let value = lookup[habit.id] { return value }
-        fatalError("Value lookup failed for habit: '\(habit.name)' (ID: \(habit.id))")
-    }
+//    private func updateLookup() {
+//        var tempLookup: [Habit.ID: HabitValue] = [:]
+//        
+//        for value in todayValues {
+//            guard tempLookup[value.habitID] == nil else { continue }
+//            tempLookup[value.habitID] = value
+//        }
+//        
+//        lookup = tempLookup
+//        print("Lookup updated. Current lookup count: \(lookup.count)")
+//    }
+//    
+//    private func lookupValue(of habit: Habit) -> HabitValue {
+//        if let value = lookup[habit.id] { return value }
+//        fatalError("Value lookup failed for habit: '\(habit.name)' (ID: \(habit.id))")
+//    }
 }
 
 extension ContentView {
@@ -102,14 +115,14 @@ extension ContentView {
     
     var resetValuesButton: some View {
         Button("", systemImage: "0.circle") {
-            todayValues.forEach { $0.currentValue = 0 }
+            values.forEach { $0.currentValue = 0 }
             try? modelContext.save()
         }
     }
     
     var randomizeButton: some View {
         Button("", systemImage: "sparkles") {
-            todayValues.forEach { $0.currentValue = Int.random(in: 0...$0.habit.target * 2) }
+            values.forEach { $0.currentValue = Int.random(in: 0...$0.habit.target * 2) }
             try? modelContext.save()
         }
     }
