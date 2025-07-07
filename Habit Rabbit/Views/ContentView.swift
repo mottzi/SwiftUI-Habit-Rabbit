@@ -9,15 +9,15 @@ struct ContentView: View {
     @Query private var allHabits: [Habit]
     @Query private var todayValues: [HabitValue]
     @State private var lookup: [Habit.ID: HabitValue] = [:]
-    
-    private var loadedHabits: [Habit] { allHabits.filter { lookup[$0.id] != nil } }
-    
+        
     init(for date: Date) {
         self.habitDate = date
         _allHabits = Query(sort: \Habit.date)
         _todayValues = Query(filter: HabitValue.todayFilter(for: date))
     }
     
+    private var loadedHabits: [Habit] { allHabits.filter { lookup[$0.id] != nil } }
+
     var body: some View {
         NavigationStack {
             ScrollView {
