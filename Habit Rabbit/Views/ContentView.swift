@@ -3,52 +3,47 @@ import SwiftData
 import AppComponents
 
 struct ContentView: View {
-    var habitDate: Date
     @Environment(\.modelContext) private var modelContext
-    
     @Query private var habits: [Habit]
     @Query private var values: [HabitValue]
-    
+    var viewDate: Date
+
     init(for date: Date) {
-        self.habitDate = date
-        
         var valuesQuery = FetchDescriptor<HabitValue>(
             predicate: HabitValue.dayFilter(for: date),
-            sortBy: [SortDescriptor(\.habit.date)]
-        )
+            sortBy: [SortDescriptor(\.habit.date)])
         valuesQuery.relationshipKeyPathsForPrefetching = [\.habit]
-        _values = Query(valuesQuery)
-        _habits = Query(sort: \Habit.date)
+        self._values = Query(valuesQuery)
+        self._habits = Query(sort: \Habit.date)
+        self.viewDate = date
     }
     
     var body: some View {
         NavigationStack {
             ScrollView {
-                VStack(spacing: 16) {
-                    ForEach(values.pairs, id: \.first?.id) { values in
-                        HStack(spacing: 16) {
-                            ForEach(values) { value in
-                                HabitCard(
-                                    habit: value.habit,
-                                    habitValue: value
-                                )
-                            }
-                            
-                            if values.count < 2 { horizontalSpacer }
-                        }
+                LazyVGrid(columns: columns, spacing: 16) {
+                    ForEach(values) {
+                        HabitCard(habit: $0.habit, habitValue: $0)
                     }
                 }
                 .padding()
                 .navigationTitle("Habit Rabbit")
-                .onChange(of: habits.count, initial: true) { insertDefaultValues(date: habitDate) }
+                .onChange(of: habits.count, initial: true) {
+                    insertDefaultValues(for: viewDate)
+                }
             }
             .toolbar { debugToolbar }
         }
     }
+    
+    let columns = [
+        GridItem(.flexible(), spacing: 16),
+        GridItem(.flexible(), spacing: 16),
+    ]
 }
 
 extension ContentView {
-    private func insertDefaultValues(date: Date) {
+    private func insertDefaultValues(for date: Date) {
         let existingHabitIDs = Set(values.map { $0.habit.id } )
         
         for habit in habits {
@@ -57,10 +52,7 @@ extension ContentView {
             print("default value inserted for \(habit.id)")
         }
         
-        if modelContext.hasChanges {
-            try? modelContext.save()
-        }
-        
+        if modelContext.hasChanges { try? modelContext.save() }
         print("default values checked")
     }
 }
@@ -102,7 +94,7 @@ extension ContentView {
     var addExampleButton: some View {
         Button("", systemImage: "plus") {
             for example in Habit.examples() {
-                let value = HabitValue(habit: example, date: habitDate)
+                let value = HabitValue(habit: example, date: viewDate)
                 modelContext.insert(example)
                 modelContext.insert(value)
             }
