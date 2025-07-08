@@ -21,7 +21,11 @@ struct ContentView: View {
             ScrollView {
                 LazyVGrid(columns: columns, spacing: 16) {
                     ForEach(values) {
-                        HabitCard(habit: $0.habit, habitValue: $0)
+                        @Bindable var value = $0
+                        HabitCard(
+                            habit: value.habit,
+                            value: $value.currentValue
+                        )
                     }
                 }
                 .padding()
@@ -38,10 +42,6 @@ struct ContentView: View {
 }
 
 extension ContentView {
-    var horizontalSpacer: some View {
-        Color.clear.frame(maxWidth: .infinity)
-    }
-    
     @ToolbarContentBuilder
     var debugToolbar: some ToolbarContent {
         ToolbarItem(placement: .topBarLeading) { removeHabitsButton }
