@@ -31,25 +31,12 @@ struct ContentView: View{
                             value: $value.currentValue
                         )
                         .contentShape(.contextMenuPreview, .rect(cornerRadius: 24))
-                        .contextMenu {
-                            Button("Randomize", systemImage: "sparkles") {
-                                value.currentValue = Int.random(in: 0...habit.target * 2)
-                            }
-                            Button("Reset", systemImage: "arrow.counterclockwise") {
-                                value.currentValue = 0
-                            }
-                            Button("Delete", systemImage: "trash", role: .destructive) {
-                                modelContext.delete(habit)
-                            }
-                        }
+                        .contextMenu { contextMenuButtons(habit, value) }
                     }
                 }
                 .padding()
                 .navigationTitle("Habit Rabbit")
-            }
-            .toolbar {
-                ToolbarItem(placement: .topBarLeading) { debugCounter }
-                ToolbarItem(placement: .topBarTrailing) { debugButton }
+                .toolbar { debugToolbar }
             }
         }
     }
@@ -61,9 +48,37 @@ struct ContentView: View{
 }
 
 extension ContentView {
-    var habitsCount: Int {
-        guard let count = try? modelContext.fetchCount(FetchDescriptor<Habit>()) else { return 0 }
-        return count
+    @ViewBuilder
+    func contextMenuButtons(_ habit: Habit, _ value: HabitValue) -> some View {
+        randomizeContextButton(habit: habit, value: value)
+        resetContextButton(value: value)
+        deleteContextButton(habit: habit)
+    }
+    
+    func randomizeContextButton(habit: Habit, value: HabitValue) -> some View {
+        Button("Randomize", systemImage: "sparkles") {
+            value.currentValue = Int.random(in: 0...habit.target * 2)
+        }
+    }
+    
+    func resetContextButton(value: HabitValue) -> some View {
+        Button("Reset", systemImage: "arrow.counterclockwise") {
+            value.currentValue = 0
+        }
+    }
+    
+    func deleteContextButton(habit: Habit) -> some View {
+        Button("Delete", systemImage: "trash", role: .destructive) {
+            modelContext.delete(habit)
+        }
+    }
+}
+
+extension ContentView {
+    @ToolbarContentBuilder
+    var debugToolbar: some ToolbarContent {
+        ToolbarItem(placement: .topBarLeading) { debugCounter }
+        ToolbarItem(placement: .topBarTrailing) { debugButton }
     }
 
     @ViewBuilder
@@ -117,6 +132,11 @@ extension ContentView {
             try? modelContext.delete(model: Habit.self)
             try? modelContext.save()
         }
+    }
+    
+    var habitsCount: Int {
+        guard let count = try? modelContext.fetchCount(FetchDescriptor<Habit>()) else { return 0 }
+        return count
     }
 }
 
