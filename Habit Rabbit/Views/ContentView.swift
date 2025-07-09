@@ -4,9 +4,8 @@ import AppData
 import AppComponents
 
 struct ContentView: View{
-    @Environment(\.modelContext) private var modelContext
     @Environment(\.colorScheme) private var colorScheme
-    
+    @Environment(\.modelContext) private var modelContext
     @Query private var values: [HabitValue]
     
     var entries: [(Habit, HabitValue)] {
@@ -82,7 +81,7 @@ extension ContentView {
         Menu {
             addExampleButton
             Divider()
-            randomizeButton
+            randomizeDebugButton
             resetValuesButton
             Divider()
             removeHabitsButton
@@ -98,7 +97,7 @@ extension ContentView {
         }
     }
     
-    var randomizeButton: some View {
+    var randomizeDebugButton: some View {
         Button("Randomize", systemImage: "sparkles") {
             for value in values {
                 guard let habit = value.habit else { continue}
