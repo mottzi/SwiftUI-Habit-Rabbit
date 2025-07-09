@@ -8,6 +8,7 @@
 
 /* Begin PBXBuildFile section */
 		9A7CB4562E18AFC5004869D7 /* AppComponents in Frameworks */ = {isa = PBXBuildFile; productRef = 9A7CB4552E18AFC5004869D7 /* AppComponents */; };
+		9AECABA52E1D305000181B79 /* AppData in Frameworks */ = {isa = PBXBuildFile; productRef = 9AECABA42E1D305000181B79 /* AppData */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXFileReference section */
@@ -27,6 +28,7 @@
 			isa = PBXFrameworksBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				9AECABA52E1D305000181B79 /* AppData in Frameworks */,
 				9A7CB4562E18AFC5004869D7 /* AppComponents in Frameworks */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
@@ -79,6 +81,7 @@
 			name = "Habit Rabbit";
 			packageProductDependencies = (
 				9A7CB4552E18AFC5004869D7 /* AppComponents */,
+				9AECABA42E1D305000181B79 /* AppData */,
 			);
 			productName = "Habit Rabbit";
 			productReference = 9A2409F92E0584930088539D /* Habit Rabbit.app */;
@@ -110,6 +113,7 @@
 			minimizedProjectReferenceProxies = 1;
 			packageReferences = (
 				9A7CB4452E169913004869D7 /* XCLocalSwiftPackageReference "../Components/Habit Rabbit/AppComponents" */,
+				9AECABA32E1D305000181B79 /* XCLocalSwiftPackageReference "../Components/Habit Rabbit/AppData" */,
 			);
 			preferredProjectObjectVersion = 77;
 			productRefGroup = 9A2409FA2E0584930088539D /* Products */;
@@ -347,6 +351,10 @@
 			isa = XCLocalSwiftPackageReference;
 			relativePath = "../Components/Habit Rabbit/AppComponents";
 		};
+		9AECABA32E1D305000181B79 /* XCLocalSwiftPackageReference "../Components/Habit Rabbit/AppData" */ = {
+			isa = XCLocalSwiftPackageReference;
+			relativePath = "../Components/Habit Rabbit/AppData";
+		};
 /* End XCLocalSwiftPackageReference section */
 
 /* Begin XCSwiftPackageProductDependency section */
@@ -354,6 +362,10 @@
 			isa = XCSwiftPackageProductDependency;
 			package = 9A7CB4452E169913004869D7 /* XCLocalSwiftPackageReference "../Components/Habit Rabbit/AppComponents" */;
 			productName = AppComponents;
+		};
+		9AECABA42E1D305000181B79 /* AppData */ = {
+			isa = XCSwiftPackageProductDependency;
+			productName = AppData;
 		};
 /* End XCSwiftPackageProductDependency section */
 	};
