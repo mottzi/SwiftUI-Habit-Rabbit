@@ -3,45 +3,73 @@ import SwiftData
 import AppData
 import AppComponents
 
-struct ContentView: View{
+struct ContentView: View {
     @Environment(\.colorScheme) private var colorScheme
     @Environment(\.modelContext) private var modelContext
-    @Query private var values: [HabitValue]
     
-    var entries: [(Habit, HabitValue)] {
-        values.compactMap(\.withHabit)
+    @Query private var values: [Habit.Value]
+    
+    var entries: [Habit.Entry] {
+        values.compactMap(\.asEntry)
     }
     
-    init(day date: Date) {
-        _values = Query(HabitValue.filter(day: date))
+    @State private var entriesDeleting: Set<Habit.Entry.ID> = []
+    
+    init(day: Date) {
+        _values = Query(Habit.Value.filter(day: day))
     }
     
+    func triggerDeletion(of entry: Habit.Entry) {
+        // context menu will start its revert state animation immediatly
+        Task {
+            // wait 0.01s ...
+            try? await Task.sleep(nanoseconds: 10_000_000)
+            // ... before starting card deletion animation
+            withAnimation(.spring(duration: 0.8)) {
+                _ = entriesDeleting.insert(entry.id)
+            } completion: {
+                _ = entriesDeleting.remove(entry.id)
+            }
+            
+            // wait 0.01s ...
+            try? await Task.sleep(nanoseconds: 10_000_000) // 0.01 seconds
+            // ... defore deleting the actual entry
+            modelContext.delete(entry.habit)
+        }
+    }
+
     var body: some View {
         NavigationStack {
             ScrollView {
-                LazyVGrid(columns: columns, spacing: 16) {
-                    ForEach(entries, id: \.0.id) { (habit, value) in
-                        @Bindable var value = value
+                LazyVGrid(columns: twoColumns, spacing: 16) {
+                    ForEach(entries.enumerated, id: \.element.id) { index, entry in
+                        let isDeleting = entriesDeleting.contains(entry.id)
                         HabitCard(
-                            name: habit.name,
-                            unit: habit.unit,
-                            target: habit.target,
-                            icon: habit.icon,
-                            color: habit.color,
-                            value: $value.currentValue
+                            habit: entry.habit,
+                            value: Binding(
+                                get: { entry.value.currentValue },
+                                set: { entry.value.currentValue = $0 }
+                            )
                         )
+                        .geometryGroup()
+                        .scaleEffect(isDeleting ? 0 : 1)
                         .contentShape(.contextMenuPreview, .rect(cornerRadius: 24))
-                        .contextMenu { contextMenuButtons(habit, value) }
+                        .contextMenu { contextMenuButtons(entry: entry) }
+                        .offset(
+                            x: isDeleting ? (index % 2 == 0 ? -250 : 250) : 0,
+                            y: isDeleting ? 100 : 0
+                        )
                     }
                 }
-                .padding()
+                .animation(.spring, value: entries.count)
+                .padding(/*16*/)
                 .navigationTitle("Habit Rabbit")
                 .toolbar { debugToolbar }
             }
         }
     }
     
-    let columns = [
+    let twoColumns = [
         GridItem(.flexible(), spacing: 16),
         GridItem(.flexible(), spacing: 16),
     ]
@@ -49,27 +77,27 @@ struct ContentView: View{
 
 extension ContentView {
     @ViewBuilder
-    func contextMenuButtons(_ habit: Habit, _ value: HabitValue) -> some View {
-        randomizeContextButton(habit: habit, value: value)
-        resetContextButton(value: value)
-        deleteContextButton(habit: habit)
+    func contextMenuButtons(entry: Habit.Entry) -> some View {
+        randomizeContextButton(entry: entry)
+        resetContextButton(value: entry.value)
+        deleteContextButton(entry: entry)
     }
     
-    func randomizeContextButton(habit: Habit, value: HabitValue) -> some View {
+    func randomizeContextButton(entry: Habit.Entry) -> some View {
         Button("Randomize", systemImage: "sparkles") {
-            value.currentValue = Int.random(in: 0...habit.target * 2)
+            entry.value.currentValue = Int.random(in: 0...entry.habit.target * 2)
         }
     }
     
-    func resetContextButton(value: HabitValue) -> some View {
+    func resetContextButton(value: Habit.Value) -> some View {
         Button("Reset", systemImage: "arrow.counterclockwise") {
             value.currentValue = 0
         }
     }
     
-    func deleteContextButton(habit: Habit) -> some View {
+    func deleteContextButton(entry: Habit.Entry) -> some View {
         Button("Delete", systemImage: "trash", role: .destructive) {
-            modelContext.delete(habit)
+            triggerDeletion(of: entry)
         }
     }
 }
@@ -99,6 +127,9 @@ extension ContentView {
             randomizeDebugButton
             resetValuesButton
             Divider()
+            removeAllDataButton
+            removeFirstHabitEntryButton
+            removeLastHabitEntryButton
             removeHabitsButton
         } label: {
             Image(systemName: "hammer.fill").foregroundStyle(colorScheme == .light ? .black : .white)
@@ -108,12 +139,12 @@ extension ContentView {
     var addExampleButton: some View {
         Button("Add", systemImage: "plus") {
             Habit.examples.forEach { modelContext.insert(habit: $0) }
-            try? modelContext.save()
+            try? modelContext.save() // needed? [ ] yes, [ ] no
         }
     }
     
     var randomizeDebugButton: some View {
-        Button("Randomize", systemImage: "sparkles") {
+        Button("Randomize All", systemImage: "sparkles") {
             for value in values {
                 guard let habit = value.habit else { continue}
                 value.currentValue = Int.random(in: 0...habit.target * 2)
@@ -122,13 +153,35 @@ extension ContentView {
     }
     
     var resetValuesButton: some View {
-        Button("Reset", systemImage: "arrow.counterclockwise") {
+        Button("Reset All", systemImage: "arrow.counterclockwise") {
             values.forEach { $0.currentValue = 0 }
         }
     }
     
+    var removeAllDataButton: some View {
+        Button("Kill Database", systemImage: "xmark", role: .destructive) {
+            modelContext.container.deleteAllData()
+        }
+    }
+    
+    var removeFirstHabitEntryButton: some View {
+        Button("Delete First", systemImage: "trash", role: .destructive) {
+            guard let firstEntry = entries.first else { return }
+//            modelContext.delete(first)
+            triggerDeletion(of: firstEntry)
+        }
+    }
+    
+    var removeLastHabitEntryButton: some View {
+        Button("Delete Last", systemImage: "trash", role: .destructive) {
+            guard let lastEntry = entries.last else { return }
+//            modelContext.delete(last)
+            triggerDeletion(of: lastEntry)
+        }
+    }
+    
     var removeHabitsButton: some View {
-        Button("Delete", systemImage: "trash", role: .destructive) {
+        Button("Delete All", systemImage: "trash", role: .destructive) {
             try? modelContext.delete(model: Habit.self)
             try? modelContext.save()
         }
@@ -142,6 +195,6 @@ extension ContentView {
 
 #Preview {
     ContentView(day: .now)
-        .modelContainer(for: [Habit.self, HabitValue.self], inMemory: true)
+        .modelContainer(for: [Habit.self, Habit.Value.self], inMemory: true)
 }
 

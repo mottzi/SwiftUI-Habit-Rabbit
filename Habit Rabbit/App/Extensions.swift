@@ -5,3 +5,19 @@ extension View {
         self.border(color ?? .orange, width: width ?? 2)
     }
 }
+
+extension RandomAccessCollection {
+    var enumerated: [(offset: Int, element: Element)] {
+        Array(self.enumerated())
+    }
+}
+
+//extension HashedColletion {
+////    mutating func insert(_ newMember: Element) {
+////        self.insert
+////    }
+//    
+//    mutating func insert(_ newMember: Element) {
+//    }
+//
+//}
