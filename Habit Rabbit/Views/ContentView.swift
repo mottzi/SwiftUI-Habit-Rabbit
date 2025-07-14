@@ -9,8 +9,8 @@ struct ContentView: View {
     
     @State private var endDay: Date = .now
     @State private var viewType: HabitCardType = .daily
+    @State private var valueLookup: [Habit.ID: [Date: Habit.Value]] = [:]
     @State private var entriesDeleting: Set<Habit.Entry.ID> = []
-    @State private var scrollDisabled = false
     
     @Query private var habits: [Habit]
     @Query private var values: [Habit.Value]
@@ -34,18 +34,12 @@ struct ContentView: View {
                 LazyVGrid(columns: columns, spacing: 16) {
                     ForEach(entries.enumerated, id: \.element.id) { index, entry in
                         let isDeleting = isDeleting(entry: entry)
-                        HabitCard(
-                            entry: entry,
-                            onValueChange: { updateValue(for: entry.habit.id, newValue: $0) }
-                        )
-                        .scaleEffect(isDeleting ? 0 : 1)
-                        .frame(height: entry.mode == .monthly ? 350 : 230)
-                        .contentShape(.contextMenuPreview, .rect(cornerRadius: 24))
-                        .contextMenu { contextMenuButtons(for: entry) }
-                        .offset(
-                            x: isDeleting ? (index % 2 == 0 ? -250 : 250) : 0,
-                            y: isDeleting ? 100 : 0
-                        )
+                        Habit.Card(entry: entry)
+                            .scaleEffect(isDeleting ? 0 : 1)
+                            .frame(height: entry.mode == .monthly ? 350 : 230)
+                            .contentShape(.contextMenuPreview, .rect(cornerRadius: 24))
+                            .contextMenu { contextMenuButtons(for: entry) }
+                            .offset(deletionOffset(for: index, isDeleting: isDeleting))
                     }
                 }
                 .padding()
@@ -55,8 +49,9 @@ struct ContentView: View {
                     debugToolbar
                 }
             }
-            .animation(.default, value: habits)
+            .animation(.default, value: entries.count)
             .animation(.default, value: viewType)
+            .onChange(of: values, initial: true) { updateValueLookup() }
         }
     }
     
@@ -76,9 +71,7 @@ extension ContentView {
             Menu {
                 ForEach(HabitCardType.allCases, id: \.self) { type in
                     Button("\(type.rawValue)", systemImage: type.icon) {
-//                        withAnimation {
-                            viewType = type
-//                        }
+                        viewType = type
                     }
                 }
             } label: {
@@ -104,13 +97,13 @@ extension ContentView {
     func randomizeContextButton(entry: Habit.Entry) -> some View {
         Button("Randomize", systemImage: "sparkles") {
             let randomValue = Int.random(in: 0...entry.habit.target * 2)
-            updateValue(for: entry.habit.id, newValue: randomValue)
+            getTodayValue(of: entry.habit)?.currentValue = randomValue
         }
     }
     
     func resetContextButton(entry: Habit.Entry) -> some View {
         Button("Reset", systemImage: "arrow.counterclockwise") {
-            updateValue(for: entry.habit.id, newValue: 0)
+            getTodayValue(of: entry.habit)?.currentValue = 0
         }
     }
     
@@ -156,9 +149,31 @@ extension ContentView {
     }
     
     var addExampleButton: some View {
-        Button("Add", systemImage: "plus") {
-            Habit.examples.forEach { modelContext.insert(habit: $0) }
-            try? modelContext.save()
+        Menu {
+            ForEach([1, 4, 8, 20, 50, 100], id: \.self) { count in
+                Button("\(count)") {
+                    let templates = Habit.examples
+                    guard !templates.isEmpty else { return }
+                    
+                    for i in 0..<count {
+                        let template = templates[i % templates.count]
+                        
+                        let newHabit = Habit(
+                            name: template.name,
+                            unit: template.unit,
+                            icon: template.icon,
+                            color: template.color,
+                            target: template.target
+                        )
+                        
+                        modelContext.insert(habit: newHabit)
+                    }
+                    
+                    try? modelContext.save()
+                }
+            }
+        } label: {
+            Label("Add", systemImage: "plus")
         }
     }
     
@@ -166,7 +181,7 @@ extension ContentView {
         Button("Randomize All", systemImage: "sparkles") {
             for habit in habits {
                 let randomValue = Int.random(in: 0...habit.target * 2)
-                updateValue(for: habit.id, newValue: randomValue)
+                getTodayValue(of: habit)?.currentValue = randomValue
             }
         }
     }
@@ -174,7 +189,7 @@ extension ContentView {
     var resetValuesButton: some View {
         Button("Reset All", systemImage: "arrow.counterclockwise") {
             for habit in habits {
-                updateValue(for: habit.id, newValue: 0)
+                getTodayValue(of: habit)?.currentValue = 0
             }
         }
     }
@@ -186,14 +201,14 @@ extension ContentView {
     }
     
     var removeFirstHabitEntryButton: some View {
-        Button("Delete First", systemImage: "trash", role: .destructive) {
+        Button("Delete First", systemImage: "text.line.first.and.arrowtriangle.forward", role: .destructive) {
             guard let firstEntry = entries.first else { return }
             delete(entry: firstEntry)
         }
     }
     
     var removeLastHabitEntryButton: some View {
-        Button("Delete Last", systemImage: "trash", role: .destructive) {
+        Button("Delete Last", systemImage: "text.line.last.and.arrowtriangle.forward", role: .destructive) {
             guard let lastEntry = entries.last else { return }
             delete(entry: lastEntry)
         }
@@ -208,8 +223,8 @@ extension ContentView {
 }
 
 extension ContentView {
-    var valueLookup: [Habit.ID: [Date: Int]] {
-        var lookup: [Habit.ID: [Date: Int]] = [:]
+    private func updateValueLookup() {
+        var lookup: [Habit.ID: [Date: Habit.Value]] = [:]
         
         for value in values {
             guard let habitID = value.habit?.id else { continue }
@@ -218,48 +233,36 @@ extension ContentView {
             if lookup[habitID] == nil {
                 lookup[habitID] = [:]
             }
-            lookup[habitID]?[date] = value.currentValue
+            lookup[habitID]?[date] = value
         }
         
-        return lookup
+        valueLookup = lookup
     }
     
-    private func createEntry(for habit: Habit) -> Habit.Entry {
-        let calendar = Calendar.current
-        let today = calendar.startOfDay(for: endDay)
+    private func createEntry(for habit: Habit) -> Habit.Entry? {
+        let today = Calendar.current.startOfDay(for: endDay)
+        guard let todayValue = valueLookup[habit.id]?[today] else { return nil }
         
-        // Get today's value efficiently
-        let todayValue = valueLookup[habit.id]?[today] ?? 0
-        
-        // Get weekly values efficiently
         let weeklyValues = (0..<7).map { offset in
-            let date = calendar.date(byAdding: .day, value: offset - 6, to: endDay)!
-            let dayDate = calendar.startOfDay(for: date)
-            return valueLookup[habit.id]?[dayDate] ?? 0
+            let date = Calendar.current.date(byAdding: .day, value: offset - 6, to: endDay)!
+            let dayDate = Calendar.current.startOfDay(for: date)
+            guard let value = valueLookup[habit.id]?[dayDate] else { return 0 }
+            return value.currentValue
         }
         
         return Habit.Entry(
             habit: habit,
             mode: viewType,
-            dailyValue: todayValue,
+            currentDayValue: todayValue,
+            dailyValue: todayValue.currentValue,
             weeklyValues: weeklyValues
         )
     }
     
-    private func updateValue(for habitID: Habit.ID, newValue: Int) {
-        let calendar = Calendar.current
-        let today = calendar.startOfDay(for: endDay)
-        
-        // Find existing value or create new one
-        if let existingValue = values.first(where: {
-            $0.habit?.id == habitID && calendar.isDate($0.date, inSameDayAs: today)
-        }) {
-            existingValue.currentValue = newValue
-        } else {
-            guard let habit = habits.first(where: { $0.id == habitID }) else { return }
-            let newValueEntry = Habit.Value(habit: habit, date: today, currentValue: newValue)
-            modelContext.insert(newValueEntry)
-        }
+    private func getTodayValue(of habit: Habit) -> Habit.Value? {
+        let today = Calendar.current.startOfDay(for: endDay)
+        guard let value = valueLookup[habit.id]?[today] else { return nil }
+        return value
     }
     
     private func isDeleting(entry: Habit.Entry) -> Bool {
@@ -280,6 +283,13 @@ extension ContentView {
             try? await Task.sleep(nanoseconds: 10_000_000)
             modelContext.delete(entry.habit)
         }
+    }
+    
+    private func deletionOffset(for index: Int, isDeleting: Bool) -> CGSize {
+        guard isDeleting else { return CGSize(width: 0, height: 0) }
+        let amount = viewType == .daily ? 250 : 500
+        let adjustedSide = (index % 2 == 0 ? -amount : amount)
+        return CGSize(width: adjustedSide, height: 100)
     }
 }
 
