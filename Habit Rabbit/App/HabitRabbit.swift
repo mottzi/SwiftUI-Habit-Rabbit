@@ -7,13 +7,13 @@ import AppComponents
 struct HabitRabbitApp: App {
     var body: some Scene {
         WindowGroup {
-            ContentView(day: .now)
+            ContentView(endDay: .now)
                 .modelContainer(for: [Habit.self, Habit.Value.self])
         }
     }
 }
 
 #Preview {
-    ContentView(day: .now)
+    ContentView(endDay: .now)
         .modelContainer(for: [Habit.self, Habit.Value.self])
 }
