@@ -1,7 +1,5 @@
 import SwiftUI
 import SwiftData
-import AppData
-import AppComponents
 
 @main
 struct HabitRabbitApp: App {

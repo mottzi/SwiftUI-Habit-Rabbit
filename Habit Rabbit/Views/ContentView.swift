@@ -1,25 +1,17 @@
 import SwiftUI
 import SwiftData
-import AppData
-import AppComponents
 
-struct ContentView: View {
+struct ContentView: HabitManaging, View {
     @Environment(\.colorScheme) private var colorScheme
     @Environment(\.modelContext) private var modelContext
     
-    @State private var endDay: Date = .now
-    @State private var viewType: HabitCardType = .daily
-    @State private var valueLookup: [Habit.ID: [Date: Habit.Value]] = [:]
+    @State var endDay: Date = .now
+    @State var viewType: HabitCardType = .daily
+    @State var valueLookup: [Habit.ID: [Date: Habit.Value]] = [:]
     @State private var entriesDeleting: Set<Habit.Entry.ID> = []
     
-    @Query private var habits: [Habit]
-    @Query private var values: [Habit.Value]
-    
-    var entries: [Habit.Entry] {
-        habits.compactMap { habit in
-            createEntry(for: habit)
-        }
-    }
+    @Query var habits: [Habit]
+    @Query var values: [Habit.Value]
     
     init(endDay: Date = .now) {
         let startDate = Calendar.current.date(byAdding: .day, value: -6, to: endDay)!
@@ -45,16 +37,18 @@ struct ContentView: View {
                 .padding()
                 .navigationTitle("Habit Rabbit")
                 .toolbar {
-                    viewTypeButton
+                    modeButton
                     debugToolbar
                 }
             }
             .animation(.default, value: entries.count)
             .animation(.default, value: viewType)
-            .onChange(of: values, initial: true) { updateValueLookup() }
+            .onChange(of: values, initial: true) { valueLookup = updatedValueLookup() }
         }
     }
-    
+}
+
+extension ContentView {
     var columns: [GridItem] {
         let column = GridItem(.flexible(), spacing: 16)
         return switch viewType {
@@ -62,11 +56,36 @@ struct ContentView: View {
             case .weekly, .monthly: [column]
         }
     }
+    
+    private func delete(entry: Habit.Entry) {
+        Task {
+            try? await Task.sleep(nanoseconds: 10_000_000)
+            withAnimation(.spring(duration: 0.8)) {
+                _ = entriesDeleting.insert(entry.id)
+            } completion: {
+                _ = entriesDeleting.remove(entry.id)
+            }
+            
+            try? await Task.sleep(nanoseconds: 10_000_000)
+            modelContext.delete(entry.habit)
+        }
+    }
+    
+    private func isDeleting(entry: Habit.Entry) -> Bool {
+        entriesDeleting.contains(entry.id)
+    }
+    
+    private func deletionOffset(for index: Int, isDeleting: Bool) -> CGSize {
+        guard isDeleting else { return CGSize(width: 0, height: 0) }
+        let amount = viewType == .daily ? 250 : 500
+        let adjustedSide = (index % 2 == 0 ? -amount : amount)
+        return CGSize(width: adjustedSide, height: 100)
+    }
 }
 
 extension ContentView {
     @ToolbarContentBuilder
-    var viewTypeButton: some ToolbarContent {
+    var modeButton: some ToolbarContent {
         ToolbarItem(placement: .topBarTrailing) {
             Menu {
                 ForEach(HabitCardType.allCases, id: \.self) { type in
@@ -121,7 +140,6 @@ extension ContentView {
         ToolbarItem(placement: .topBarTrailing) { debugButton }
     }
     
-    @ViewBuilder
     var debugCounter: some View {
         HStack {
             Text("Habits: \(habits.count)")
@@ -219,77 +237,6 @@ extension ContentView {
             try? modelContext.delete(model: Habit.self)
             try? modelContext.save()
         }
-    }
-}
-
-extension ContentView {
-    private func updateValueLookup() {
-        var lookup: [Habit.ID: [Date: Habit.Value]] = [:]
-        
-        for value in values {
-            guard let habitID = value.habit?.id else { continue }
-            let date = Calendar.current.startOfDay(for: value.date)
-            
-            if lookup[habitID] == nil {
-                lookup[habitID] = [:]
-            }
-            lookup[habitID]?[date] = value
-        }
-        
-        valueLookup = lookup
-    }
-    
-    private func createEntry(for habit: Habit) -> Habit.Entry? {
-        let today = Calendar.current.startOfDay(for: endDay)
-        guard let todayValue = valueLookup[habit.id]?[today] else { return nil }
-        
-        let weeklyValues = (0..<7).map { offset in
-            let date = Calendar.current.date(byAdding: .day, value: offset - 6, to: endDay)!
-            let dayDate = Calendar.current.startOfDay(for: date)
-            guard let value = valueLookup[habit.id]?[dayDate] else { return 0 }
-            return value.currentValue
-        }
-        
-        return Habit.Entry(
-            habit: habit,
-            mode: viewType,
-            currentDayValue: todayValue,
-            dailyValue: todayValue.currentValue,
-            weeklyValues: weeklyValues
-        )
-    }
-    
-    private func getTodayValue(of habit: Habit) -> Habit.Value? {
-        let today = Calendar.current.startOfDay(for: endDay)
-        guard let value = valueLookup[habit.id]?[today] else { return nil }
-        return value
-    }
-    
-    private func isDeleting(entry: Habit.Entry) -> Bool {
-        entriesDeleting.contains(entry.id)
-    }
-    
-    private func delete(entry: Habit.Entry) {
-        Task {
-            // Start card deletion animation
-            try? await Task.sleep(nanoseconds: 10_000_000)
-            withAnimation(.spring(duration: 0.8)) {
-                _ = entriesDeleting.insert(entry.id)
-            } completion: {
-                _ = entriesDeleting.remove(entry.id)
-            }
-            
-            // Delete entry and animate grid re-ordering
-            try? await Task.sleep(nanoseconds: 10_000_000)
-            modelContext.delete(entry.habit)
-        }
-    }
-    
-    private func deletionOffset(for index: Int, isDeleting: Bool) -> CGSize {
-        guard isDeleting else { return CGSize(width: 0, height: 0) }
-        let amount = viewType == .daily ? 250 : 500
-        let adjustedSide = (index % 2 == 0 ? -amount : amount)
-        return CGSize(width: adjustedSide, height: 100)
     }
 }
 
