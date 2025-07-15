@@ -5,80 +5,43 @@ struct ContentView: View {
     @Environment(\.colorScheme) private var colorScheme
     @Environment(\.modelContext) private var modelContext
     
-    @State var endDay: Date = .now
-    @State var viewType: HabitCardType = .daily
-    @State private var entriesDeleting: [Habit.ID: CGSize] = [:]
+    @State var lastDay: Date = .now
+    @State var mode: Habit.Card.Mode = .daily
     
-    @Query var habits: [Habit]
-    
-    init(endDay: Date = .now) {
-        _endDay = State(initialValue: endDay)
-        _habits = Query(sort: \Habit.date)
-    }
+    @Query(sort: \Habit.date) var habits: [Habit]
     
     var body: some View {
-        NavigationStack {
-            ScrollView {
-                LazyVGrid(columns: columns, spacing: 16) {
-                    ForEach(habits) { habit in
-                        let isDeleting = isDeleting(habit: habit)
-                        let offset = deletionOffset(for: habit, isDeleting: isDeleting)
-                        Habit.Card(habit: habit, endDay: endDay, viewType: viewType, onDelete: { delete(habit: habit) }, isDeleting: isDeleting, deletionOffset: offset)
-                    }
-                }
-                .padding()
-                .navigationTitle("Habit Rabbit")
-                .toolbar {
-                    modeButton
-                    debugToolbar
+        ScrollView {
+            LazyVGrid(columns: columns, spacing: 16) {
+                ForEach(habits.enumerated, id: \.element.id) { index, habit in
+                    Habit.Card(
+                        for: habit,
+                        day: lastDay,
+                        mode: mode,
+                        index: index,
+                    )
                 }
             }
-            .animation(.default, value: habits.count)
-            .animation(.default, value: viewType)
+            .padding(16)
         }
+        .navigationTitle("Habit Rabbit")
+        .toolbar {
+            modeButton
+            debugToolbar
+        }
+        .animation(.default, value: habits.count)
+        .animation(.default, value: mode)
     }
 }
 
 extension ContentView {
     var columns: [GridItem] {
         let column = GridItem(.flexible(), spacing: 16)
-        return switch viewType {
+        return switch mode {
             case .daily: [column, column]
             case .weekly, .monthly: [column]
         }
     }
-    
-    private func delete(habit: Habit) {
-        Task {
-            try? await Task.sleep(nanoseconds: 10_000_000) // Initial delay
-            let offset = calculateDeletionOffset(for: habit)
-            withAnimation(.spring(duration: 0.8)) {
-                entriesDeleting[habit.id] = offset
-            } completion: {
-                entriesDeleting.removeValue(forKey: habit.id)
-            }
-            
-            try? await Task.sleep(nanoseconds: 10_000_000) // Delay before model deletion
-            modelContext.delete(habit)
-        }
-    }
-    
-    private func isDeleting(habit: Habit) -> Bool {
-        entriesDeleting.keys.contains(habit.id)
-    }
-    
-    private func calculateDeletionOffset(for habit: Habit) -> CGSize {
-        guard let index = habits.firstIndex(of: habit) else { return .zero }
-        let amount = viewType == .daily ? 250 : 500
-        let adjustedSide = (index % 2 == 0 ? -amount : amount)
-        return CGSize(width: adjustedSide, height: 100)
-    }
-    
-    private func deletionOffset(for habit: Habit, isDeleting: Bool) -> CGSize {
-        isDeleting ? entriesDeleting[habit.id] ?? .zero : .zero
-    }
-    
-    
 }
 
 extension ContentView {
@@ -86,14 +49,14 @@ extension ContentView {
     var modeButton: some ToolbarContent {
         ToolbarItem(placement: .topBarTrailing) {
             Menu {
-                ForEach(HabitCardType.allCases, id: \.self) { type in
+                ForEach(Habit.Card.Mode.allCases, id: \.self) { type in
                     Button("\(type.rawValue)", systemImage: type.icon) {
-                        viewType = type
+                        mode = type
                     }
                 }
             } label: {
                 HStack {
-                    Text("\(viewType.rawValue)")
+                    Text("\(mode.rawValue)")
                     Image(systemName: "calendar.day.timeline.right")
                 }
                 .fontWeight(.bold)
@@ -101,10 +64,6 @@ extension ContentView {
             }
         }
     }
-}
-
-extension ContentView {
-    
 }
 
 extension ContentView {
@@ -168,9 +127,4 @@ extension ContentView {
             try? modelContext.save()
         }
     }
-}
-
-#Preview {
-    ContentView(endDay: .now)
-        .modelContainer(for: [Habit.self, Habit.Value.self], inMemory: true)
 }

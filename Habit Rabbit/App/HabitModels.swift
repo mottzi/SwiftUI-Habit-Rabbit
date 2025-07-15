@@ -50,40 +50,39 @@ extension Habit {
 }
 
 extension Habit.Value {
-    static func filter(day date: Date) -> FetchDescriptor<Habit.Value> {
-        var descriptor = FetchDescriptor<Habit.Value>(
-            predicate: filterBy(day: date),
-            sortBy: [SortDescriptor(\Habit.Value.habit?.date)]
-        )
-        descriptor.relationshipKeyPathsForPrefetching = [\Habit.Value.habit]
-        return descriptor
-    }
-    
-    static func filter(dateRange: ClosedRange<Date>) -> FetchDescriptor<Habit.Value> {
-        var descriptor = FetchDescriptor<Habit.Value>(
-            predicate: filterBy(dateRange: dateRange),
-            sortBy: [SortDescriptor(\Habit.Value.date), SortDescriptor(\Habit.Value.habit?.date)]
-        )
-        descriptor.relationshipKeyPathsForPrefetching = [\Habit.Value.habit]
-        return descriptor
-    }
-    
-    private static func filterBy(day date: Date) -> Predicate<Habit.Value> {
+    static func filterByDay(for habit: Habit, on date: Date) -> FetchDescriptor<Habit.Value> {
+        let habitID = habit.id
         let start = Calendar.current.startOfDay(for: date)
         let end = Calendar.current.date(byAdding: .day, value: 1, to: start)!
         
-        return #Predicate<Habit.Value> {
-            $0.date >= start && $0.date < end
+        let predicate = #Predicate<Habit.Value> { value in
+            value.habit?.id == habitID
+            && value.date >= start && value.date < end
         }
+        
+        var descriptor = FetchDescriptor(predicate: predicate)
+        descriptor.fetchLimit = 1
+        descriptor.relationshipKeyPathsForPrefetching = [\Habit.Value.habit]
+        
+        return descriptor
     }
     
-    private static func filterBy(dateRange: ClosedRange<Date>) -> Predicate<Habit.Value> {
-        let start = Calendar.current.startOfDay(for: dateRange.lowerBound)
-        let end = Calendar.current.date(byAdding: .day, value: 1, to: dateRange.upperBound)!
+    static func filterByWeek(for habit: Habit, endingOn date: Date) -> FetchDescriptor<Habit.Value> {
+        let habitID = habit.id
+        let todayStart = Calendar.current.startOfDay(for: date)
+        let end = Calendar.current.date(byAdding: .day, value: 1, to: todayStart)!
+        let start = Calendar.current.date(byAdding: .day, value: -6, to: todayStart)!
         
-        return #Predicate<Habit.Value> {
-            $0.date >= start && $0.date < end
+        let predicate = #Predicate<Habit.Value> { value in
+            value.habit?.id == habitID
+            && value.date >= start && value.date < end
         }
+        
+        let sortByDate = SortDescriptor(\Habit.Value.date)
+        var descriptor = FetchDescriptor(predicate: predicate, sortBy: [sortByDate])
+        descriptor.relationshipKeyPathsForPrefetching = [\Habit.Value.habit]
+        
+        return descriptor
     }
 }
 
@@ -138,20 +137,6 @@ extension Habit {
               target: 1
              ),
     ]}
-}
-
-enum HabitCardType: String, CaseIterable {
-    case daily = "Daily"
-    case weekly = "Weekly"
-    case monthly = "Monthly"
-    
-    var icon: String {
-        switch self {
-            case .daily: "1.square.fill"
-            case .weekly: "7.square.fill"
-            case .monthly: "30.square.fill"
-        }
-    }
 }
 
 extension ModelContext {

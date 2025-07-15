@@ -2,56 +2,22 @@ import SwiftUI
 import SwiftData
 
 extension Habit {
-    public struct Card: View {
+    struct Card: View {
         @Environment(\.modelContext) var modelContext
         @Environment(\.colorScheme) var colorScheme
         
-        @State var feedbackTrigger = false
+        @State var isDeleting = false
+        @State var deletionOffset: CGSize = .zero
+        
+        @Query var todayValues: [Habit.Value]
+        @Query var weeklyValues: [Habit.Value]
+        
         let habit: Habit
-        let endDay: Date
-        let viewType: HabitCardType
-        let onDelete: () -> Void
-        let isDeleting: Bool
-        let deletionOffset: CGSize
+        let lastDay: Date
+        let mode: Habit.Card.Mode
+        let index: Int
         
-        @Query private var todayValue: [Habit.Value]
-        @Query private var weeklyValues: [Habit.Value]
-        
-        let barChartWidth: CGFloat = 50
-        let barChartHeight: CGFloat = 155
-        
-        public init(habit: Habit, endDay: Date, viewType: HabitCardType, onDelete: @escaping () -> Void, isDeleting: Bool, deletionOffset: CGSize) {
-            self.habit = habit
-            self.endDay = endDay
-            self.viewType = viewType
-            self.onDelete = onDelete
-            self.isDeleting = isDeleting
-            self.deletionOffset = deletionOffset
-            
-            let habitID = habit.id
-            let todayStart = Calendar.current.startOfDay(for: endDay)
-            let todayEnd = Calendar.current.date(byAdding: .day, value: 1, to: todayStart)!
-            
-            var todayDescriptor = FetchDescriptor<Habit.Value>(
-                predicate: #Predicate<Habit.Value> { value in
-                    value.habit?.id == habitID && value.date >= todayStart && value.date < todayEnd
-                }
-            )
-            todayDescriptor.relationshipKeyPathsForPrefetching = [\.habit]
-            self._todayValue = Query(todayDescriptor)
-            
-            let startOfWeek = Calendar.current.date(byAdding: .day, value: -6, to: todayStart)!
-            var weeklyDescriptor = FetchDescriptor<Habit.Value>(
-                predicate: #Predicate<Habit.Value> { value in
-                    value.habit?.id == habitID && value.date >= startOfWeek && value.date <= todayEnd
-                },
-                sortBy: [SortDescriptor(\Habit.Value.date)]
-            )
-            weeklyDescriptor.relationshipKeyPathsForPrefetching = [\.habit]
-            self._weeklyValues = Query(weeklyDescriptor)
-        }
-
-        public var body: some View {
+        var body: some View {
             VStack(spacing: 0) {
                 dailyView
                     .frame(height: barChartHeight)
@@ -62,12 +28,12 @@ extension Habit {
             .frame(maxWidth: .infinity)
             .background { backgroundView }
             .geometryGroup()
-            .animation(.bouncy, value: todayValue.first?.currentValue)
+            .animation(.bouncy, value: todayValues.first?.currentValue)
             .scaleEffect(isDeleting ? 0 : 1)
             .contentShape(.contextMenuPreview, .rect(cornerRadius: 24))
             .contextMenu { contextMenuButtons }
-            .offset(deletionOffset)
-            .frame(height: viewType == .monthly ? 350 : 230)
+            .offset(isDeleting ? deletionOffset : .zero)
+            .frame(height: mode == .monthly ? 350 : 232)
         }
         
         var dailyView: some View {
@@ -81,29 +47,85 @@ extension Habit {
                         .frame(width: 70, height: 70)
                 }
             }
-            // prevents progressLabel jumping
-            .geometryGroup()
+            .geometryGroup() // prevents progressLabel jumping
         }
         
+        let barChartWidth: CGFloat = 50
+        let barChartHeight: CGFloat = 155
+        
+        init(
+            for habit: Habit,
+            day lastDay: Date,
+            mode: Habit.Card.Mode,
+            index: Int
+        ) {
+            self.habit = habit
+            self.lastDay = lastDay
+            self.mode = mode
+            self.index = index
+            
+            self._todayValues = Query(Habit.Value.filterByDay(for: habit, on: lastDay))
+            self._weeklyValues = Query(Habit.Value.filterByWeek(for: habit, endingOn: lastDay))
+        }
     }
 }
 
 extension Habit.Card {
+    func deleteWithAnimation() {
+        Task {
+            try? await Task.sleep(nanoseconds: 10_000_000)
+            withAnimation(.spring(duration: 0.8)) {
+                isDeleting = true
+                deletionOffset = calculateDeletionOffset()
+            } completion: {
+                isDeleting = false
+            }
+            
+            try? await Task.sleep(nanoseconds: 10_000_000)
+            modelContext.delete(habit)
+        }
+    }
+    
+    func calculateDeletionOffset() -> CGSize {
+        let amount = mode == .daily ? 250 : 500
+        let adjustedSide = (index % 2 == 0) ? -amount : amount
+        return CGSize(width: CGFloat(adjustedSide), height: 100)
+    }
+}
+
+extension Habit.Card {
+    @ViewBuilder
+    var contextMenuButtons: some View {
+        Button("Randomize", systemImage: "sparkles") {
+            todayValue?.currentValue = Int.random(in: 0...habit.target * 2)
+        }
+        Button("Reset", systemImage: "arrow.counterclockwise") {
+            todayValue?.currentValue = 0
+        }
+        Button("Delete", systemImage: "trash", role: .destructive) {
+            deleteWithAnimation()
+        }
+    }
+}
+
+extension Habit.Card {
+    var todayValue: Habit.Value? { todayValues.first }
+    
     var name: String { habit.name }
     var unit: String { habit.unit }
     var icon: String { habit.icon }
     var color: Color { habit.color }
     
-    public var currentValue: Int {
-        switch viewType {
-            case .daily: todayValue.first?.currentValue ?? 0
+    var currentValue: Int {
+        switch mode {
+            case .daily: todayValue?.currentValue ?? 0
             case .weekly: weeklyValues.reduce(0) { $0 + $1.currentValue }
             case .monthly: weeklyValues.reduce(0) { $0 + $1.currentValue } // TODO
         }
     }
     
     var target: Int {
-        switch viewType {
+        switch mode {
             case .daily: habit.target
             case .weekly: habit.target * 7
             case .monthly: habit.target * 30
@@ -118,45 +140,20 @@ extension Habit.Card {
     var isCompleted: Bool {
         currentValue >= target
     }
-    
-    func increment() {
-        if let value = todayValue.first {
-            value.currentValue += 1
-        } else {
-            let newValue = Habit.Value(habit: habit, date: endDay, currentValue: 1)
-            modelContext.insert(newValue)
-        }
-    }
-    
-    func randomize() {
-        let randomValue = Int.random(in: 0...habit.target * 2)
-        if let value = todayValue.first {
-            value.currentValue = randomValue
-        } else {
-            let newValue = Habit.Value(habit: habit, date: endDay, currentValue: randomValue)
-            modelContext.insert(newValue)
-        }
-    }
-    
-    func reset() {
-        if let value = todayValue.first {
-            value.currentValue = 0
-        } else {
-            let newValue = Habit.Value(habit: habit, date: endDay, currentValue: 0)
-            modelContext.insert(newValue)
-        }
-    }
+}
 
-    @ViewBuilder
-    var contextMenuButtons: some View {
-        Button("Randomize", systemImage: "sparkles") {
-            randomize()
-        }
-        Button("Reset", systemImage: "arrow.counterclockwise") {
-            reset()
-        }
-        Button("Delete", systemImage: "trash", role: .destructive) {
-            onDelete()
+extension Habit.Card {
+    enum Mode: String, CaseIterable {
+        case daily = "Daily"
+        case weekly = "Weekly"
+        case monthly = "Monthly"
+        
+        var icon: String {
+            switch self {
+                case .daily: "1.square.fill"
+                case .weekly: "7.square.fill"
+                case .monthly: "30.square.fill"
+            }
         }
     }
 }

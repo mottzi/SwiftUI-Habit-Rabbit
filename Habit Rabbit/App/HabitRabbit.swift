@@ -5,13 +5,10 @@ import SwiftData
 struct HabitRabbitApp: App {
     var body: some Scene {
         WindowGroup {
-            ContentView(endDay: .now)
-                .modelContainer(for: [Habit.self, Habit.Value.self])
+            NavigationStack {
+                ContentView()
+                    .modelContainer(for: [Habit.self, Habit.Value.self])
+            }
         }
     }
-}
-
-#Preview {
-    ContentView(endDay: .now)
-        .modelContainer(for: [Habit.self, Habit.Value.self])
 }
