@@ -80,6 +80,7 @@ extension Habit.Value {
         
         let sortByDate = SortDescriptor(\Habit.Value.date)
         var descriptor = FetchDescriptor(predicate: predicate, sortBy: [sortByDate])
+        descriptor.fetchLimit = 7
         descriptor.relationshipKeyPathsForPrefetching = [\Habit.Value.habit]
         
         return descriptor

@@ -5,67 +5,47 @@ extension Habit {
     struct Card: View {
         @Environment(\.modelContext) var modelContext
         @Environment(\.colorScheme) var colorScheme
-        
-        @State var isDeleting = false
-        @State var deletionOffset: CGSize = .zero
-        
+
         @Query var todayValues: [Habit.Value]
         @Query var weeklyValues: [Habit.Value]
+        @State var isDeleting = false
+
+        let config: Habit.Card.Config
         
-        let habit: Habit
-        let lastDay: Date
-        let mode: Habit.Card.Mode
-        let index: Int
+        var habit: Habit { config.habit }
+        var name: String { habit.name }
+        var unit: String { habit.unit }
+        var icon: String { habit.icon }
+        var color: Color { habit.color }
+        var lastDay: Date { config.lastDay }
+        var lastDayValue: Habit.Value? { todayValues.first }
+        var mode: Habit.Card.Mode { config.mode }
         
         var body: some View {
             VStack(spacing: 0) {
-                dailyView
-                    .frame(height: barChartHeight)
+                dayView
                 habitLabel
-                    .frame(maxHeight: .infinity, alignment: .bottom)
             }
             .padding(20)
             .frame(maxWidth: .infinity)
+            .frame(height: mode == .monthly ? 350 : 232)
             .background { backgroundView }
             .geometryGroup()
-            .animation(.bouncy, value: todayValues.first?.currentValue)
+            .animation(.bouncy, value: lastDayValue?.currentValue)
             .scaleEffect(isDeleting ? 0 : 1)
             .contentShape(.contextMenuPreview, .rect(cornerRadius: 24))
             .contextMenu { contextMenuButtons }
-            .offset(isDeleting ? deletionOffset : .zero)
-            .frame(height: mode == .monthly ? 350 : 232)
+            .offset(isDeleting ? deleteOffset : .zero)
         }
         
-        var dailyView: some View {
-            HStack(spacing: 12) {
-                progressChart
-                    .frame(width: barChartWidth)
-                VStack(spacing: 0) {
-                    progressLabel
-                        .frame(maxHeight: .infinity)
-                    progressButton
-                        .frame(width: 70, height: 70)
-                }
-            }
-            .geometryGroup() // prevents progressLabel jumping
-        }
-        
-        let barChartWidth: CGFloat = 50
-        let barChartHeight: CGFloat = 155
-        
-        init(
-            for habit: Habit,
-            day lastDay: Date,
-            mode: Habit.Card.Mode,
-            index: Int
-        ) {
-            self.habit = habit
-            self.lastDay = lastDay
-            self.mode = mode
-            self.index = index
-            
+        init(config: Habit.Card.Config) {
+            self.config = config
             self._todayValues = Query(Habit.Value.filterByDay(for: habit, on: lastDay))
             self._weeklyValues = Query(Habit.Value.filterByWeek(for: habit, endingOn: lastDay))
+        }
+        
+        init(habit: Habit, day: Date, mode: Mode, index: Int) {
+            self.init(config: .init(for: habit, day: day, mode: mode, index: index))
         }
     }
 }
@@ -76,7 +56,6 @@ extension Habit.Card {
             try? await Task.sleep(nanoseconds: 10_000_000)
             withAnimation(.spring(duration: 0.8)) {
                 isDeleting = true
-                deletionOffset = calculateDeletionOffset()
             } completion: {
                 isDeleting = false
             }
@@ -86,10 +65,10 @@ extension Habit.Card {
         }
     }
     
-    func calculateDeletionOffset() -> CGSize {
-        let amount = mode == .daily ? 250 : 500
-        let adjustedSide = (index % 2 == 0) ? -amount : amount
-        return CGSize(width: CGFloat(adjustedSide), height: 100)
+    var deleteOffset: CGSize {
+        let amount = config.mode.deleteOffset
+        let offset = (config.index % 2 == 0) ? -amount : amount
+        return CGSize(width: CGFloat(offset), height: 100)
     }
 }
 
@@ -97,10 +76,10 @@ extension Habit.Card {
     @ViewBuilder
     var contextMenuButtons: some View {
         Button("Randomize", systemImage: "sparkles") {
-            todayValue?.currentValue = Int.random(in: 0...habit.target * 2)
+            lastDayValue?.currentValue = Int.random(in: 0...habit.target * 2)
         }
         Button("Reset", systemImage: "arrow.counterclockwise") {
-            todayValue?.currentValue = 0
+            lastDayValue?.currentValue = 0
         }
         Button("Delete", systemImage: "trash", role: .destructive) {
             deleteWithAnimation()
@@ -109,16 +88,9 @@ extension Habit.Card {
 }
 
 extension Habit.Card {
-    var todayValue: Habit.Value? { todayValues.first }
-    
-    var name: String { habit.name }
-    var unit: String { habit.unit }
-    var icon: String { habit.icon }
-    var color: Color { habit.color }
-    
     var currentValue: Int {
         switch mode {
-            case .daily: todayValue?.currentValue ?? 0
+            case .daily: lastDayValue?.currentValue ?? 0
             case .weekly: weeklyValues.reduce(0) { $0 + $1.currentValue }
             case .monthly: weeklyValues.reduce(0) { $0 + $1.currentValue } // TODO
         }
@@ -154,6 +126,37 @@ extension Habit.Card {
                 case .weekly: "7.square.fill"
                 case .monthly: "30.square.fill"
             }
+        }
+        
+        var deleteOffset: CGFloat {
+            switch self {
+                case .daily: 250
+                case .weekly, .monthly: 500
+            }
+        }
+    }
+}
+
+extension Habit.Card {
+    struct Config {
+        let habit: Habit
+        let lastDay: Date
+        let mode: Habit.Card.Mode
+        let index: Int
+        
+        let barChartWidth: CGFloat = 50
+        let barChartHeight: CGFloat = 155
+        
+        init(
+            for habit: Habit,
+            day lastDay: Date,
+            mode: Habit.Card.Mode,
+            index: Int
+        ) {
+            self.habit = habit
+            self.lastDay = lastDay
+            self.mode = mode
+            self.index = index
         }
     }
 }

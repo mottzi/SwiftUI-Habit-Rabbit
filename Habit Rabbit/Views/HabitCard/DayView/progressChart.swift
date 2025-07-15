@@ -20,16 +20,16 @@ extension Habit.Card {
 extension Habit.Card {
     var targetOffset: CGFloat {
         switch progress {
-            case  ...0: barChartHeight
-            case 0..<1: barChartHeight * (1 - progress) - 12
+            case  ...0: config.barChartHeight
+            case 0..<1: config.barChartHeight * (1 - progress) - 12
             case     1: 0
-            case  1...: barChartHeight * (1 - (1 / progress)) - 12
-            default   : barChartHeight
+            case  1...: config.barChartHeight * (1 - (1 / progress)) - 12
+            default   : config.barChartHeight
         }
     }
     
     var overflowOffset: CGFloat {
-        progress > 1 ? 0 : targetOffset + barChartWidth / 2
+        progress > 1 ? 0 : targetOffset + config.barChartWidth / 2
     }
     
     var glowColor: Color {
@@ -45,9 +45,9 @@ extension Habit.Card {
     var targetBounceFiller: some View {
         Rectangle()
             .fill(color.gradient)
-            .frame(height: barChartHeight / 2 + barChartWidth / 2)
+            .frame(height: config.barChartHeight / 2 + config.barChartWidth / 2)
             .frame(maxHeight: .infinity, alignment: .bottom)
-            .offset(y: barChartWidth / 2)
+            .offset(y: config.barChartWidth / 2)
     }
     
     var overflowFiller: some View {

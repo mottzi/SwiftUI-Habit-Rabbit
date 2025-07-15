@@ -1,40 +1,41 @@
 import SwiftUI
 import SwiftData
 
-struct ContentView: View {
-    @Environment(\.colorScheme) private var colorScheme
-    @Environment(\.modelContext) private var modelContext
-    
-    @State var lastDay: Date = .now
-    @State var mode: Habit.Card.Mode = .daily
-    
-    @Query(sort: \Habit.date) var habits: [Habit]
-    
-    var body: some View {
-        ScrollView {
-            LazyVGrid(columns: columns, spacing: 16) {
-                ForEach(habits.enumerated, id: \.element.id) { index, habit in
-                    Habit.Card(
-                        for: habit,
-                        day: lastDay,
-                        mode: mode,
-                        index: index,
-                    )
+extension Habit {
+    struct Dashboard: View {
+        @Environment(\.colorScheme) private var colorScheme
+        @Environment(\.modelContext) private var modelContext
+        
+        @Query(sort: \Habit.date) var habits: [Habit]
+        @State var lastDay: Date = .now
+        @State var mode: Habit.Card.Mode = .daily
+        
+        var body: some View {
+            ScrollView {
+                LazyVGrid(columns: columns, spacing: 16) {
+                    ForEach(habits.enumerated, id: \.element.id) { index, habit in
+                        Habit.Card(
+                            habit: habit,
+                            day: lastDay,
+                            mode: mode,
+                            index: index,
+                        )
+                    }
                 }
+                .padding(16)
             }
-            .padding(16)
+            .navigationTitle("Habit Rabbit")
+            .toolbar {
+                modeButton
+                debugToolbar
+            }
+            .animation(.default, value: habits.count)
+            .animation(.default, value: mode)
         }
-        .navigationTitle("Habit Rabbit")
-        .toolbar {
-            modeButton
-            debugToolbar
-        }
-        .animation(.default, value: habits.count)
-        .animation(.default, value: mode)
     }
 }
 
-extension ContentView {
+extension Habit.Dashboard {
     var columns: [GridItem] {
         let column = GridItem(.flexible(), spacing: 16)
         return switch mode {
@@ -44,7 +45,7 @@ extension ContentView {
     }
 }
 
-extension ContentView {
+extension Habit.Dashboard {
     @ToolbarContentBuilder
     var modeButton: some ToolbarContent {
         ToolbarItem(placement: .topBarTrailing) {
@@ -66,7 +67,7 @@ extension ContentView {
     }
 }
 
-extension ContentView {
+extension Habit.Dashboard {
     @ToolbarContentBuilder
     var debugToolbar: some ToolbarContent {
         ToolbarItem(placement: .topBarLeading) { debugCounter }

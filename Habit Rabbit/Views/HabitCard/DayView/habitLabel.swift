@@ -7,5 +7,6 @@ extension Habit.Card {
             .fontWeight(.semibold)
             .foregroundStyle(.primary)
             .lineLimit(1)
+            .frame(maxHeight: .infinity, alignment: .bottom)
     }
 }

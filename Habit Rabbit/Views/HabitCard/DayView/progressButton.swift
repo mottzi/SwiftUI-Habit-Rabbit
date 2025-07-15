@@ -3,7 +3,7 @@ import SwiftUI
 extension Habit.Card {
     var progressButton: some View {
         Button {
-            todayValue?.currentValue += 1
+            lastDayValue?.currentValue += 1
         } label: {
             ZStack {
                 Circle()
@@ -18,6 +18,6 @@ extension Habit.Card {
             }
         }
         .buttonStyle(.plain)
-        .sensoryFeedback(.increase, trigger: todayValue?.currentValue)
+        .sensoryFeedback(.increase, trigger: lastDayValue?.currentValue)
     }
 }

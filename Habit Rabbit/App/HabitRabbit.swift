@@ -6,7 +6,7 @@ struct HabitRabbitApp: App {
     var body: some Scene {
         WindowGroup {
             NavigationStack {
-                ContentView()
+                Habit.Dashboard()
                     .modelContainer(for: [Habit.self, Habit.Value.self])
             }
         }
