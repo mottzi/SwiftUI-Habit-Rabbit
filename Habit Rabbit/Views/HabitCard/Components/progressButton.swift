@@ -3,7 +3,7 @@ import SwiftUI
 extension Habit.Card {
     var progressButton: some View {
         Button {
-            entry.currentDayValue.currentValue += 1
+            increment()
             feedbackTrigger.toggle()
         } label: {
             ZStack {

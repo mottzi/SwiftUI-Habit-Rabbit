@@ -46,28 +46,7 @@ extension Habit {
         }
     }
     
-    public struct Entry: Identifiable {
-        var id: Habit.ID { habit.id }
-        let habit: Habit
-        let mode: HabitCardType
-        let currentDayValue: Habit.Value
-        let dailyValue: Int
-        let weeklyValues: [Int]
-        
-        init(
-            habit: Habit,
-            mode: HabitCardType,
-            currentDayValue: Habit.Value,
-            dailyValue: Int,
-            weeklyValues: [Int]
-        ) {
-            self.habit = habit
-            self.mode = mode
-            self.currentDayValue = currentDayValue
-            self.dailyValue = dailyValue
-            self.weeklyValues = weeklyValues
-        }
-    }
+    
 }
 
 extension Habit.Value {

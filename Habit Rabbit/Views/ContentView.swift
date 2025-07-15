@@ -1,37 +1,29 @@
 import SwiftUI
 import SwiftData
 
-struct ContentView: HabitManaging, View {
+struct ContentView: View {
     @Environment(\.colorScheme) private var colorScheme
     @Environment(\.modelContext) private var modelContext
     
     @State var endDay: Date = .now
     @State var viewType: HabitCardType = .daily
-    @State var valueLookup: [Habit.ID: [Date: Habit.Value]] = [:]
-    @State private var entriesDeleting: Set<Habit.Entry.ID> = []
+    @State private var entriesDeleting: [Habit.ID: CGSize] = [:]
     
     @Query var habits: [Habit]
-    @Query var values: [Habit.Value]
     
     init(endDay: Date = .now) {
-        let startDate = Calendar.current.date(byAdding: .day, value: -6, to: endDay)!
         _endDay = State(initialValue: endDay)
         _habits = Query(sort: \Habit.date)
-        _values = Query(Habit.Value.filter(dateRange: startDate...endDay))
     }
     
     var body: some View {
         NavigationStack {
             ScrollView {
                 LazyVGrid(columns: columns, spacing: 16) {
-                    ForEach(entries.enumerated, id: \.element.id) { index, entry in
-                        let isDeleting = isDeleting(entry: entry)
-                        Habit.Card(entry: entry)
-                            .scaleEffect(isDeleting ? 0 : 1)
-                            .frame(height: entry.mode == .monthly ? 350 : 230)
-                            .contentShape(.contextMenuPreview, .rect(cornerRadius: 24))
-                            .contextMenu { contextMenuButtons(for: entry) }
-                            .offset(deletionOffset(for: index, isDeleting: isDeleting))
+                    ForEach(habits) { habit in
+                        let isDeleting = isDeleting(habit: habit)
+                        let offset = deletionOffset(for: habit, isDeleting: isDeleting)
+                        Habit.Card(habit: habit, endDay: endDay, viewType: viewType, onDelete: { delete(habit: habit) }, isDeleting: isDeleting, deletionOffset: offset)
                     }
                 }
                 .padding()
@@ -41,9 +33,8 @@ struct ContentView: HabitManaging, View {
                     debugToolbar
                 }
             }
-            .animation(.default, value: entries.count)
+            .animation(.default, value: habits.count)
             .animation(.default, value: viewType)
-            .onChange(of: values, initial: true) { valueLookup = updatedValueLookup() }
         }
     }
 }
@@ -57,30 +48,37 @@ extension ContentView {
         }
     }
     
-    private func delete(entry: Habit.Entry) {
+    private func delete(habit: Habit) {
         Task {
-            try? await Task.sleep(nanoseconds: 10_000_000)
+            try? await Task.sleep(nanoseconds: 10_000_000) // Initial delay
+            let offset = calculateDeletionOffset(for: habit)
             withAnimation(.spring(duration: 0.8)) {
-                _ = entriesDeleting.insert(entry.id)
+                entriesDeleting[habit.id] = offset
             } completion: {
-                _ = entriesDeleting.remove(entry.id)
+                entriesDeleting.removeValue(forKey: habit.id)
             }
             
-            try? await Task.sleep(nanoseconds: 10_000_000)
-            modelContext.delete(entry.habit)
+            try? await Task.sleep(nanoseconds: 10_000_000) // Delay before model deletion
+            modelContext.delete(habit)
         }
     }
     
-    private func isDeleting(entry: Habit.Entry) -> Bool {
-        entriesDeleting.contains(entry.id)
+    private func isDeleting(habit: Habit) -> Bool {
+        entriesDeleting.keys.contains(habit.id)
     }
     
-    private func deletionOffset(for index: Int, isDeleting: Bool) -> CGSize {
-        guard isDeleting else { return CGSize(width: 0, height: 0) }
+    private func calculateDeletionOffset(for habit: Habit) -> CGSize {
+        guard let index = habits.firstIndex(of: habit) else { return .zero }
         let amount = viewType == .daily ? 250 : 500
         let adjustedSide = (index % 2 == 0 ? -amount : amount)
         return CGSize(width: adjustedSide, height: 100)
     }
+    
+    private func deletionOffset(for habit: Habit, isDeleting: Bool) -> CGSize {
+        isDeleting ? entriesDeleting[habit.id] ?? .zero : .zero
+    }
+    
+    
 }
 
 extension ContentView {
@@ -106,31 +104,7 @@ extension ContentView {
 }
 
 extension ContentView {
-    @ViewBuilder
-    func contextMenuButtons(for entry: Habit.Entry) -> some View {
-        randomizeContextButton(entry: entry)
-        resetContextButton(entry: entry)
-        deleteContextButton(entry: entry)
-    }
     
-    func randomizeContextButton(entry: Habit.Entry) -> some View {
-        Button("Randomize", systemImage: "sparkles") {
-            let randomValue = Int.random(in: 0...entry.habit.target * 2)
-            getTodayValue(of: entry.habit)?.currentValue = randomValue
-        }
-    }
-    
-    func resetContextButton(entry: Habit.Entry) -> some View {
-        Button("Reset", systemImage: "arrow.counterclockwise") {
-            getTodayValue(of: entry.habit)?.currentValue = 0
-        }
-    }
-    
-    func deleteContextButton(entry: Habit.Entry) -> some View {
-        Button("Delete", systemImage: "trash", role: .destructive) {
-            delete(entry: entry)
-        }
-    }
 }
 
 extension ContentView {
@@ -143,7 +117,6 @@ extension ContentView {
     var debugCounter: some View {
         HStack {
             Text("Habits: \(habits.count)")
-            Text("Values: \(values.count)")
         }
         .font(.footnote)
         .fontWeight(.semibold)
@@ -154,12 +127,6 @@ extension ContentView {
         Menu {
             addExampleButton
             Divider()
-            randomizeDebugButton
-            resetValuesButton
-            Divider()
-            removeAllDataButton
-            removeFirstHabitEntryButton
-            removeLastHabitEntryButton
             removeHabitsButton
         } label: {
             Image(systemName: "hammer.fill").foregroundStyle(colorScheme == .light ? .black : .white)
@@ -192,43 +159,6 @@ extension ContentView {
             }
         } label: {
             Label("Add", systemImage: "plus")
-        }
-    }
-    
-    var randomizeDebugButton: some View {
-        Button("Randomize All", systemImage: "sparkles") {
-            for habit in habits {
-                let randomValue = Int.random(in: 0...habit.target * 2)
-                getTodayValue(of: habit)?.currentValue = randomValue
-            }
-        }
-    }
-    
-    var resetValuesButton: some View {
-        Button("Reset All", systemImage: "arrow.counterclockwise") {
-            for habit in habits {
-                getTodayValue(of: habit)?.currentValue = 0
-            }
-        }
-    }
-    
-    var removeAllDataButton: some View {
-        Button("Kill Database", systemImage: "xmark", role: .destructive) {
-            modelContext.container.deleteAllData()
-        }
-    }
-    
-    var removeFirstHabitEntryButton: some View {
-        Button("Delete First", systemImage: "text.line.first.and.arrowtriangle.forward", role: .destructive) {
-            guard let firstEntry = entries.first else { return }
-            delete(entry: firstEntry)
-        }
-    }
-    
-    var removeLastHabitEntryButton: some View {
-        Button("Delete Last", systemImage: "text.line.last.and.arrowtriangle.forward", role: .destructive) {
-            guard let lastEntry = entries.last else { return }
-            delete(entry: lastEntry)
         }
     }
     
