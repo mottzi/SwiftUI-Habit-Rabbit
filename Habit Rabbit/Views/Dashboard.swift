@@ -32,16 +32,11 @@ extension Habit {
             .animation(.default, value: habits.count)
             .animation(.default, value: mode)
         }
-    }
-}
-
-extension Habit.Dashboard {
-    var columns: [GridItem] {
-        let column = GridItem(.flexible(), spacing: 16)
-        return switch mode {
-            case .daily: [column, column]
-            case .weekly, .monthly: [column]
-        }
+        
+        let columns = [
+            GridItem(.flexible(), spacing: 16),
+            GridItem(.flexible(), spacing: 16)
+        ]
     }
 }
 
@@ -49,17 +44,15 @@ extension Habit.Dashboard {
     @ToolbarContentBuilder
     var modeButton: some ToolbarContent {
         ToolbarItem(placement: .topBarTrailing) {
-            Menu {
-                ForEach(Habit.Card.Mode.allCases, id: \.self) { type in
-                    Button("\(type.rawValue)", systemImage: type.icon) {
-                        mode = type
-                    }
-                }
+            Button {
+                mode = mode.next
             } label: {
-                HStack {
+                HStack(spacing: 0) {
                     Text("\(mode.rawValue)")
+                        .frame(minWidth: 80)
                     Image(systemName: "calendar.day.timeline.right")
                 }
+                .frame(minWidth: 120)
                 .fontWeight(.bold)
                 .foregroundStyle(colorScheme == .light ? .black : .white)
             }

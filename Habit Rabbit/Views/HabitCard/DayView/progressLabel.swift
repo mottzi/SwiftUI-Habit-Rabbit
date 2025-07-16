@@ -24,6 +24,7 @@ extension Habit.Card {
                 .font(.footnote)
                 .fontWeight(.medium)
                 .foregroundStyle(.secondary)
+                .fixedSize()
         }
         .padding(.horizontal, 2)
     }

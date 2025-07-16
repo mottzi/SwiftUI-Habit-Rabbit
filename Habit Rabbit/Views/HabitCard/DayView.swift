@@ -3,8 +3,14 @@ import SwiftUI
 extension Habit.Card {
     var dayView: some View {
         HStack(spacing: 12) {
-            progressChart
-                .frame(width: config.barChartWidth)
+            ProgressBar(
+                currentValue: lastDayValue?.currentValue ?? 0,
+                target: habit.target,
+                color: color,
+                width: config.dailyBarChartWidth,
+                height: config.dailyBarChartHeight
+            )
+            
             VStack(spacing: 0) {
                 progressLabel
                     .frame(maxHeight: .infinity)
@@ -13,6 +19,6 @@ extension Habit.Card {
             }
         }
         .geometryGroup()
-        .frame(height: config.barChartHeight)
+        .frame(height: config.dailyBarChartHeight)
     }
 }

@@ -5,11 +5,12 @@ extension Habit {
     struct Card: View {
         @Environment(\.modelContext) var modelContext
         @Environment(\.colorScheme) var colorScheme
-
+        @Namespace var heroAnimation
+        
         @Query var todayValues: [Habit.Value]
         @Query var weeklyValues: [Habit.Value]
         @State var isDeleting = false
-
+        
         let config: Habit.Card.Config
         
         var habit: Habit { config.habit }
@@ -23,13 +24,42 @@ extension Habit {
         
         var body: some View {
             VStack(spacing: 0) {
-                dayView
-                habitLabel
+                Group {
+                    switch mode {
+                        case .daily: do {
+                            dayView.padding(.top, 20)
+                            Spacer()
+                            habitLabel
+                                .padding(.bottom, 20)
+                            
+                        }
+                        case .weekly:
+                            weekView
+                                .padding(.top, 14)
+                            Spacer()
+                            VStack(spacing: 4) {
+                                habitLabel
+                                Text("\(currentValue) / \(target)")
+                                    .foregroundStyle(.primary.opacity(0.5))
+                                    .font(.subheadline)
+                                    .lineLimit(1)
+                                    .minimumScaleFactor(0.7)
+                                    .fontWeight(.medium)
+                                    .monospacedDigit()
+                                    .contentTransition(.numericText())
+                            }
+                            .padding(.bottom, 10)
+                    }
+                }
+                .transition(.blurReplace)
+                
+               
             }
-            .padding(20)
+//            .padding(20)
             .frame(maxWidth: .infinity)
-            .frame(height: mode == .monthly ? 350 : 232)
+            .frame(height: 232)
             .background { backgroundView }
+            .clipShape(.rect(cornerRadius: 24))
             .geometryGroup()
             .animation(.bouncy, value: lastDayValue?.currentValue)
             .scaleEffect(isDeleting ? 0 : 1)
@@ -92,7 +122,6 @@ extension Habit.Card {
         switch mode {
             case .daily: lastDayValue?.currentValue ?? 0
             case .weekly: weeklyValues.reduce(0) { $0 + $1.currentValue }
-            case .monthly: weeklyValues.reduce(0) { $0 + $1.currentValue } // TODO
         }
     }
     
@@ -100,7 +129,6 @@ extension Habit.Card {
         switch mode {
             case .daily: habit.target
             case .weekly: habit.target * 7
-            case .monthly: habit.target * 30
         }
     }
     
@@ -118,20 +146,11 @@ extension Habit.Card {
     enum Mode: String, CaseIterable {
         case daily = "Daily"
         case weekly = "Weekly"
-        case monthly = "Monthly"
-        
-        var icon: String {
-            switch self {
-                case .daily: "1.square.fill"
-                case .weekly: "7.square.fill"
-                case .monthly: "30.square.fill"
-            }
-        }
         
         var deleteOffset: CGFloat {
             switch self {
                 case .daily: 250
-                case .weekly, .monthly: 500
+                case .weekly: 250
             }
         }
     }
@@ -144,9 +163,9 @@ extension Habit.Card {
         let mode: Habit.Card.Mode
         let index: Int
         
-        let barChartWidth: CGFloat = 50
-        let barChartHeight: CGFloat = 155
-        
+        let dailyBarChartWidth: CGFloat = 50
+        let dailyBarChartHeight: CGFloat = 155
+
         init(
             for habit: Habit,
             day lastDay: Date,
@@ -159,4 +178,21 @@ extension Habit.Card {
             self.index = index
         }
     }
+}
+
+#Preview {
+    VStack(spacing: 16) {
+        HStack(spacing: 16) {
+            Habit.Card(habit: Habit.examples[0], day: .now, mode: .daily, index: 0)
+            Habit.Card(habit: Habit.examples[1], day: .now, mode: .daily, index: 1)
+        }
+        
+        HStack(spacing: 16) {
+            Habit.Card(habit: Habit.examples[0], day: .now, mode: .weekly, index: 0)
+            Habit.Card(habit: Habit.examples[1], day: .now, mode: .weekly, index: 1)
+        }
+        
+        Spacer()
+    }
+    .padding(16)
 }

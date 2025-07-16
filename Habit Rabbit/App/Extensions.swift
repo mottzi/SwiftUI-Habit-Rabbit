@@ -1,5 +1,24 @@
 import SwiftUI
 
+extension CaseIterable where Self: Equatable {
+    var next: Self {
+        let all = Array(Self.allCases)
+        let currentIndex = all.firstIndex(of: self)!
+        let nextIndex = (currentIndex + 1) % all.count
+        return all[nextIndex]
+    }
+}
+
+extension Date {
+    var weekday: String {
+        let formatter = DateFormatter()
+        formatter.locale = Locale.current
+        formatter.dateFormat = "E" // localized short weekday (Mon, Tue, ...)
+        let abbreviation = formatter.string(from: self)
+        return String(abbreviation.prefix(1))
+    }
+}
+
 extension View {
     func debug(_ color: Color? = nil, _ width: CGFloat? = nil) -> some View {
         self.border(color ?? .orange, width: width ?? 2)
