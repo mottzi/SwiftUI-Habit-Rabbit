@@ -79,10 +79,12 @@ extension Habit.Dashboard {
     var debugButton: some View {
         Menu {
             addExampleButton
+            randomizeButton
             Divider()
             removeHabitsButton
         } label: {
-            Image(systemName: "hammer.fill").foregroundStyle(colorScheme == .light ? .black : .white)
+            Image(systemName: "hammer.fill")
+                .foregroundStyle(colorScheme == .light ? .black : .white)
         }
     }
     
@@ -112,6 +114,29 @@ extension Habit.Dashboard {
             }
         } label: {
             Label("Add", systemImage: "plus")
+        }
+    }
+    
+    var randomizeButton: some View {
+        Button("Randomize all", systemImage: "sparkle") {
+            for habit in habits {
+                for dayOffset in 0..<7 {
+                    let date = Calendar.current.date(byAdding: .day, value: -dayOffset, to: lastDay)!
+                    let descriptor = Habit.Value.filterByDay(for: habit, on: date)
+                    
+                    guard let existingValues = try? modelContext.fetch(descriptor) else { continue }
+                    let randomValue = Int.random(in: 0...habit.target * 2)
+
+                    if let existingValue = existingValues.first {
+                        existingValue.currentValue = randomValue
+                    } else {
+                        let newValue = Habit.Value(habit: habit, date: date, currentValue: randomValue)
+                        modelContext.insert(newValue)
+                    }
+                }
+            }
+            
+            try? modelContext.save()
         }
     }
     

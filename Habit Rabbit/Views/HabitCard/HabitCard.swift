@@ -23,43 +23,17 @@ extension Habit {
         var mode: Habit.Card.Mode { config.mode }
         
         var body: some View {
-            VStack(spacing: 0) {
+            ZStack {
                 Group {
                     switch mode {
-                        case .daily: do {
-                            dayView.padding(.top, 20)
-                            Spacer()
-                            habitLabel
-                                .padding(.bottom, 20)
-                            
-                        }
-                        case .weekly:
-                            weekView
-                                .padding(.top, 14)
-                            Spacer()
-                            VStack(spacing: 4) {
-                                habitLabel
-                                Text("\(currentValue) / \(target)")
-                                    .foregroundStyle(.primary.opacity(0.5))
-                                    .font(.subheadline)
-                                    .lineLimit(1)
-                                    .minimumScaleFactor(0.7)
-                                    .fontWeight(.medium)
-                                    .monospacedDigit()
-                                    .contentTransition(.numericText())
-                            }
-                            .padding(.bottom, 10)
+                        case .daily: dayView
+                        case .weekly: weekView
                     }
                 }
-                .transition(.blurReplace)
-                
-               
             }
-//            .padding(20)
             .frame(maxWidth: .infinity)
             .frame(height: 232)
             .background { backgroundView }
-            .clipShape(.rect(cornerRadius: 24))
             .geometryGroup()
             .animation(.bouncy, value: lastDayValue?.currentValue)
             .scaleEffect(isDeleting ? 0 : 1)

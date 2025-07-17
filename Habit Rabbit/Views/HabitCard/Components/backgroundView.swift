@@ -4,7 +4,7 @@ extension Habit.Card {
     var backgroundView: some View {
         RoundedRectangle(cornerRadius: 24)
             .fill(.regularMaterial)
-            .stroke(.quaternary, lineWidth: colorScheme == .dark ? 0.8 : 0.4)
+            .stroke(.quaternary, lineWidth: colorScheme == .dark ? 1 : 0.6)
             .background {
                 backShadow
                 orbView
@@ -34,8 +34,7 @@ extension Habit.Card {
         Rectangle()
             .fill(color.gradient)
             .opacity(isCompleted ? (colorScheme == .dark ? 0.5 : 0.7) : 0)
-            .frame(width: 170, height: 170)
-            .offset(x: 0, y: 95)
+            .offset(x: 0, y: 180)
             .frame(maxWidth: .infinity, maxHeight: .infinity)
             .clipShape(.rect(cornerRadius: 24))
     }
