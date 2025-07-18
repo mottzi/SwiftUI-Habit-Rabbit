@@ -9,10 +9,10 @@ extension Habit.Card {
                     target: habit.target,
                     color: color,
                     axis: .vertical,
-                    width: config.dailyBarChartWidth,
-                    height: config.dailyBarChartHeight
+                    width: 50,
+                    height: contentHeight
                 )
-                .matchedGeometryEffect(id: "view", in: heroAnimation, anchor: .topLeading)
+                .matchedGeometryEffect(id: "view", in: modeTransition, anchor: .topLeading)
                 
                 VStack(spacing: 0) {
                     progressLabel
@@ -22,14 +22,14 @@ extension Habit.Card {
                 }
             }
             .geometryGroup()
-            .frame(height: config.dailyBarChartHeight)
+            .frame(height: contentHeight)
             .transition(.blurReplace)
             .padding(.top, 20)
             
             Spacer()
             
             habitLabel
-                .matchedGeometryEffect(id: "habitLabel", in: heroAnimation)
+                .matchedGeometryEffect(id: "habitLabel", in: modeTransition)
                 .padding(.bottom, 20)
         }
     }

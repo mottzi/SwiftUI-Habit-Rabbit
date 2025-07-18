@@ -28,6 +28,7 @@ extension Habit.Card {
                         .padding(axis == .vertical ? 3 : 0)
                 }
                 .frame(maxWidth: width, maxHeight: height)
+                .animation(.bouncy, value: currentValue)
         }
     }
 }

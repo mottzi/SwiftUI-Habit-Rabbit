@@ -27,5 +27,6 @@ extension Habit.Card {
                 .fixedSize()
         }
         .padding(.horizontal, 2)
+        .animation(.bouncy, value: currentValue)
     }
 }

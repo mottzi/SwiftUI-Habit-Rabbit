@@ -11,11 +11,14 @@ extension CaseIterable where Self: Equatable {
 
 extension Date {
     var weekday: String {
-        let formatter = DateFormatter()
-        formatter.locale = Locale.current
-        formatter.dateFormat = "E" // localized short weekday (Mon, Tue, ...)
-        let abbreviation = formatter.string(from: self)
-        return String(abbreviation.prefix(1))
+        let dateFormatter = DateFormatter()
+        dateFormatter.locale = Locale.current
+        dateFormatter.dateFormat = "EEEEE"
+        return dateFormatter.string(from: self)
+    }
+    
+    var startOfDay: Date {
+        Calendar.current.startOfDay(for: self)
     }
 }
 
@@ -25,10 +28,27 @@ extension View {
     }
     
     @ViewBuilder
-    func `if`<Content: View>(_ condition: Bool, transform: (Self) -> Content) -> some View {
-        switch condition {
-            case true: transform(self)
-            case false: self
+    func `if`<TrueContent: View, FalseContent: View>(
+        _ condition: Bool,
+        @ViewBuilder trueTransform: (Self) -> TrueContent,
+        @ViewBuilder `else`: (Self) -> FalseContent
+    ) -> some View {
+        if condition {
+            trueTransform(self)
+        } else {
+            `else`(self)
+        }
+    }
+    
+    @ViewBuilder
+    func `if`<TrueContent: View>(
+        _ condition: Bool,
+        @ViewBuilder trueTransform: (Self) -> TrueContent
+    ) -> some View {
+        if condition {
+            trueTransform(self)
+        } else {
+            self
         }
     }
 }
@@ -38,14 +58,6 @@ extension RandomAccessCollection {
         Array(self.enumerated())
     }
 }
-
-//extension Array {
-//    func chunked(into size: Int) -> [[Element]] {
-//        return stride(from: 0, to: count, by: size).map {
-//            Array(self[$0..<Swift.min($0 + size, count)])
-//        }
-//    }
-//}
 
 extension String {
     func pluralized(count: Int) -> String {

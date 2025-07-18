@@ -2,76 +2,105 @@ import SwiftUI
 import SwiftData
 
 extension Habit {
+    // displays the value data of a habit for the time interval specified
     struct Card: View {
         @Environment(\.modelContext) var modelContext
         @Environment(\.colorScheme) var colorScheme
-        @Namespace var heroAnimation
+        @Namespace var modeTransition
+
+        let habit: Habit // habit displayed
+        let lastDay: Date // last day of the time interval
+        let mode: Habit.Card.Mode // lenth of the time interval
+        let index: Int // index in parent container, used for animations
         
-        @Query var todayValues: [Habit.Value]
-        @Query var weeklyValues: [Habit.Value]
+        let weekDateRange: [Date]
+        
+        // fetches values of the habit, source of truth
         @Query var monthlyValues: [Habit.Value]
+        // card animates before being removed
         @State var isDeleting = false
         
-        let config: Habit.Card.Config
-        var habit: Habit { config.habit }
-        var name: String { habit.name }
-        var unit: String { habit.unit }
-        var icon: String { habit.icon }
-        var color: Color { habit.color }
-        var lastDay: Date { config.lastDay }
-        var lastDayValue: Habit.Value? { todayValues.first }
-        var mode: Habit.Card.Mode { config.mode }
+        init(habit: Habit, lastDay: Date, mode: Mode, index: Int) {
+            self.habit = habit
+            self.lastDay = lastDay.startOfDay
+            self.mode = mode
+            self.index = index
+            
+            // Pre-compute the 7 dates we need - this is static for the card's lifetime
+            self.weekDateRange = (0..<7).map { dayOffset in
+                Calendar.current.date(byAdding: .day, value: -dayOffset, to: lastDay)!
+            }.reversed()
+
+            // fetches last 30 days of values ending on the day specified
+            _monthlyValues = Query(Habit.Value.filterByDays(30, for: habit, endingOn: lastDay))
+        }
         
         var body: some View {
             ZStack {
                 switch mode {
                     case .daily: dayView
                     case .weekly: weekView
-                    case .monthly: monthView.geometryGroup()
+                    case .monthly: monthView
                 }
             }
             .frame(maxWidth: .infinity)
             .frame(height: 232)
             .background { backgroundView }
             .geometryGroup()
-            .animation(.bouncy, value: lastDayValue?.currentValue)
             .scaleEffect(isDeleting ? 0 : 1)
             .contentShape(.contextMenuPreview, .rect(cornerRadius: 24))
             .contextMenu { contextMenuButtons }
             .offset(isDeleting ? deleteOffset : .zero)
         }
         
-        init(config: Habit.Card.Config) {
-            self.config = config
-            self._todayValues = Query(Habit.Value.filterByDay(for: habit, on: lastDay))
-            self._weeklyValues = Query(Habit.Value.filterByDays(7, for: habit, endingOn: lastDay))
-            self._monthlyValues = Query(Habit.Value.filterByDays(30, for: habit, endingOn: lastDay))
-        }
-        
-        init(habit: Habit, day: Date, mode: Mode, index: Int) {
-            self.init(config: .init(for: habit, day: day, mode: mode, index: index))
-        }
+        let contentHeight: CGFloat = 155
     }
 }
 
 extension Habit.Card {
-    func deleteWithAnimation() {
-        Task {
-            try? await Task.sleep(nanoseconds: 10_000_000)
-            withAnimation(.spring(duration: 0.8)) {
-                isDeleting = true
-            } completion: {
-                isDeleting = false
-            }
-            
-            try? await Task.sleep(nanoseconds: 10_000_000)
-            modelContext.delete(habit)
+    // properties for easy access to habit properties
+    var name: String { habit.name }
+    var unit: String { habit.unit }
+    var icon: String { habit.icon }
+    var color: Color { habit.color }
+    
+    // value of the last day in the time interval
+    var lastDayValue: Habit.Value? { monthlyValues.last }
+    
+    // values of the last 7 days of the time interval
+    var weeklyValues: [Habit.Value] {
+        let recentValues = monthlyValues.suffix(7)
+        let lookup = Dictionary(recentValues.map { ($0.date, $0) }, uniquingKeysWith: { first, _ in first })
+        return weekDateRange.map { lookup[$0] ?? Habit.Value(habit: habit, date: $0, currentValue: 0) }
+    }
+    
+    // cumulative value for the time interval
+    var currentValue: Int {
+        switch mode {
+            case .daily: lastDayValue?.currentValue ?? 0
+            case .weekly: weeklyValues.reduce(0) { $0 + $1.currentValue }
+            case .monthly: monthlyValues.reduce(0) { $0 + $1.currentValue }
         }
     }
     
-    var deleteOffset: CGSize {
-        let offset = (config.index % 2 == 0) ? -250 : 250
-        return CGSize(width: CGFloat(offset), height: 100)
+    // cumulative target, proportional to daily target
+    var target: Int {
+        switch mode {
+            case .daily: habit.target
+            case .weekly: habit.target * 7
+            case .monthly: habit.target * 30
+        }
+    }
+    
+    // progress from 0 to 1
+    var progress: CGFloat {
+        guard target > 0 else { return 0 }
+        return CGFloat(currentValue) / CGFloat(target)
+    }
+    
+    // true if target has been reached
+    var isCompleted: Bool {
+        currentValue >= target
     }
 }
 
@@ -91,74 +120,47 @@ extension Habit.Card {
 }
 
 extension Habit.Card {
-    var currentValue: Int {
-        switch mode {
-            case .daily: lastDayValue?.currentValue ?? 0
-            case .weekly: weeklyValues.reduce(0) { $0 + $1.currentValue }
-            case .monthly: monthlyValues.reduce(0) { $0 + $1.currentValue }
+    func deleteWithAnimation() {
+        // animate card before deleting habit and all its values from context
+        Task {
+            try? await Task.sleep(nanoseconds: 10_000_000)
+            withAnimation(.spring(duration: 0.8)) {
+                isDeleting = true
+            } completion: {
+                isDeleting = false
+            }
+            
+            try? await Task.sleep(nanoseconds: 10_000_000)
+            modelContext.delete(habit)
         }
     }
     
-    var target: Int {
-        switch mode {
-            case .daily: habit.target
-            case .weekly: habit.target * 7
-            case .monthly: habit.target * 30
-        }
-    }
-    
-    var progress: CGFloat {
-        guard target > 0 else { return 0 }
-        return CGFloat(currentValue) / CGFloat(target)
-    }
-    
-    var isCompleted: Bool {
-        currentValue >= target
+    var deleteOffset: CGSize {
+        // cards animate towards nearest horizontal edge
+        let offset = (index % 2 == 0) ? -250 : 250
+        return CGSize(width: CGFloat(offset), height: 100)
     }
 }
 
 extension Habit.Card {
+    // length of time interval habit card can display values for
     enum Mode: String, CaseIterable {
-        case daily = "Daily"
-        case weekly = "Weekly"
-        case monthly = "Monthly"
-    }
-}
-
-extension Habit.Card {
-    struct Config {
-        let habit: Habit
-        let lastDay: Date
-        let mode: Habit.Card.Mode
-        let index: Int
-        
-        let dailyBarChartWidth: CGFloat = 50
-        let dailyBarChartHeight: CGFloat = 155
-
-        init(
-            for habit: Habit,
-            day lastDay: Date,
-            mode: Habit.Card.Mode,
-            index: Int
-        ) {
-            self.habit = habit
-            self.lastDay = lastDay
-            self.mode = mode
-            self.index = index
-        }
+        case daily = "Daily" // current day
+        case weekly = "Weekly" // last 7 days
+        case monthly = "Monthly" // last 30 days
     }
 }
 
 #Preview {
     VStack(spacing: 16) {
         HStack(spacing: 16) {
-            Habit.Card(habit: Habit.examples[0], day: .now, mode: .daily, index: 0)
-            Habit.Card(habit: Habit.examples[1], day: .now, mode: .daily, index: 1)
+            Habit.Card(habit: Habit.examples[0], lastDay: .now, mode: .daily, index: 0)
+            Habit.Card(habit: Habit.examples[1], lastDay: .now, mode: .daily, index: 1)
         }
-        
+            
         HStack(spacing: 16) {
-            Habit.Card(habit: Habit.examples[0], day: .now, mode: .weekly, index: 0)
-            Habit.Card(habit: Habit.examples[1], day: .now, mode: .weekly, index: 1)
+            Habit.Card(habit: Habit.examples[0], lastDay: .now, mode: .weekly, index: 0)
+            Habit.Card(habit: Habit.examples[1], lastDay: .now, mode: .weekly, index: 1)
         }
         
         Spacer()

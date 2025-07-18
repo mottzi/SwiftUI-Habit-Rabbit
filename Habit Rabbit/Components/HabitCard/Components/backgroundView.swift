@@ -7,7 +7,7 @@ extension Habit.Card {
             .stroke(.quaternary, lineWidth: colorScheme == .dark ? 1 : 0.6)
             .background {
                 backShadow
-                orbView
+                colorEffect
             }
     }
     
@@ -30,12 +30,13 @@ extension Habit.Card {
         }
     }
         
-    var orbView: some View {
+    var colorEffect: some View {
         Rectangle()
             .fill(color.gradient)
             .opacity(isCompleted ? (colorScheme == .dark ? 0.5 : 0.7) : 0)
             .offset(x: 0, y: 180)
             .frame(maxWidth: .infinity, maxHeight: .infinity)
             .clipShape(.rect(cornerRadius: 24))
+            .animation(.bouncy, value: isCompleted)
     }
 }

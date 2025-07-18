@@ -45,8 +45,6 @@ extension Habit {
             self.currentValue = currentValue
         }
     }
-    
-    
 }
 
 extension Habit.Value {
@@ -94,49 +92,49 @@ extension Habit {
               icon: "drop.fill",
               color: .blue,
               target: 1
-             ),
+        ),
         Habit(name: "Stretching",
               unit: "session",
               icon: "figure.strengthtraining.functional",
               color: .orange,
               target: 2
-             ),
+        ),
         Habit(name: "Meditation",
               unit: "session",
               icon: "figure.mind.and.body",
               color: .green,
               target: 3
-             ),
+        ),
         Habit(name: "Reading",
               unit: "page",
               icon: "books.vertical.fill",
               color: .pink,
               target: 4
-             ),
+        ),
         Habit(name: "Chores",
               unit: "task",
               icon: "house.fill",
               color: .red,
               target: 6
-             ),
+        ),
         Habit(name: "Vocabulary",
               unit: "word",
               icon: "book.fill",
               color: .indigo,
               target: 5
-             ),
+        ),
         Habit(name: "Stretching",
               unit: "minute",
               icon: "figure.cooldown",
               color: .brown,
               target: 10
-             ),
+        ),
         Habit(name: "Journaling",
               unit: "entry",
               icon: "pencil.and.ellipsis.rectangle",
               color: .cyan,
               target: 1
-             ),
+        ),
     ]}
 }
 

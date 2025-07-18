@@ -7,7 +7,7 @@ extension Habit {
         @Environment(\.modelContext) private var modelContext
         
         @Query(sort: \Habit.date) var habits: [Habit]
-        @State var lastDay: Date = .now
+        @State var lastDay: Date = .now.startOfDay
         @State var mode: Habit.Card.Mode = .daily
         
         var body: some View {
@@ -16,7 +16,7 @@ extension Habit {
                     ForEach(habits.enumerated, id: \.element.id) { index, habit in
                         Habit.Card(
                             habit: habit,
-                            day: lastDay,
+                            lastDay: lastDay,
                             mode: mode,
                             index: index,
                         )

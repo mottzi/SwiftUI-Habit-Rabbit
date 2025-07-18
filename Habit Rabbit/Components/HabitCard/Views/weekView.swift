@@ -4,34 +4,32 @@ extension Habit.Card {
     var weekView: some View {
         VStack(spacing: 0) {
             VStack(alignment: .leading, spacing: 9) {
-                ForEach(0..<7, id: \.self) { dayIndex in
-                    let dayDate = Calendar.current.date(byAdding: .day, value: dayIndex - 6, to: lastDay)!
-                    let dayValue = weeklyValues.first { Calendar.current.isDate($0.date, inSameDayAs: dayDate) }
-                    
+                ForEach(weeklyValues.enumerated, id: \.element.id) { index, value in
                     HStack(spacing: 12) {
-                        Text(dayDate.weekday)
-                            .font(.caption2)
-                            .fontWeight(.medium)
-                            .foregroundStyle(Color.primary.opacity(dayIndex == 6 ? 0.8 : 0.4))
-                            .lineLimit(1)
-                            .frame(width: 10, height: 10)
+                        dayLetter(
+                            for: value.date,
+                            color: .primary.opacity(index == 6 ? 0.8 : 0.4)
+                        )
+                        .frame(width: 10, height: 13)
                         
                         ProgressBar(
-                            currentValue: dayValue?.currentValue ?? 0,
+                            currentValue: value.currentValue,
                             target: habit.target,
                             color: color,
                             axis: .horizontal,
                             width: 118,
                             height: 13,
                         )
-                        .if(dayIndex == 6) {
-                            $0.matchedGeometryEffect(id: "view", in: heroAnimation, anchor: .leading)
+                        .if(index == 6) {
+                            $0.matchedGeometryEffect(id: "view", in: modeTransition, anchor: .leading)
+                        } else: {
+                            $0.matchedGeometryEffect(id: "bar\(index)", in: modeTransition)
                         }
                     }
                     .frame(maxWidth: .infinity)
                 }
             }
-            .frame(height: config.dailyBarChartHeight)
+            .frame(height: contentHeight)
             .transition(.blurReplace)
             .padding(.top, 18)
             .padding(.trailing, 4)
@@ -40,8 +38,9 @@ extension Habit.Card {
             
             VStack(spacing: 4) {
                 habitLabel
-                    .matchedGeometryEffect(id: "habitLabel", in: heroAnimation)
+                    .matchedGeometryEffect(id: "habitLabel", in: modeTransition)
                 progressLabelCompact
+                    .matchedGeometryEffect(id: "progressLabel", in: modeTransition)
             }
             .padding(.bottom, 10)
         }

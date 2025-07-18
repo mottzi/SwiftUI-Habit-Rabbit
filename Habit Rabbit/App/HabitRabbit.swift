@@ -2,7 +2,7 @@ import SwiftUI
 import SwiftData
 
 @main
-struct HabitRabbitApp: App {
+struct HabitRabbit: App {
     var body: some Scene {
         WindowGroup {
             NavigationStack {
