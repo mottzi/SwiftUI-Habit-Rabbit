@@ -67,11 +67,11 @@ extension Habit.Value {
         return descriptor
     }
     
-    static func filterByWeek(for habit: Habit, endingOn date: Date) -> FetchDescriptor<Habit.Value> {
+    static func filterByDays(_ days: Int, for habit: Habit, endingOn date: Date) -> FetchDescriptor<Habit.Value> {
         let habitID = habit.id
         let todayStart = Calendar.current.startOfDay(for: date)
         let end = Calendar.current.date(byAdding: .day, value: 1, to: todayStart)!
-        let start = Calendar.current.date(byAdding: .day, value: -6, to: todayStart)!
+        let start = Calendar.current.date(byAdding: .day, value: -(days-1), to: todayStart)!
         
         let predicate = #Predicate<Habit.Value> { value in
             value.habit?.id == habitID
@@ -80,7 +80,7 @@ extension Habit.Value {
         
         let sortByDate = SortDescriptor(\Habit.Value.date)
         var descriptor = FetchDescriptor(predicate: predicate, sortBy: [sortByDate])
-        descriptor.fetchLimit = 7
+        descriptor.fetchLimit = days
         descriptor.relationshipKeyPathsForPrefetching = [\Habit.Value.habit]
         
         return descriptor

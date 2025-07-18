@@ -9,10 +9,10 @@ extension Habit {
         
         @Query var todayValues: [Habit.Value]
         @Query var weeklyValues: [Habit.Value]
+        @Query var monthlyValues: [Habit.Value]
         @State var isDeleting = false
         
         let config: Habit.Card.Config
-        
         var habit: Habit { config.habit }
         var name: String { habit.name }
         var unit: String { habit.unit }
@@ -24,11 +24,10 @@ extension Habit {
         
         var body: some View {
             ZStack {
-                Group {
-                    switch mode {
-                        case .daily: dayView
-                        case .weekly: weekView
-                    }
+                switch mode {
+                    case .daily: dayView
+                    case .weekly: weekView
+                    case .monthly: monthView.geometryGroup()
                 }
             }
             .frame(maxWidth: .infinity)
@@ -45,7 +44,8 @@ extension Habit {
         init(config: Habit.Card.Config) {
             self.config = config
             self._todayValues = Query(Habit.Value.filterByDay(for: habit, on: lastDay))
-            self._weeklyValues = Query(Habit.Value.filterByWeek(for: habit, endingOn: lastDay))
+            self._weeklyValues = Query(Habit.Value.filterByDays(7, for: habit, endingOn: lastDay))
+            self._monthlyValues = Query(Habit.Value.filterByDays(30, for: habit, endingOn: lastDay))
         }
         
         init(habit: Habit, day: Date, mode: Mode, index: Int) {
@@ -70,8 +70,7 @@ extension Habit.Card {
     }
     
     var deleteOffset: CGSize {
-        let amount = config.mode.deleteOffset
-        let offset = (config.index % 2 == 0) ? -amount : amount
+        let offset = (config.index % 2 == 0) ? -250 : 250
         return CGSize(width: CGFloat(offset), height: 100)
     }
 }
@@ -96,6 +95,7 @@ extension Habit.Card {
         switch mode {
             case .daily: lastDayValue?.currentValue ?? 0
             case .weekly: weeklyValues.reduce(0) { $0 + $1.currentValue }
+            case .monthly: monthlyValues.reduce(0) { $0 + $1.currentValue }
         }
     }
     
@@ -103,6 +103,7 @@ extension Habit.Card {
         switch mode {
             case .daily: habit.target
             case .weekly: habit.target * 7
+            case .monthly: habit.target * 30
         }
     }
     
@@ -120,13 +121,7 @@ extension Habit.Card {
     enum Mode: String, CaseIterable {
         case daily = "Daily"
         case weekly = "Weekly"
-        
-        var deleteOffset: CGFloat {
-            switch self {
-                case .daily: 250
-                case .weekly: 250
-            }
-        }
+        case monthly = "Monthly"
     }
 }
 

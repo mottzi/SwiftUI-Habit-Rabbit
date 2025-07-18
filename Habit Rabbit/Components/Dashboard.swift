@@ -120,7 +120,7 @@ extension Habit.Dashboard {
     var randomizeButton: some View {
         Button("Randomize all", systemImage: "sparkle") {
             for habit in habits {
-                for dayOffset in 0..<7 {
+                for dayOffset in 0..<30 {
                     let date = Calendar.current.date(byAdding: .day, value: -dayOffset, to: lastDay)!
                     let descriptor = Habit.Value.filterByDay(for: habit, on: date)
                     

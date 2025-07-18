@@ -40,7 +40,7 @@ extension Habit.Card.ProgressBar {
     
     var targetOffset: CGFloat {
         let dimension = axis == .vertical ? height : width
-        let padding = axis == .vertical ? 12.0 : -6.0
+        let padding = axis == .vertical ? 12.0 : -0.0
         
         switch axis {
             case .vertical: do {
