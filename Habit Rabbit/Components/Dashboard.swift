@@ -2,13 +2,16 @@ import SwiftUI
 import SwiftData
 
 extension Habit {
+    // primary view that displays a 2 column grid of habit cards
     struct Dashboard: View {
         @Environment(\.colorScheme) var colorScheme
         @Environment(\.modelContext) var modelContext
         
+        // time interval mode for all cards (daily | weekly | monthly)
         @State var mode: Habit.Card.Mode = .daily
+        // end date for the time interval being displayed
         @State var lastDay: Date = .now.startOfDay
-        
+        // fetches all habits sorted by creation date
         @Query(sort: \Habit.date) var habits: [Habit]
         
         var body: some View {
@@ -19,7 +22,7 @@ extension Habit {
                             habit: habit,
                             lastDay: lastDay,
                             mode: mode,
-                            index: index,
+                            index: index
                         )
                     }
                 }
@@ -32,15 +35,16 @@ extension Habit {
                 debugToolbar
             }
         }
-     
+        
         let columns = [
             GridItem(.flexible(), spacing: 16),
-            GridItem(.flexible(), spacing: 16)
+            GridItem(.flexible(), spacing: 16),
         ]
     }
 }
 
 extension Habit.Dashboard {
+    // button to cycle through available time intervals
     var modeButton: some ToolbarContent {
         ToolbarItem(placement: .topBarTrailing) {
             Button {
@@ -57,10 +61,6 @@ extension Habit.Dashboard {
             }
         }
     }
-    
-    var modeButtonStyle: Color {
-        colorScheme == .light ? .black : .white
-    }
 }
 
 extension Habit.Dashboard {
@@ -70,6 +70,7 @@ extension Habit.Dashboard {
         ToolbarItem(placement: .topBarTrailing) { debugButton }
     }
     
+    // view that displays the current number of habits
     var debugCounter: some View {
         HStack {
             Text("Habits: \(habits.count)")
@@ -79,6 +80,7 @@ extension Habit.Dashboard {
         .foregroundStyle(.primary.opacity(0.7))
     }
     
+    // hamburger menu containing various debug actions
     var debugButton: some View {
         Menu {
             addExampleButton
@@ -91,6 +93,7 @@ extension Habit.Dashboard {
         }
     }
     
+    // submenu for adding a specified number of example habits
     var addExampleButton: some View {
         Menu {
             ForEach([1, 4, 8, 20, 50, 100], id: \.self) { count in
@@ -122,27 +125,45 @@ extension Habit.Dashboard {
     
     var randomizeButton: some View {
         Button("Randomize all", systemImage: "sparkle") {
+            // generate array of the last 30 day dates
+            let dates = (0..<30).compactMap { offset in
+                Calendar.current.date(byAdding: .day, value: -offset, to: lastDay)
+            }
+            
+            // fetch all existing habit values in the date range
+            let predicate = #Predicate<Habit.Value> { $0.date >= dates.last! && $0.date <= dates.first! }
+            let existing = (try? modelContext.fetch(FetchDescriptor(predicate: predicate))) ?? []
+            
+            // create efficient lookup structure
+            var lookup: [Habit.ID: [Date: Habit.Value]] = [:]
+            for value in existing {
+                guard let habitId = value.habit?.id else { continue }
+                lookup[habitId, default: [:]][value.date] = value
+            }
+            
+            // process each habit for each date
             for habit in habits {
-                for dayOffset in 0..<30 {
-                    let date = Calendar.current.date(byAdding: .day, value: -dayOffset, to: lastDay)!
-                    let descriptor = Habit.Value.filterByDay(for: habit, on: date)
-                    
-                    guard let existingValues = try? modelContext.fetch(descriptor) else { continue }
+                for date in dates {
                     let randomValue = Int.random(in: 0...habit.target * 2)
-
-                    if let existingValue = existingValues.first {
+                    
+                    // check if value already exists in lookup
+                    if let existingValue = lookup[habit.id]?[date] {
+                        // update existing value in memory
                         existingValue.currentValue = randomValue
                     } else {
-                        let newValue = Habit.Value(habit: habit, date: date, currentValue: randomValue)
-                        modelContext.insert(newValue)
+                        // create new value and add to context
+                        modelContext.insert(Habit.Value(habit: habit, date: date, currentValue: randomValue))
                     }
                 }
             }
             
+            // single database save operation for all changes
             try? modelContext.save()
         }
     }
     
+    // button to delete all habits from the model context
+    // will also delete all associated values of the habit
     var removeHabitsButton: some View {
         Button("Delete All", systemImage: "trash", role: .destructive) {
             try? modelContext.delete(model: Habit.self)

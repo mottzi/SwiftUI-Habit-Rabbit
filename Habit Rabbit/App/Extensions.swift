@@ -73,7 +73,7 @@ extension String {
 
 func pluralize(name: String, count: Int) -> String {
     let count = count == 0 ? 2 : count
-    let attributedString = AttributedString(localized: "^\(count) \(name)](inflect: true)")
+    let attributedString = AttributedString(localized: "^[\(count) \(name)](inflect: true)")
     let localizedString = String(attributedString.characters)
     let countPrefix = "\(count) "
     guard localizedString.hasPrefix(countPrefix) else { return localizedString }
