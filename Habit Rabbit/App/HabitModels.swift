@@ -47,33 +47,32 @@ extension Habit {
     }
 }
 
+extension ModelContext {
+    // create same day default value for newly inserted habit
+    func insert(habit: Habit) {
+        let value = Habit.Value(habit: habit, date: habit.date)
+        insert(habit)
+        insert(value)
+    }
+}
+
 extension Habit.Value {
+    // returns a fetch descriptor for habit values from a specific date
     static func filterByDay(for habit: Habit, on date: Date) -> FetchDescriptor<Habit.Value> {
-        let habitID = habit.id
-        let start = Calendar.current.startOfDay(for: date)
-        let end = Calendar.current.date(byAdding: .day, value: 1, to: start)!
-        
-        let predicate = #Predicate<Habit.Value> { value in
-            value.habit?.id == habitID
-            && value.date >= start && value.date < end
-        }
-        
-        var descriptor = FetchDescriptor(predicate: predicate)
-        descriptor.fetchLimit = 1
-        descriptor.relationshipKeyPathsForPrefetching = [\Habit.Value.habit]
-        
-        return descriptor
+        filterByDays(1, for: habit, endingOn: date)
     }
     
+    // returns a fetch descriptor for habit values within a date range, ending on the specified date
     static func filterByDays(_ days: Int, for habit: Habit, endingOn date: Date) -> FetchDescriptor<Habit.Value> {
         let habitID = habit.id
-        let todayStart = Calendar.current.startOfDay(for: date)
-        let end = Calendar.current.date(byAdding: .day, value: 1, to: todayStart)!
-        let start = Calendar.current.date(byAdding: .day, value: -(days-1), to: todayStart)!
+        
+        let today = Calendar.current.startOfDay(for: date)
+        let rangeStart = Calendar.current.date(byAdding: .day, value: -(days-1), to: today)!
+        let rangeEnd = Calendar.current.date(byAdding: .day, value: 1, to: today)!
         
         let predicate = #Predicate<Habit.Value> { value in
             value.habit?.id == habitID
-            && value.date >= start && value.date < end
+            && value.date >= rangeStart && value.date < rangeEnd
         }
         
         let sortByDate = SortDescriptor(\Habit.Value.date)
@@ -136,13 +135,5 @@ extension Habit {
               target: 1
         ),
     ]}
-}
-
-extension ModelContext {
-    func insert(habit: Habit) {
-        let value = Habit.Value(habit: habit, date: habit.date)
-        insert(habit)
-        insert(value)
-    }
 }
 
