@@ -41,7 +41,6 @@ extension Habit {
 }
 
 extension Habit.Dashboard {
-    @ToolbarContentBuilder
     var modeButton: some ToolbarContent {
         ToolbarItem(placement: .topBarTrailing) {
             Button {
