@@ -27,6 +27,7 @@ extension Habit.Card {
                         .clipShape(.capsule)
                         .padding(axis == .vertical ? 3 : 0)
                 }
+                .geometryGroup()
                 .frame(maxWidth: width, maxHeight: height)
                 .animation(.bouncy, value: currentValue)
         }

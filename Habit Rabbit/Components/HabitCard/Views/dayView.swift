@@ -20,7 +20,6 @@ extension Habit.Card {
                     .frame(width: 70, height: 70)
             }
         }
-        .geometryGroup()
         .frame(height: contentHeight)
         .padding(.top, 20)
     }

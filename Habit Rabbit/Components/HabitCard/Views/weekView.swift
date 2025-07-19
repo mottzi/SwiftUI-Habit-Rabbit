@@ -21,10 +21,10 @@ extension Habit.Card {
                     )
                     .matchedGeometryEffect(id: "bar\(index)", in: modeTransition)
                 }
+                .geometryGroup()
                 .frame(maxWidth: .infinity)
             }
         }
-        .geometryGroup()
         .frame(height: contentHeight)
         .padding(.top, 18)
         .padding(.trailing, 4)

@@ -47,25 +47,20 @@ extension Habit {
                         }
                     }
                     .transition(.blurReplace)
-                    
-//                    Spacer()
-                    
-                    // Matched geometry elements (outside the blurring group)
+                                        
                     VStack(spacing: mode == .monthly ? 4 : 2) {
                         habitLabel
                         if mode != .daily {
                             progressLabelCompact
-//                                .transition(.offset(y: 30))
                         }
                     }
                     .frame(maxHeight: .infinity, alignment: .bottom)
                     .padding(.bottom, labelBottomPadding)
                 }
             }
-            .animation(.default, value: mode)
+            .animation(.spring(duration: 0.62), value: mode)
             .frame(maxWidth: .infinity)
             .frame(height: 232)
-//            .clipShape(.rect)
             .background { backgroundView }
             .geometryGroup()
             .scaleEffect(isDeleting ? 0 : 1)

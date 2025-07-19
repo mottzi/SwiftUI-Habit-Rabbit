@@ -30,19 +30,16 @@ extension Habit.Card {
     }
     
     // Clean computed property like weeklyValues - creates 5x7 grid with today at bottom-right
-    var monthlyGridValues: [[Habit.Value?]] {
-        // Create 35-cell grid (5 rows × 7 columns) with today at position [4][6]
-        let totalRows = 5
-        let totalColumns = 7
-        let totalCells = totalRows * totalColumns
-        
+    var monthlyGridValues: [[Habit.Value?]] {   
+        let totalCells = 5 * 7
         let paddingCount = totalCells - monthlyValues.count
-        var flatGrid: [Habit.Value?] = Array(repeating: nil, count: paddingCount)
-        flatGrid.append(contentsOf: monthlyValues.map { $0 as Habit.Value? })
+        
+        var paddedValues: [Habit.Value?] = Array(repeating: nil, count: paddingCount)
+        paddedValues.append(contentsOf: monthlyValues.map { $0 as Habit.Value? })
         
         // Convert flat array to 5x7 grid
-        return stride(from: 0, to: flatGrid.count, by: 7).map { startIndex in
-            Array(flatGrid[startIndex..<min(startIndex + 7, flatGrid.count)])
+        return stride(from: 0, to: paddedValues.count, by: 7).map { startIndex in
+            Array(paddedValues[startIndex..<min(startIndex + 7, paddedValues.count)])
         }
     }
     

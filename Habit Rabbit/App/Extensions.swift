@@ -2,10 +2,22 @@ import SwiftUI
 
 extension CaseIterable where Self: Equatable {
     var next: Self {
-        let all = Array(Self.allCases)
-        let currentIndex = all.firstIndex(of: self)!
-        let nextIndex = (currentIndex + 1) % all.count
-        return all[nextIndex]
+        let all = Self.allCases
+        let current = all.firstIndex(of: self)!
+        let next = all.index(current, offsetBy: 1)
+        return all[next == all.endIndex ? all.startIndex : next]
+    }
+}
+
+extension Array {
+    subscript(safe index: Int) -> Element? {
+        indices.contains(index) ? self[index] : nil
+    }
+}
+
+extension RandomAccessCollection {
+    var enumerated: [(offset: Int, element: Element)] {
+        Array(self.enumerated())
     }
 }
 
@@ -50,18 +62,6 @@ extension View {
         } else {
             self
         }
-    }
-}
-
-extension Array {
-    subscript(safe index: Int) -> Element? {
-        indices.contains(index) ? self[index] : nil
-    }
-}
-
-extension RandomAccessCollection {
-    var enumerated: [(offset: Int, element: Element)] {
-        Array(self.enumerated())
     }
 }
 

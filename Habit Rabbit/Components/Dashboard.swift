@@ -3,12 +3,13 @@ import SwiftData
 
 extension Habit {
     struct Dashboard: View {
-        @Environment(\.colorScheme) private var colorScheme
-        @Environment(\.modelContext) private var modelContext
+        @Environment(\.colorScheme) var colorScheme
+        @Environment(\.modelContext) var modelContext
+        
+        @State var mode: Habit.Card.Mode = .daily
+        @State var lastDay: Date = .now.startOfDay
         
         @Query(sort: \Habit.date) var habits: [Habit]
-        @State var lastDay: Date = .now.startOfDay
-        @State var mode: Habit.Card.Mode = .daily
         
         var body: some View {
             ScrollView {
@@ -25,14 +26,13 @@ extension Habit {
                 .padding(16)
             }
             .navigationTitle("Habit Rabbit")
+            .animation(.default, value: habits.count)
             .toolbar {
                 modeButton
                 debugToolbar
             }
-            .animation(.default, value: habits.count)
-//            .animation(.default, value: mode)
         }
-        
+     
         let columns = [
             GridItem(.flexible(), spacing: 16),
             GridItem(.flexible(), spacing: 16)
@@ -45,9 +45,7 @@ extension Habit.Dashboard {
     var modeButton: some ToolbarContent {
         ToolbarItem(placement: .topBarTrailing) {
             Button {
-//                withAnimation {
-                    mode = mode.next
-//                }
+                mode = mode.next
             } label: {
                 HStack(spacing: 0) {
                     Text("\(mode.rawValue)")
@@ -59,6 +57,10 @@ extension Habit.Dashboard {
                 .foregroundStyle(colorScheme == .light ? .black : .white)
             }
         }
+    }
+    
+    var modeButtonStyle: Color {
+        colorScheme == .light ? .black : .white
     }
 }
 
