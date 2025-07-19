@@ -21,11 +21,9 @@ extension Habit.Card {
                         .frame(width: 70, height: 70)
                 }
             }
-            .geometryGroup()
             .frame(height: contentHeight)
-            .transition(.blurReplace)
             .padding(.top, 20)
-            
+
             Spacer()
             
             habitLabel

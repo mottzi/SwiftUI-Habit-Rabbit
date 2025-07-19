@@ -26,10 +26,9 @@ extension Habit.Card {
                 }
             }
             .frame(height: contentHeight)
-            .transition(.blurReplace)
             .padding(.top, 18)
             .padding(.trailing, 4)
-            
+
             Spacer()
             
             VStack(spacing: 4) {

@@ -1,4 +1,3 @@
-
 import SwiftUI
 
 extension Habit.Card {
@@ -8,33 +7,25 @@ extension Habit.Card {
                 dayLabels
                     .padding(.bottom, 2)
                 
-                // Add 5 blank days so the first row is a complete week
-                let paddedValues = Array(repeating: nil, count: 5) + monthlyValues.map { $0 }
-                
-                ForEach(0..<5, id: \.self) { rowIndex in
+                ForEach(monthlyGridValues.enumerated, id: \.offset) { rowIndex, weekValues in
                     HStack(spacing: 6) {
-                        ForEach(0..<7, id: \.self) { colIndex in
-                            let index = rowIndex * 7 + colIndex
-                            let dayValue = paddedValues[safe: index] ?? nil
-                            let isLastRow = rowIndex == 4 // Last row (week)
+                        ForEach(weekValues.enumerated, id: \.offset) { colIndex, dayValue in
+                            let isBlankPaddingCell = dayValue == nil && rowIndex == 0 && colIndex < 5
+                            let isLastWeek = rowIndex == 4 // Last row (week)
                             
-                            if index >= 5 {
-                                RoundedRectangle(cornerRadius: 4)
-                                    .fill(dayValue?.currentValue ?? 0 > 0 ? color : Color(white: colorScheme == .dark ? 0.3 : 0.8))
-                                    .brightness(brightness(for: dayValue))
-                                    .frame(width: 16, height: 16)
-                                    .if(isLastRow) {
-                                        $0.matchedGeometryEffect(id: "bar\(colIndex)", in: modeTransition)
-                                    }
-                            } else {
-                                Color.clear.frame(width: 16, height: 16)
-                            }
+                            RoundedRectangle(cornerRadius: 4)
+                                .fill(dayValue?.currentValue ?? 0 > 0 ? color : Color(white: colorScheme == .dark ? 0.3 : 0.8))
+                                .brightness(brightness(for: dayValue))
+                                .frame(width: 16, height: 16)
+                                .opacity(isBlankPaddingCell ? 0 : 1) // Only hide the first 5 padding cells
+                                .if(isLastWeek) {
+                                    $0.matchedGeometryEffect(id: "bar\(colIndex)", in: modeTransition)
+                                }
                         }
                     }
                 }
             }
             .frame(height: contentHeight)
-            .transition(.blurReplace)
             .padding(.top, 10)
             
             Spacer()
@@ -46,6 +37,23 @@ extension Habit.Card {
                     .matchedGeometryEffect(id: "progressLabel", in: modeTransition)
             }
             .padding(.bottom, 14)
+        }
+    }
+    
+    // Clean computed property like weeklyValues - creates 5x7 grid with today at bottom-right
+    var monthlyGridValues: [[Habit.Value?]] {
+        // Create 35-cell grid (5 rows × 7 columns) with today at position [4][6]
+        let totalRows = 5
+        let totalColumns = 7
+        let totalCells = totalRows * totalColumns
+        
+        let paddingCount = totalCells - monthlyValues.count
+        var flatGrid: [Habit.Value?] = Array(repeating: nil, count: paddingCount)
+        flatGrid.append(contentsOf: monthlyValues.map { $0 as Habit.Value? })
+        
+        // Convert flat array to 5x7 grid
+        return stride(from: 0, to: flatGrid.count, by: 7).map { startIndex in
+            Array(flatGrid[startIndex..<min(startIndex + 7, flatGrid.count)])
         }
     }
     
@@ -70,26 +78,4 @@ extension Habit.Card {
         
         return 0
     }
-}
-
-#Preview {
-    let cards = Habit.examples.enumerated.map { index, habit in
-        Habit.Card(habit: habit, lastDay: .now, mode: Habit.Card.Mode.allCases.randomElement()!, index: index)
-    }
-    
-    VStack(spacing: 16) {
-        HStack(spacing: 16) {
-            cards[0]
-            cards[1]
-        }
-        HStack(spacing: 16) {
-            cards[2]
-            cards[3]
-        }
-        HStack(spacing: 16) {
-            cards[4]
-            cards[5]
-        }
-    }
-    .padding(16)
 }

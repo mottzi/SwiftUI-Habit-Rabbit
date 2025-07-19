@@ -37,12 +37,16 @@ extension Habit {
         
         var body: some View {
             ZStack {
-                switch mode {
-                    case .daily: dayView
-                    case .weekly: weekView
-                    case .monthly: monthView
+                Group {
+                    switch mode {
+                        case .daily: dayView
+                        case .weekly: weekView
+                        case .monthly: monthView
+                    }
                 }
+                .transition(.blurReplace)
             }
+            .animation(.default, value: mode)
             .frame(maxWidth: .infinity)
             .frame(height: 232)
             .background { backgroundView }

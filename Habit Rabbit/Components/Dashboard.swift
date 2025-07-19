@@ -30,7 +30,7 @@ extension Habit {
                 debugToolbar
             }
             .animation(.default, value: habits.count)
-            .animation(.default, value: mode)
+//            .animation(.default, value: mode)
         }
         
         let columns = [
@@ -45,7 +45,9 @@ extension Habit.Dashboard {
     var modeButton: some ToolbarContent {
         ToolbarItem(placement: .topBarTrailing) {
             Button {
-                mode = mode.next
+//                withAnimation {
+                    mode = mode.next
+//                }
             } label: {
                 HStack(spacing: 0) {
                     Text("\(mode.rawValue)")
