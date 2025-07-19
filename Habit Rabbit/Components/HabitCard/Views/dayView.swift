@@ -12,7 +12,7 @@ extension Habit.Card {
                     width: 50,
                     height: contentHeight
                 )
-                .matchedGeometryEffect(id: "view", in: modeTransition, anchor: .topLeading)
+                .matchedGeometryEffect(id: "bar6", in: modeTransition, anchor: .topLeading)
                 
                 VStack(spacing: 0) {
                     progressLabel

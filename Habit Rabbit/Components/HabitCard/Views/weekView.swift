@@ -20,11 +20,7 @@ extension Habit.Card {
                             width: 118,
                             height: 13,
                         )
-                        .if(index == 6) {
-                            $0.matchedGeometryEffect(id: "view", in: modeTransition, anchor: .leading)
-                        } else: {
-                            $0.matchedGeometryEffect(id: "bar\(index)", in: modeTransition)
-                        }
+                        .matchedGeometryEffect(id: "bar\(index)", in: modeTransition)
                     }
                     .frame(maxWidth: .infinity)
                 }
