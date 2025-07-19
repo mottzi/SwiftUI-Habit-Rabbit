@@ -2,42 +2,31 @@ import SwiftUI
 
 extension Habit.Card {
     var monthView: some View {
-        VStack(spacing: 0) {
-            VStack(spacing: 6) {
-                dayLabels
-                    .padding(.bottom, 2)
-                
-                ForEach(monthlyGridValues.enumerated, id: \.offset) { rowIndex, weekValues in
-                    HStack(spacing: 6) {
-                        ForEach(weekValues.enumerated, id: \.offset) { colIndex, dayValue in
-                            let isBlankPaddingCell = dayValue == nil && rowIndex == 0 && colIndex < 5
-                            let isLastWeek = rowIndex == 4 // Last row (week)
-                            
-                            RoundedRectangle(cornerRadius: 4)
-                                .fill(dayValue?.currentValue ?? 0 > 0 ? color : Color(white: colorScheme == .dark ? 0.3 : 0.8))
-                                .brightness(brightness(for: dayValue))
-                                .frame(width: 16, height: 16)
-                                .opacity(isBlankPaddingCell ? 0 : 1) // Only hide the first 5 padding cells
-                                .if(isLastWeek) {
-                                    $0.matchedGeometryEffect(id: "bar\(colIndex)", in: modeTransition)
-                                }
-                        }
+        VStack(spacing: 6) {
+            dayLabels
+                .padding(.bottom, 2)
+            
+            ForEach(monthlyGridValues.enumerated, id: \.offset) { rowIndex, weekValues in
+                HStack(spacing: 6) {
+                    ForEach(weekValues.enumerated, id: \.offset) { colIndex, dayValue in
+                        let isBlankPaddingCell = dayValue == nil && rowIndex == 0 && colIndex < 5
+                        let isLastWeek = rowIndex == 4 // Last row (week)
+                        
+                        RoundedRectangle(cornerRadius: 4)
+                            .fill(dayValue?.currentValue ?? 0 > 0 ? color : Color(white: colorScheme == .dark ? 0.3 : 0.8))
+                            .brightness(brightness(for: dayValue))
+                            .frame(width: 16, height: 16)
+                            .opacity(isBlankPaddingCell ? 0 : 1) // Only hide the first 5 padding cells
+                            .if(isLastWeek) {
+                                $0.matchedGeometryEffect(id: "bar\(colIndex)", in: modeTransition)
+                            }
                     }
                 }
             }
-            .frame(height: contentHeight)
-            .padding(.top, 10)
-            
-            Spacer()
-            
-            VStack(spacing: 5) {
-                habitLabel
-                    .matchedGeometryEffect(id: "habitLabel", in: modeTransition)
-                progressLabelCompact
-                    .matchedGeometryEffect(id: "progressLabel", in: modeTransition)
-            }
-            .padding(.bottom, 14)
         }
+        .geometryGroup()
+        .frame(height: contentHeight)
+        .padding(.top, 10)
     }
     
     // Clean computed property like weeklyValues - creates 5x7 grid with today at bottom-right

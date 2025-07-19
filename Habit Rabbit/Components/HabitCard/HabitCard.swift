@@ -7,10 +7,10 @@ extension Habit {
         @Environment(\.modelContext) var modelContext
         @Environment(\.colorScheme) var colorScheme
         @Namespace var modeTransition
-
+        
         let habit: Habit // habit displayed
         let lastDay: Date // last day of the time interval
-        let mode: Habit.Card.Mode // lenth of the time interval
+        let mode: Habit.Card.Mode // length of the time interval
         let index: Int // index in parent container, used for animations
         
         let weekDateRange: [Date]
@@ -30,25 +30,42 @@ extension Habit {
             self.weekDateRange = (0..<7).map { dayOffset in
                 Calendar.current.date(byAdding: .day, value: -dayOffset, to: lastDay)!
             }.reversed()
-
+            
             // fetches last 30 days of values ending on the day specified
             _monthlyValues = Query(Habit.Value.filterByDays(30, for: habit, endingOn: lastDay))
         }
         
         var body: some View {
             ZStack {
-                Group {
-                    switch mode {
-                        case .daily: dayView
-                        case .weekly: weekView
-                        case .monthly: monthView
+                VStack(spacing: 0) {
+                    // Content that should blur
+                    Group {
+                        switch mode {
+                            case .daily: dayView
+                            case .weekly: weekView
+                            case .monthly: monthView
+                        }
                     }
+                    .transition(.blurReplace)
+                    
+//                    Spacer()
+                    
+                    // Matched geometry elements (outside the blurring group)
+                    VStack(spacing: mode == .monthly ? 4 : 2) {
+                        habitLabel
+                        if mode != .daily {
+                            progressLabelCompact
+//                                .transition(.offset(y: 30))
+                        }
+                    }
+                    .frame(maxHeight: .infinity, alignment: .bottom)
+                    .padding(.bottom, labelBottomPadding)
                 }
-                .transition(.blurReplace)
             }
             .animation(.default, value: mode)
             .frame(maxWidth: .infinity)
             .frame(height: 232)
+//            .clipShape(.rect)
             .background { backgroundView }
             .geometryGroup()
             .scaleEffect(isDeleting ? 0 : 1)
@@ -58,6 +75,14 @@ extension Habit {
         }
         
         let contentHeight: CGFloat = 155
+        
+        var labelBottomPadding: CGFloat {
+            switch mode {
+                case .daily: 20
+                case .weekly: 10
+                case .monthly: 14
+            }
+        }
     }
 }
 
@@ -161,7 +186,7 @@ extension Habit.Card {
             Habit.Card(habit: Habit.examples[0], lastDay: .now, mode: .daily, index: 0)
             Habit.Card(habit: Habit.examples[1], lastDay: .now, mode: .daily, index: 1)
         }
-            
+        
         HStack(spacing: 16) {
             Habit.Card(habit: Habit.examples[0], lastDay: .now, mode: .weekly, index: 0)
             Habit.Card(habit: Habit.examples[1], lastDay: .now, mode: .weekly, index: 1)

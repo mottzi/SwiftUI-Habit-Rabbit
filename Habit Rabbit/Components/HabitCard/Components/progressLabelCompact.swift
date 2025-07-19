@@ -8,5 +8,6 @@ extension Habit.Card {
             .fontWeight(.medium)
             .monospacedDigit()
             .fixedSize()
+            .contentTransition(.numericText())
     }
 }
