@@ -25,6 +25,7 @@ extension Habit.Card {
                 .frame(maxWidth: .infinity)
             }
         }
+        .geometryGroup()
         .frame(height: contentHeight)
         .padding(.top, 18)
         .padding(.trailing, 4)

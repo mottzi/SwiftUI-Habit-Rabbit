@@ -1,6 +1,7 @@
 import SwiftUI
 
 extension CaseIterable where Self: Equatable {
+    // returns next case in an enum, or the first case if called on last case
     var next: Self {
         let all = Self.allCases
         let current = all.firstIndex(of: self)!
@@ -9,19 +10,15 @@ extension CaseIterable where Self: Equatable {
     }
 }
 
-extension Array {
-    subscript(safe index: Int) -> Element? {
-        indices.contains(index) ? self[index] : nil
-    }
-}
-
 extension RandomAccessCollection {
+    // returns the collaction as enumerated array
     var enumerated: [(offset: Int, element: Element)] {
         Array(self.enumerated())
     }
 }
 
 extension Date {
+    // abbreviated weekday
     var weekday: String {
         let dateFormatter = DateFormatter()
         dateFormatter.locale = Locale.current
@@ -34,7 +31,9 @@ extension Date {
     }
 }
 
+// adds view modifiers for debugging and applying conditional transformations.
 extension View {
+    // adds visible frame border for debugging layout
     func debug(_ color: Color? = nil, _ width: CGFloat? = nil) -> some View {
         self.border(color ?? .orange, width: width ?? 2)
     }
@@ -66,6 +65,7 @@ extension View {
 }
 
 extension String {
+    // returns a pluralized string based on given count
     func pluralized(count: Int) -> String {
         return pluralize(name: self, count: count)
     }
@@ -73,7 +73,7 @@ extension String {
 
 func pluralize(name: String, count: Int) -> String {
     let count = count == 0 ? 2 : count
-    let attributedString = AttributedString(localized: "^[\(count) \(name)](inflect: true)")
+    let attributedString = AttributedString(localized: "^\(count) \(name)](inflect: true)")
     let localizedString = String(attributedString.characters)
     let countPrefix = "\(count) "
     guard localizedString.hasPrefix(countPrefix) else { return localizedString }
