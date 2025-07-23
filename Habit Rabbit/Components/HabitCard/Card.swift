@@ -95,7 +95,14 @@ extension Habit.Card {
     var weeklyValues: [Habit.Value] {
         let recentValues = monthlyValues.suffix(7)
         let lookup = Dictionary(recentValues.map { ($0.date, $0) }, uniquingKeysWith: { first, _ in first })
-        return weekDateRange.map { lookup[$0] ?? Habit.Value(habit: habit, date: $0, currentValue: 0) }
+        return weekDateRange.map { lookup[$0] ?? Habit.Value(habit: habit, date: $0, currentValue: habit.kind == .good ? 0 : habit.target) }
+    }
+    
+    var displayValue: Int {
+        switch habit.kind {
+            case .good: currentValue
+            case .bad: target - currentValue
+        }
     }
     
     // cumulative value for the time interval
@@ -124,7 +131,10 @@ extension Habit.Card {
     
     // true if target has been reached
     var isCompleted: Bool {
-        currentValue >= target
+        switch habit.kind {
+            case .good: currentValue >= target
+            case .bad: displayValue > 0
+        }
     }
 }
 

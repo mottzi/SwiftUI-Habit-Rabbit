@@ -30,7 +30,7 @@ extension Habit.Card {
     }
     
     // Clean computed property like weeklyValues - creates 5x7 grid with today at bottom-right
-    var monthlyGridValues: [[Habit.Value?]] {   
+    var monthlyGridValues: [[Habit.Value?]] {
         let totalCells = 5 * 7
         let paddingCount = totalCells - monthlyValues.count
         

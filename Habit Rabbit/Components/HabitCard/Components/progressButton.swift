@@ -11,7 +11,7 @@ extension Habit.Card {
                 Circle()
                     .fill(color.gradient)
                     .padding(3)
-                Image(systemName: "plus")
+                Image(systemName: habit.kind == .good ? "plus" : "minus")
                     .font(.title)
                     .fontWeight(.medium)
                     .foregroundStyle(.white)

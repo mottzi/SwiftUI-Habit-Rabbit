@@ -46,16 +46,16 @@ extension Habit {
 extension Habit.Dashboard {
     // button to cycle through available time intervals
     var modeButton: some ToolbarContent {
-        ToolbarItem(placement: .topBarTrailing) {
+        ToolbarItem(placement: .topBarLeading) {
             Button {
                 mode = mode.next
             } label: {
-                HStack(spacing: 0) {
-                    Text("\(mode.rawValue)")
-                        .frame(minWidth: 80)
+                HStack(spacing: 7) {
                     Image(systemName: "calendar.day.timeline.right")
+                    Text("\(mode.rawValue)")
+                        .frame(minWidth: 93, alignment: .leading)
+                        .minimumScaleFactor(0.7)
                 }
-                .frame(minWidth: 120)
                 .fontWeight(.bold)
                 .foregroundStyle(colorScheme == .light ? .black : .white)
             }
@@ -66,7 +66,7 @@ extension Habit.Dashboard {
 extension Habit.Dashboard {
     @ToolbarContentBuilder
     var debugToolbar: some ToolbarContent {
-        ToolbarItem(placement: .topBarLeading) { debugCounter }
+        // ToolbarItem(placement: .topBarLeading) { debugCounter }
         ToolbarItem(placement: .topBarTrailing) { debugButton }
     }
     
@@ -96,7 +96,7 @@ extension Habit.Dashboard {
     // submenu for adding a specified number of example habits
     var addExampleButton: some View {
         Menu {
-            ForEach([1, 4, 8, 20, 50, 100], id: \.self) { count in
+            ForEach([1, 2, 4, 8, 20, 50, 100], id: \.self) { count in
                 Button("\(count)") {
                     let templates = Habit.examples
                     guard !templates.isEmpty else { return }
@@ -109,7 +109,8 @@ extension Habit.Dashboard {
                             unit: template.unit,
                             icon: template.icon,
                             color: template.color,
-                            target: template.target
+                            target: template.target,
+                            kind: template.kind
                         )
                         
                         modelContext.insert(habit: newHabit)

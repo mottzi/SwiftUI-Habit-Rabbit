@@ -1,9 +1,8 @@
 import SwiftUI
 import SwiftData
 
-@Model
 // primary data model containing metadata about a habit
-class Habit: Identifiable {
+@Model class Habit: Identifiable {
     @Relationship(deleteRule: .cascade, inverse: \Habit.Value.habit)
     var values: [Habit.Value]?
     
@@ -13,14 +12,16 @@ class Habit: Identifiable {
     var colorData: Data
     var target: Int
     var date: Date
+    var kind: Habit.Kind
     
     // creates a new habit instance, encoding its color
-    init(name: String, unit: String, icon: String, color: Color, target: Int) {
+    init(name: String, unit: String, icon: String, color: Color, target: Int, kind: Habit.Kind) {
         self.name = name
         self.unit = unit
         self.icon = icon
         self.target = target
         self.date = .now
+        self.kind = kind
         let encode: (UIColor, Bool) throws -> Data = NSKeyedArchiver.archivedData
         self.colorData = (try? encode(UIColor(color), false)) ?? Data()
     }
@@ -34,9 +35,8 @@ class Habit: Identifiable {
 }
 
 extension Habit {
-    @Model
     // stores progress value for a specific habit on a specific day.
-    class Value {
+    @Model class Value {
         @Relationship
         var habit: Habit?
         
@@ -90,54 +90,74 @@ extension Habit.Value {
 }
 
 extension Habit {
+    enum Kind: String, Codable {
+        case good
+        case bad
+    }
+    
     static var examples: [Habit] {[
         Habit(name: "Hydration",
               unit: "bottle",
               icon: "drop.fill",
               color: .blue,
-              target: 1
-             ),
+              target: 1,
+              kind: .good,
+        ),
+        Habit(name: "Smoking",
+              unit: "cigarette",
+              icon: "figure.strengthtraining.functional",
+              color: .red,
+              target: 10,
+              kind: .bad,
+        ),
         Habit(name: "Stretching",
               unit: "session",
               icon: "figure.strengthtraining.functional",
               color: .orange,
-              target: 2
-             ),
+              target: 10,
+              kind: .good,
+        ),
         Habit(name: "Meditation",
               unit: "session",
               icon: "figure.mind.and.body",
               color: .green,
-              target: 3
+              target: 3,
+              kind: .good,
              ),
         Habit(name: "Reading",
               unit: "page",
               icon: "books.vertical.fill",
               color: .pink,
-              target: 4
+              target: 4,
+              kind: .good,
              ),
         Habit(name: "Chores",
               unit: "task",
               icon: "house.fill",
               color: .red,
-              target: 6
+              target: 6,
+              kind: .good,
              ),
         Habit(name: "Vocabulary",
               unit: "word",
               icon: "book.fill",
               color: .indigo,
-              target: 5
+              target: 5,
+              kind: .good,
              ),
         Habit(name: "Stretching",
               unit: "minute",
               icon: "figure.cooldown",
               color: .brown,
-              target: 10
+              target: 10,
+              kind: .good,
              ),
         Habit(name: "Journaling",
               unit: "entry",
               icon: "pencil.and.ellipsis.rectangle",
               color: .cyan,
-              target: 1
+              target: 1,
+              kind: .good,
              ),
     ]}
 }

@@ -2,9 +2,9 @@ import SwiftUI
 
 extension Habit.Card {
     var dayView: some View {
-        HStack(spacing: 12) {
-            ProgressBar(
-                currentValue: lastDayValue?.currentValue ?? 0,
+        HStack(spacing: 0) {
+            GoodProgressBar(
+                currentValue: currentValue,
                 target: habit.target,
                 color: color,
                 axis: .vertical,
@@ -12,6 +12,8 @@ extension Habit.Card {
                 height: contentHeight
             )
             .matchedGeometryEffect(id: "bar6", in: modeTransition, anchor: .topLeading)
+            
+            Spacer(minLength: 12)
             
             VStack(spacing: 0) {
                 progressLabel
@@ -21,6 +23,7 @@ extension Habit.Card {
             }
         }
         .frame(height: contentHeight)
+        .padding(.horizontal, 20)
         .padding(.top, 20)
     }
 }

@@ -11,7 +11,7 @@ extension Habit.Card {
                     )
                     .frame(width: 10, height: 13)
                     
-                    ProgressBar(
+                    GoodProgressBar(
                         currentValue: value.currentValue,
                         target: habit.target,
                         color: color,
