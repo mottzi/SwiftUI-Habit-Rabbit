@@ -4,7 +4,6 @@ extension Habit.Card {
     var progressLabel: some View {
         VStack(spacing: 2) {
             VStack {
-//                Text("\(currentValue)").font(.caption)
                 HStack(spacing: 2) {
                     Text("\(displayValue)")
                         .foregroundStyle(.primary.opacity(colorScheme == .dark ? 1 : 0.8))
