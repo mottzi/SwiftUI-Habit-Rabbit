@@ -5,7 +5,7 @@ extension Habit.Card {
         VStack(spacing: 2) {
             VStack {
                 HStack(spacing: 2) {
-                    Text("\(displayValue)")
+                    Text("\(currentValue)")
                         .foregroundStyle(.primary.opacity(colorScheme == .dark ? 1 : 0.8))
                     +
                     Text(" / ")

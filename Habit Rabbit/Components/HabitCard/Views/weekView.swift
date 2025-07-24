@@ -11,11 +11,12 @@ extension Habit.Card {
                     )
                     .frame(width: 10, height: 13)
                     
-                    GoodProgressBar(
+                    ProgressBar(
                         currentValue: value.currentValue,
                         target: habit.target,
                         color: color,
                         axis: .horizontal,
+                        kind: habit.kind,
                         width: 118,
                         height: 13,
                     )

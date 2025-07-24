@@ -3,28 +3,16 @@ import SwiftUI
 extension Habit.Card {
     var dayView: some View {
         HStack(spacing: 0) {
-            switch habit.kind {
-                case .good:
-                    GoodProgressBar(
-                        currentValue: currentValue,
-                        target: habit.target,
-                        color: color,
-                        axis: .vertical,
-                        width: 50,
-                        height: contentHeight
-                    )
-                    .matchedGeometryEffect(id: "bar6", in: modeTransition, anchor: .topLeading)
-                case .bad:
-                    BadProgressBar(
-                        currentValue: currentValue,
-                        target: habit.target,
-                        color: color,
-                        axis: .vertical,
-                        width: 50,
-                        height: contentHeight
-                    )
-                    .matchedGeometryEffect(id: "bar6", in: modeTransition, anchor: .topLeading)
-            }
+            ProgressBar(
+                currentValue: currentValue,
+                target: habit.target,
+                color: color,
+                axis: .vertical,
+                kind: habit.kind,
+                width: 50,
+                height: contentHeight
+            )
+            .matchedGeometryEffect(id: "bar6", in: modeTransition, anchor: .topLeading)
             
             Spacer(minLength: 12)
             
