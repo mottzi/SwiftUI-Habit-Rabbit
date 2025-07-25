@@ -58,18 +58,45 @@ extension Habit.Dashboard {
     // button to cycle through available time intervals
     var modeButton: some ToolbarContent {
         ToolbarItem(placement: .topBarLeading) {
-            Button {
-                mode = mode.next
-            } label: {
-                HStack(spacing: 7) {
-                    Image(systemName: "calendar.day.timeline.right")
-                    Text("\(mode.rawValue)")
-                        .frame(minWidth: 93, alignment: .leading)
-                        .minimumScaleFactor(0.7)
+            ModePicker(
+                width: 130,
+                mode: $mode
+            )
+        }
+    }
+}
+
+extension Habit.Dashboard {
+    struct ModePicker: View {
+        var width: CGFloat
+        @Binding var mode: Habit.Card.Mode
+        
+        typealias Mode = Habit.Card.Mode
+        
+        var body: some View {
+            HStack(spacing: 0) {
+                ForEach(Habit.Card.Mode.allCases, id: \.self) { item in
+                    Button {
+                        mode = mode == item ? mode.next : item
+                    } label: {
+                        Text(item.rawValue)
+                            .font(.system(size: 14, weight: .medium))
+                            .fontWeight(.bold)
+                    }
+                    .buttonStyle(.plain)
+                    .frame(width: width / 3)
                 }
-                .fontWeight(.bold)
-                .foregroundStyle(colorScheme == .light ? .black : .white)
             }
+            .padding(.vertical, 6)
+            .background {
+                Capsule()
+                    .fill(.ultraThinMaterial)
+                    .frame(width: width / 3)
+                    .frame(maxWidth: .infinity, alignment: .leading)
+                    .offset(x: CGFloat(Mode.allCases.firstIndex(of: mode) ?? 0) * (width / 3), y: 0)
+                    .animation(.spring(duration: 0.62), value: mode)
+            }
+            .frame(width: width)
         }
     }
 }
@@ -137,9 +164,9 @@ extension Habit.Dashboard {
     
     var randomizeButton: some View {
         Button("Randomize all", systemImage: "sparkle") {
-            modelContext.insert(habit: Habit.examples[0])
-            modelContext.insert(habit: Habit.examples[1])
-            try? modelContext.save()
+//            modelContext.insert(habit: Habit.examples[0])
+//            modelContext.insert(habit: Habit.examples[1])
+//            try? modelContext.save()
             // generate array of the last 30 day dates
             let dates = (0..<30).compactMap { offset in
                 Calendar.current.date(byAdding: .day, value: -offset, to: lastDay)
@@ -159,7 +186,10 @@ extension Habit.Dashboard {
             // process each habit for each date
             for habit in habits {
                 for date in dates {
-                    let randomValue = Int.random(in: 0...Int(Double(habit.target) * 1.6))
+                    let randomValue = switch habit.kind {
+                        case .good: Int.random(in: 0...habit.target * 3)
+                        case .bad: Int.random(in: 0...habit.target + 1)
+                    }
                     
                     // check if value already exists in lookup
                     if let existingValue = lookup[habit.id]?[date] {
