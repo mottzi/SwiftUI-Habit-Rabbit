@@ -9,15 +9,19 @@ extension Habit.Card {
         let color: Color
         let axis: Axis
         let kind: Habit.Kind
+        let mode: Habit.Card.Mode
         let width: CGFloat
         let height: CGFloat
         
         var body: some View {
             Capsule()
                 .fill(.quaternary)
+                .strokeBorder(.quaternary, lineWidth: trackStrokeWidth)
+                .brightness(trackBrightness)
                 .overlay {
                     Capsule()
                         .fill(color.gradient)
+                        .brightness(colorBrightness)
                         .offset(
                             x: axis == .horizontal ? offset : 0,
                             y: axis == .vertical ? offset : 0
@@ -34,20 +38,53 @@ extension Habit.Card {
 }
 
 extension Habit.Card.ProgressBar {
+    var isDark: Bool { colorScheme == .dark }
+    var exceedsTarget: Bool { currentValue > target }
+    var isDaily: Bool { mode == .daily }
+    
+    var colorBrightness: Double {
+        return switch (kind, isDark, exceedsTarget) {
+            case (.bad, _, _)          :  0     // bad habit: no adjustment
+            case (.good, true, true)   :  0.1   // exceeding good habit in dark mode: brighter color
+            case (.good, true, false)  : -0.1   // not exceeding good habit in dark mode: darker color
+            case (.good, false, true)  : -0.1   // exceeding good habit in light mode: darker color
+            case (.good, false, false) :  0.1   // not exceeding good habit in light mode: brighter color
+        }
+    }
+    
+    var trackBrightness: Double {
+        return switch (kind, isDark, exceedsTarget) {
+            case (.good, _, _)       :  0.2   // good habits: no adjustment
+            case (.bad, _, false)    :  0.2   // not exceeding bad habit in dark mode: no adjustment
+            case (.bad, true, true)  : -0.6   // exceeding bad habit in dark mode: much darker
+            case (.bad, false, true) : -0.5   // exceeding bad habit in light mode: darker
+        }
+    }
+    
+    var trackStrokeWidth: Double {
+        let isDark = colorScheme == .dark
+        let exceedsTarget = currentValue > target
+        let isDaily = mode == .daily
+        
+        return switch (kind, isDark, exceedsTarget, isDaily) {
+            case (.good, _, _, _)          :  0     // good habits: no stroke
+            case (.bad, _, false, _)       :  0     // not exceeding bad habit: no stroke
+            case (.bad, false, true, _)    :  0     // exceeding bad habit in light mode: no stroke adjustment
+            case (.bad, true, true, true)  :  1.5   // exceeding bad habit in daily dark mode: thick stroke
+            case (.bad, true, true, false) :  0.75  // exceeding bad habit in other dark mode: medium stroke
+        }
+    }
+}
+
+extension Habit.Card.ProgressBar {
     var progress: CGFloat {
         guard target > 0 else { return 0 }
         return CGFloat(currentValue) / CGFloat(target)
     }
     
     var offset: CGFloat {
-        // get track length
-        let max = axis == .vertical ? height : width
-        
-        // visual offset for better appearance
         let padding = axis == .vertical ? -12.0 : 0.0
-        
-        // good: track fills bottom to top or left toright)
-        // bad: track depletes top to bottom or right to left
+        let max = axis == .vertical ? height : width
         let baseOffset: CGFloat = switch (kind, axis) {
             case (.good, .vertical): max      // fills upward
             case (.good, .horizontal): -max   // fills rightward

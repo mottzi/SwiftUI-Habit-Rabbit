@@ -57,6 +57,7 @@ extension Habit {
                     .frame(maxHeight: .infinity, alignment: .bottom)
                     .padding(.bottom, labelBottomPadding)
                 }
+                
             }
             .animation(.spring(duration: 0.62), value: mode)
             .frame(maxWidth: .infinity)
@@ -95,7 +96,7 @@ extension Habit.Card {
     var weeklyValues: [Habit.Value] {
         let recentValues = monthlyValues.suffix(7)
         let lookup = Dictionary(recentValues.map { ($0.date, $0) }, uniquingKeysWith: { first, _ in first })
-        return weekDateRange.map { lookup[$0] ?? Habit.Value(habit: habit, date: $0, currentValue: habit.kind == .good ? 0 : habit.target) }
+        return weekDateRange.map { lookup[$0] ?? Habit.Value(habit: habit, date: $0, currentValue: 0) }
     }
     
     var displayValue: Int {
@@ -133,7 +134,7 @@ extension Habit.Card {
     var isCompleted: Bool {
         switch habit.kind {
             case .good: currentValue >= target
-            case .bad: displayValue > 0
+            case .bad: currentValue < target
         }
     }
 }
@@ -141,6 +142,11 @@ extension Habit.Card {
 extension Habit.Card {
     @ViewBuilder
     var contextMenuButtons: some View {
+        Button("Weekly Values", systemImage: "7.circle.fill") {
+            for value in weeklyValues {
+                print("Value: \(value.currentValue)")
+            }
+        }
         Button("Randomize", systemImage: "sparkles") {
             lastDayValue?.currentValue = Int.random(in: 0...habit.target * 2)
         }
@@ -186,18 +192,15 @@ extension Habit.Card {
 }
 
 #Preview {
-    VStack(spacing: 16) {
-        HStack(spacing: 16) {
-            Habit.Card(habit: Habit.examples[0], lastDay: .now, mode: .daily, index: 0)
-            Habit.Card(habit: Habit.examples[1], lastDay: .now, mode: .daily, index: 1)
-        }
-        
-        HStack(spacing: 16) {
-            Habit.Card(habit: Habit.examples[0], lastDay: .now, mode: .weekly, index: 0)
-            Habit.Card(habit: Habit.examples[1], lastDay: .now, mode: .weekly, index: 1)
-        }
-        
-        Spacer()
+    let columns = [
+        GridItem(.flexible(), spacing: 16),
+        GridItem(.flexible(), spacing: 16),
+    ]
+    
+    LazyVGrid(columns: columns, spacing: 16) {
+        Habit.Card(habit: Habit.examples[0], lastDay: .now, mode: .daily, index: 0)
+        Habit.Card(habit: Habit.examples[0], lastDay: .now, mode: .weekly, index: 1)
+        Habit.Card(habit: Habit.examples[0], lastDay: .now, mode: .monthly, index: 2)
     }
     .padding(16)
 }

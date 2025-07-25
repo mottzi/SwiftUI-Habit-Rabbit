@@ -17,6 +17,7 @@ extension Habit.Card {
                         color: color,
                         axis: .horizontal,
                         kind: habit.kind,
+                        mode: mode,
                         width: 118,
                         height: 13,
                     )

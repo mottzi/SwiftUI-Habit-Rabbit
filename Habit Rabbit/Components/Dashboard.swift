@@ -16,17 +16,28 @@ extension Habit {
         
         var body: some View {
             ScrollView {
-                LazyVGrid(columns: columns, spacing: 16) {
-                    ForEach(habits.enumerated, id: \.element.id) { index, habit in
-                        Habit.Card(
-                            habit: habit,
-                            lastDay: lastDay,
-                            mode: mode,
-                            index: index
-                        )
+//                LazyVGrid(columns: columns, spacing: 16) {
+//                    ForEach(habits.enumerated, id: \.element.id) { index, habit in
+//                        Habit.Card(
+//                            habit: habit,
+//                            lastDay: lastDay,
+//                            mode: mode,
+//                            index: index
+//                        )
+//                    }
+//                }
+//                .padding(16)
+                if habits.count > 0 {
+                    LazyVGrid(columns: columns, spacing: 16) {
+                        Habit.Card(habit: habits[1], lastDay: lastDay, mode: .daily, index: 0)
+                        Habit.Card(habit: habits[1], lastDay: lastDay, mode: .weekly, index: 1)
+                        Habit.Card(habit: habits[1], lastDay: lastDay, mode: .monthly, index: 2)
+//                        Habit.Card(habit: habits[0], lastDay: lastDay, mode: .daily, index: 3)
+//                        Habit.Card(habit: habits[0], lastDay: lastDay, mode: .weekly, index: 4)
+//                        Habit.Card(habit: habits[0], lastDay: lastDay, mode: .monthly, index: 5)
                     }
+                    .padding(16)
                 }
-                .padding(16)
             }
             .navigationTitle("Habit Rabbit")
             .animation(.default, value: habits.count)
@@ -126,6 +137,9 @@ extension Habit.Dashboard {
     
     var randomizeButton: some View {
         Button("Randomize all", systemImage: "sparkle") {
+            modelContext.insert(habit: Habit.examples[0])
+            modelContext.insert(habit: Habit.examples[1])
+            try? modelContext.save()
             // generate array of the last 30 day dates
             let dates = (0..<30).compactMap { offset in
                 Calendar.current.date(byAdding: .day, value: -offset, to: lastDay)
@@ -145,7 +159,7 @@ extension Habit.Dashboard {
             // process each habit for each date
             for habit in habits {
                 for date in dates {
-                    let randomValue = Int.random(in: 0...habit.target * 2)
+                    let randomValue = Int.random(in: 0...Int(Double(habit.target) * 1.6))
                     
                     // check if value already exists in lookup
                     if let existingValue = lookup[habit.id]?[date] {

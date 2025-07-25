@@ -9,6 +9,7 @@ extension Habit.Card {
                 color: color,
                 axis: .vertical,
                 kind: habit.kind,
+                mode: mode,
                 width: 50,
                 height: contentHeight
             )
