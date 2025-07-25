@@ -31,13 +31,43 @@ extension Habit.Card {
         .frame(height: contentHeight)
         .padding(.top, 10)
     }
+}
+
+extension Habit.Card {
+    // Clean computed property like weeklyValues - creates 5x7 grid with today at bottom-right
+    var monthlyGridValues: [[Habit.Value?]] {
+        let totalCells = 5 * 7
+        let paddingCount = totalCells - monthlyValues.count
+        
+        var paddedValues: [Habit.Value?] = Array(repeating: nil, count: paddingCount)
+        paddedValues.append(contentsOf: monthlyValues.map { $0 as Habit.Value? })
+        
+        // Convert flat array to 5x7 grid
+        return stride(from: 0, to: paddedValues.count, by: 7).map { startIndex in
+            Array(paddedValues[startIndex..<min(startIndex + 7, paddedValues.count)])
+        }
+    }
     
+    var dayLabels: some View {
+        HStack(spacing: 6) {
+            ForEach(weeklyValues, id: \.id) { value in
+                dayLetter(
+                    for: value.date,
+                    color: .primary.opacity(0.4)
+                )
+                .frame(width: 16, height: 16)
+            }
+        }
+    }
+}
+
+extension Habit.Card {
     func cubeColor(for value: Habit.Value?) -> AnyShapeStyle {
         guard let value else { return AnyShapeStyle(.quaternary) }
         
         let meetsTarget = habit.kind == .good
-                            ? value.currentValue >= habit.target
-                            : value.currentValue < habit.target
+        ? value.currentValue >= habit.target
+        : value.currentValue < habit.target
         
         return meetsTarget ? AnyShapeStyle(habit.color) : AnyShapeStyle(.quaternary)
     }
@@ -68,32 +98,6 @@ extension Habit.Card {
         return switch (habit.kind, isDark, exceedsTarget) {
             case (.bad, true, true)  :  0.75  // exceeding bad habit in dark mode: medium stroke
             default                  :  0     // no stroke
-        }
-    }
-    
-    // Clean computed property like weeklyValues - creates 5x7 grid with today at bottom-right
-    var monthlyGridValues: [[Habit.Value?]] {
-        let totalCells = 5 * 7
-        let paddingCount = totalCells - monthlyValues.count
-        
-        var paddedValues: [Habit.Value?] = Array(repeating: nil, count: paddingCount)
-        paddedValues.append(contentsOf: monthlyValues.map { $0 as Habit.Value? })
-        
-        // Convert flat array to 5x7 grid
-        return stride(from: 0, to: paddedValues.count, by: 7).map { startIndex in
-            Array(paddedValues[startIndex..<min(startIndex + 7, paddedValues.count)])
-        }
-    }
-    
-    var dayLabels: some View {
-        HStack(spacing: 6) {
-            ForEach(weeklyValues, id: \.id) { value in
-                dayLetter(
-                    for: value.date,
-                    color: .primary.opacity(0.4)
-                )
-                .frame(width: 16, height: 16)
-            }
         }
     }
 }
