@@ -61,11 +61,7 @@ extension Habit.Card.ProgressBar {
         }
     }
     
-    var trackStrokeWidth: Double {
-        let isDark = colorScheme == .dark
-        let exceedsTarget = currentValue > target
-        let isDaily = mode == .daily
-        
+    var trackStrokeWidth: Double {        
         return switch (kind, isDark, exceedsTarget, isDaily) {
             case (.good, _, _, _)          :  0     // good habits: no stroke
             case (.bad, _, false, _)       :  0     // not exceeding bad habit: no stroke
