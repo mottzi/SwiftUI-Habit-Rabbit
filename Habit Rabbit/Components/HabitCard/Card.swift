@@ -41,9 +41,9 @@ extension Habit {
                     // Content that should blur
                     Group {
                         switch mode {
-                            case .daily: dayView
-                            case .weekly: weekView
-                            case .monthly: monthView
+                            case .daily: dailyView
+                            case .weekly: weeklyView
+                            case .monthly: monthlyView
                         }
                     }
                     .transition(.blurReplace)
@@ -62,7 +62,7 @@ extension Habit {
             .animation(.spring(duration: 0.62), value: mode)
             .frame(maxWidth: .infinity)
             .frame(height: 232)
-            .background { backgroundView }
+            .background { background }
             .geometryGroup()
             .scaleEffect(isDeleting ? 0 : 1)
             .contentShape(.contextMenuPreview, .rect(cornerRadius: 24))

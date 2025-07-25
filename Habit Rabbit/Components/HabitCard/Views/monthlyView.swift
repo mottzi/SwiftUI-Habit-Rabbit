@@ -1,7 +1,7 @@
 import SwiftUI
 
 extension Habit.Card {
-    var monthView: some View {
+    var monthlyView: some View {
         VStack(spacing: 6) {
             dayLabels
                 .padding(.bottom, 2)

@@ -1,17 +1,17 @@
 import SwiftUI
 
 extension Habit.Card {
-    var backgroundView: some View {
+    var background: some View {
         RoundedRectangle(cornerRadius: 24)
             .fill(.regularMaterial)
             .stroke(.quaternary, lineWidth: colorScheme == .dark ? 1 : 0.6)
             .background {
-                backShadow
+                shadow
                 colorEffect
             }
     }
     
-    var backShadow: some View {
+    var shadow: some View {
         ZStack {
             if colorScheme == .light {
                 RoundedRectangle(cornerRadius: 24)

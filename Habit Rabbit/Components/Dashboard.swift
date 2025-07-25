@@ -16,28 +16,28 @@ extension Habit {
         
         var body: some View {
             ScrollView {
-//                LazyVGrid(columns: columns, spacing: 16) {
-//                    ForEach(habits.enumerated, id: \.element.id) { index, habit in
-//                        Habit.Card(
-//                            habit: habit,
-//                            lastDay: lastDay,
-//                            mode: mode,
-//                            index: index
-//                        )
-//                    }
-//                }
-//                .padding(16)
-                if habits.count > 0 {
-                    LazyVGrid(columns: columns, spacing: 16) {
-                        Habit.Card(habit: habits[1], lastDay: lastDay, mode: .daily, index: 0)
-                        Habit.Card(habit: habits[1], lastDay: lastDay, mode: .weekly, index: 1)
-                        Habit.Card(habit: habits[1], lastDay: lastDay, mode: .monthly, index: 2)
+                LazyVGrid(columns: columns, spacing: 16) {
+                    ForEach(habits.enumerated, id: \.element.id) { index, habit in
+                        Habit.Card(
+                            habit: habit,
+                            lastDay: lastDay,
+                            mode: mode,
+                            index: index
+                        )
+                    }
+                }
+                .padding(16)
+//                if habits.count > 0 {
+//                    LazyVGrid(columns: columns, spacing: 16) {
+//                        Habit.Card(habit: habits[1], lastDay: lastDay, mode: .daily, index: 0)
+//                        Habit.Card(habit: habits[1], lastDay: lastDay, mode: .weekly, index: 1)
+//                        Habit.Card(habit: habits[1], lastDay: lastDay, mode: .monthly, index: 2)
 //                        Habit.Card(habit: habits[0], lastDay: lastDay, mode: .daily, index: 3)
 //                        Habit.Card(habit: habits[0], lastDay: lastDay, mode: .weekly, index: 4)
 //                        Habit.Card(habit: habits[0], lastDay: lastDay, mode: .monthly, index: 5)
-                    }
-                    .padding(16)
-                }
+//                    }
+//                    .padding(16)
+//                }
             }
             .navigationTitle("Habit Rabbit")
             .animation(.default, value: habits.count)

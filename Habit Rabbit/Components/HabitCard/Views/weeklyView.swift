@@ -1,7 +1,7 @@
 import SwiftUI
 
 extension Habit.Card {
-    var weekView: some View {
+    var weeklyView: some View {
         VStack(alignment: .leading, spacing: 9) {
             ForEach(weeklyValues.enumerated, id: \.element.id) { index, value in
                 HStack(spacing: 12) {
