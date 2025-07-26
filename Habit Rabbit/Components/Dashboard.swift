@@ -16,33 +16,32 @@ extension Habit {
         
         var body: some View {
             ScrollView {
-                LazyVGrid(columns: columns, spacing: 16) {
-                    ForEach(habits.enumerated, id: \.element.id) { index, habit in
-                        Habit.Card(
-                            habit: habit,
-                            lastDay: lastDay,
-                            mode: mode,
-                            index: index
-                        )
+                VStack(spacing: 0) {
+                    ModePicker(
+                        width: 240,
+                        mode: $mode
+                    )
+                    .frame(maxWidth: .infinity, alignment: .leading)
+                    .padding(.horizontal, 16)
+                    .padding(.leading, 4)
+                    
+                    LazyVGrid(columns: columns, spacing: 16) {
+                        ForEach(habits.enumerated, id: \.element.id) { index, habit in
+                            Habit.Card(
+                                habit: habit,
+                                lastDay: lastDay,
+                                mode: mode,
+                                index: index
+                            )
+                        }
                     }
+                    .padding(16)
                 }
-                .padding(16)
-//                if habits.count > 0 {
-//                    LazyVGrid(columns: columns, spacing: 16) {
-//                        Habit.Card(habit: habits[1], lastDay: lastDay, mode: .daily, index: 0)
-//                        Habit.Card(habit: habits[1], lastDay: lastDay, mode: .weekly, index: 1)
-//                        Habit.Card(habit: habits[1], lastDay: lastDay, mode: .monthly, index: 2)
-//                        Habit.Card(habit: habits[0], lastDay: lastDay, mode: .daily, index: 3)
-//                        Habit.Card(habit: habits[0], lastDay: lastDay, mode: .weekly, index: 4)
-//                        Habit.Card(habit: habits[0], lastDay: lastDay, mode: .monthly, index: 5)
-//                    }
-//                    .padding(16)
-//                }
             }
             .navigationTitle("Habit Rabbit")
             .animation(.default, value: habits.count)
             .toolbar {
-                modeButton
+                //modeButton
                 debugToolbar
             }
         }
@@ -59,7 +58,7 @@ extension Habit.Dashboard {
     var modeButton: some ToolbarContent {
         ToolbarItem(placement: .topBarLeading) {
             ModePicker(
-                width: 130,
+                width: 140,
                 mode: $mode
             )
         }
@@ -81,13 +80,15 @@ extension Habit.Dashboard {
                     } label: {
                         Text(item.rawValue)
                             .font(.system(size: 14, weight: .medium))
-                            .fontWeight(.bold)
+                            .foregroundStyle(mode == item ? .primary : .secondary)
+                            .fontWeight(mode == item ? .bold : .medium)
                     }
                     .buttonStyle(.plain)
+                    .contentShape(.rect)
                     .frame(width: width / 3)
+                    .padding(.vertical, 6)
                 }
             }
-            .padding(.vertical, 6)
             .background {
                 Capsule()
                     .fill(.ultraThinMaterial)
@@ -187,7 +188,7 @@ extension Habit.Dashboard {
             for habit in habits {
                 for date in dates {
                     let randomValue = switch habit.kind {
-                        case .good: Int.random(in: 0...habit.target * 3)
+                        case .good: Int.random(in: 0...habit.target * 2)
                         case .bad: Int.random(in: 0...habit.target + 1)
                     }
                     

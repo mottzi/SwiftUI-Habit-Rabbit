@@ -21,7 +21,7 @@ extension Habit.Card {
                         width: 118,
                         height: 13,
                     )
-                    .matchedGeometryEffect(id: "bar\(index)", in: modeTransition)
+                    .matchedGeometryEffect(id: "bar\(index)", in: modeTransition, anchor: .leading)
                 }
                 .geometryGroup()
                 .frame(maxWidth: .infinity)

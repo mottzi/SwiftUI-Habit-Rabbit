@@ -185,9 +185,9 @@ extension Habit.Card {
 extension Habit.Card {
     // length of time interval habit card can display values for
     enum Mode: String, CaseIterable {
-        case daily = "D" // current day
-        case weekly = "W" // last 7 days
-        case monthly = "M" // last 30 days
+        case daily = "Daily" // current day
+        case weekly = "Weekly" // last 7 days
+        case monthly = "Monthly" // last 30 days
     }
 }
 
