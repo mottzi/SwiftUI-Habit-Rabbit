@@ -15,33 +15,28 @@ extension Habit {
         @Query(sort: \Habit.date) var habits: [Habit]
         
         var body: some View {
+            let _ = Self._printChanges()
+            let _ = print("📊 Dashboard body evaluated - \(habits.count) habits")
+            
             ScrollView {
                 VStack(spacing: 0) {
-                    ModePicker(
-                        width: 240,
-                        mode: $mode
-                    )
-                    .frame(maxWidth: .infinity, alignment: .leading)
-                    .padding(.horizontal, 16)
-                    .padding(.leading, 4)
-                    
                     LazyVGrid(columns: columns, spacing: 16) {
                         ForEach(habits.enumerated, id: \.element.id) { index, habit in
                             Habit.Card(
                                 habit: habit,
                                 lastDay: lastDay,
                                 mode: mode,
-                                index: index
+                                index: index,
                             )
                         }
                     }
                     .padding(16)
                 }
             }
-            .navigationTitle("Habit Rabbit")
+            //            .navigationTitle("Habit Rabbit")
             .animation(.default, value: habits.count)
             .toolbar {
-                //modeButton
+                modeButton
                 debugToolbar
             }
         }
@@ -58,52 +53,16 @@ extension Habit.Dashboard {
     var modeButton: some ToolbarContent {
         ToolbarItem(placement: .topBarLeading) {
             ModePicker(
-                width: 140,
+                width: 240,
                 mode: $mode
             )
+            .padding(.leading, 8)
         }
     }
 }
 
 extension Habit.Dashboard {
-    struct ModePicker: View {
-        var width: CGFloat
-        @Binding var mode: Habit.Card.Mode
-        
-        typealias Mode = Habit.Card.Mode
-        
-        var body: some View {
-            HStack(spacing: 0) {
-                ForEach(Habit.Card.Mode.allCases, id: \.self) { item in
-                    Button {
-                        mode = mode == item ? mode.next : item
-                    } label: {
-                        Text(item.rawValue)
-                            .font(.system(size: 14, weight: .medium))
-                            .foregroundStyle(mode == item ? .primary : .secondary)
-                            .fontWeight(mode == item ? .bold : .medium)
-                    }
-                    .buttonStyle(.plain)
-                    .contentShape(.rect)
-                    .frame(width: width / 3)
-                    .padding(.vertical, 6)
-                }
-            }
-            .background {
-                Capsule()
-                    .fill(.ultraThinMaterial)
-                    .frame(width: width / 3)
-                    .frame(maxWidth: .infinity, alignment: .leading)
-                    .offset(x: CGFloat(Mode.allCases.firstIndex(of: mode) ?? 0) * (width / 3), y: 0)
-                    .animation(.spring(duration: 0.62), value: mode)
-            }
-            .frame(width: width)
-        }
-    }
-}
-
-extension Habit.Dashboard {
-    @ToolbarContentBuilder
+    // @ToolbarContentBuilder
     var debugToolbar: some ToolbarContent {
         // ToolbarItem(placement: .topBarLeading) { debugCounter }
         ToolbarItem(placement: .topBarTrailing) { debugButton }
@@ -125,10 +84,17 @@ extension Habit.Dashboard {
             addExampleButton
             randomizeButton
             Divider()
+            removeDBButton
             removeHabitsButton
         } label: {
             Image(systemName: "hammer.fill")
                 .foregroundStyle(colorScheme == .light ? .black : .white)
+        }
+    }
+    
+    var removeDBButton: some View {
+        Button("Kill Database", systemImage: "sparkle") {
+            modelContext.container.deleteAllData()
         }
     }
     
@@ -165,9 +131,9 @@ extension Habit.Dashboard {
     
     var randomizeButton: some View {
         Button("Randomize all", systemImage: "sparkle") {
-//            modelContext.insert(habit: Habit.examples[0])
-//            modelContext.insert(habit: Habit.examples[1])
-//            try? modelContext.save()
+            //            modelContext.insert(habit: Habit.examples[0])
+            //            modelContext.insert(habit: Habit.examples[1])
+            //            try? modelContext.save()
             // generate array of the last 30 day dates
             let dates = (0..<30).compactMap { offset in
                 Calendar.current.date(byAdding: .day, value: -offset, to: lastDay)
