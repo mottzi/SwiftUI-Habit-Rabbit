@@ -33,7 +33,8 @@ extension Habit {
                     .padding(16)
                 }
             }
-            //            .navigationTitle("Habit Rabbit")
+            .navigationTitle("Habit Rabbit")
+//            .navigationBarTitleDisplayMode(.inline)
             .animation(.default, value: habits.count)
             .toolbar {
                 modeButton
@@ -51,7 +52,7 @@ extension Habit {
 extension Habit.Dashboard {
     // button to cycle through available time intervals
     var modeButton: some ToolbarContent {
-        ToolbarItem(placement: .topBarLeading) {
+        ToolbarItem(placement: .topBarTrailing) {
             ModePicker(
                 width: 240,
                 mode: $mode
@@ -65,7 +66,7 @@ extension Habit.Dashboard {
     // @ToolbarContentBuilder
     var debugToolbar: some ToolbarContent {
         // ToolbarItem(placement: .topBarLeading) { debugCounter }
-        ToolbarItem(placement: .topBarTrailing) { debugButton }
+        ToolbarItem(placement: .topBarTrailing) { /*debugButton*/ }
     }
     
     // view that displays the current number of habits
