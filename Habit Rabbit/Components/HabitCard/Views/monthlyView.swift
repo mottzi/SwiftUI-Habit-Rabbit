@@ -37,10 +37,10 @@ extension Habit.Card {
     // Clean computed property like weeklyValues - creates 5x7 grid with today at bottom-right
     var monthlyGridValues: [[Habit.Value?]] {
         let totalCells = 5 * 7
-        let paddingCount = totalCells - monthlyValues.count
+        let paddingCount = totalCells - manager.values.count
         
         var paddedValues: [Habit.Value?] = Array(repeating: nil, count: paddingCount)
-        paddedValues.append(contentsOf: monthlyValues.map { $0 as Habit.Value? })
+        paddedValues.append(contentsOf: manager.values.map { $0 as Habit.Value? })
         
         // Convert flat array to 5x7 grid
         return stride(from: 0, to: paddedValues.count, by: 7).map { startIndex in

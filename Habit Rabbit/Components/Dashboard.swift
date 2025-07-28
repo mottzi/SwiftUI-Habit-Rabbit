@@ -2,7 +2,6 @@ import SwiftUI
 import SwiftData
 
 extension Habit {
-    // primary view that displays a 2 column grid of habit cards
     struct Dashboard: View {
         @Environment(\.colorScheme) var colorScheme
         @Environment(\.modelContext) var modelContext
@@ -11,22 +10,24 @@ extension Habit {
         @State var mode: Habit.Card.Mode = .daily
         // end date for the time interval being displayed
         @State var lastDay: Date = .now.startOfDay
-        // fetches all habits sorted by creation date
-        @Query(sort: \Habit.date) var habits: [Habit]
+        
+        @State private var managerCache: [Habit.ID: Habit.Card.Manager] = [:]
+        @State private var managers: [Habit.Card.Manager] = []
         
         var body: some View {
-            let _ = Self._printChanges()
-            let _ = print("📊 Dashboard body evaluated - \(habits.count) habits")
+            let _ = print("📊 Dashboard body evaluating with \(managerCache.count) habits")
             
             ScrollView {
                 VStack(spacing: 0) {
                     LazyVGrid(columns: columns, spacing: 16) {
-                        ForEach(habits.enumerated, id: \.element.id) { index, habit in
+                        ForEach(managers.enumerated, id: \.element.habit.id) { index, viewModel in
                             Habit.Card(
-                                habit: habit,
-                                lastDay: lastDay,
+                                manager: viewModel,
                                 mode: mode,
                                 index: index,
+                                onDelete: {
+                                    refreshManagers()
+                                }
                             )
                         }
                     }
@@ -34,11 +35,53 @@ extension Habit {
                 }
             }
             .navigationTitle("Habit Rabbit")
-//            .navigationBarTitleDisplayMode(.inline)
-            .animation(.default, value: habits.count)
+            .animation(.default, value: managerCache.count)
+            .task {
+                refreshManagers()
+            }
             .toolbar {
-                modeButton
-                debugToolbar
+                modePicker
+                //debugToolbar
+            }
+        }
+        
+        // ADD: The reconciliation function to manage ViewModel lifecycle.
+        func refreshManagers() {
+            print("📊 Fetching habits to reconcile view models ...")
+            do {
+                // create new cache
+                var newManagerCache: [Habit.ID: Habit.Card.Manager] = [:]
+                
+                // fetch all habits, ordered by creation date
+                let habits = try modelContext.fetch(FetchDescriptor<Habit>(sortBy: [SortDescriptor(\.date)]))
+                
+                // recreate cache, creating managers only when necessary
+                for habit in habits {
+                    // use cached manager for this habit if available
+                    if let manager = managerCache[habit.id] {
+                        newManagerCache[habit.id] = manager
+                        continue
+                    }
+                    // otherwise, create new manager for this habit
+                    print("🧾 \(habit.name): creating view model")
+                    newManagerCache[habit.id] = Habit.Card.Manager(
+                        modelContext: modelContext,
+                        habit: habit,
+                        lastDay: lastDay
+                    )
+                }
+                
+                // update cache
+                self.managerCache = newManagerCache
+                
+                // Step 3: Create the final, ordered array for the view to use.
+                // This is guaranteed to be consistent because we just reconciled the cache.
+                self.managers = habits.compactMap { habit in
+                    newManagerCache[habit.id]
+                }
+                
+            } catch {
+                print("Failed to fetch habits:", error)
             }
         }
         
@@ -51,28 +94,27 @@ extension Habit {
 
 extension Habit.Dashboard {
     // button to cycle through available time intervals
-    var modeButton: some ToolbarContent {
+    var modePicker: some ToolbarContent {
         ToolbarItem(placement: .topBarTrailing) {
             ModePicker(
                 width: 240,
                 mode: $mode
             )
             .padding(.leading, 8)
+            .sensoryFeedback(.selection, trigger: mode)
         }
     }
 }
 
 extension Habit.Dashboard {
-    // @ToolbarContentBuilder
     var debugToolbar: some ToolbarContent {
-        // ToolbarItem(placement: .topBarLeading) { debugCounter }
-        ToolbarItem(placement: .topBarTrailing) { /*debugButton*/ }
+        ToolbarItem(placement: .topBarTrailing) { debugButton }
     }
     
     // view that displays the current number of habits
     var debugCounter: some View {
         HStack {
-            Text("Habits: \(habits.count)")
+            Text("Habits: \(managers.count)")
         }
         .font(.footnote)
         .fontWeight(.semibold)
@@ -96,6 +138,7 @@ extension Habit.Dashboard {
     var removeDBButton: some View {
         Button("Kill Database", systemImage: "sparkle") {
             modelContext.container.deleteAllData()
+            refreshManagers()
         }
     }
     
@@ -123,6 +166,7 @@ extension Habit.Dashboard {
                     }
                     
                     try? modelContext.save()
+                    refreshManagers()
                 }
             }
         } label: {
@@ -132,46 +176,7 @@ extension Habit.Dashboard {
     
     var randomizeButton: some View {
         Button("Randomize all", systemImage: "sparkle") {
-            //            modelContext.insert(habit: Habit.examples[0])
-            //            modelContext.insert(habit: Habit.examples[1])
-            //            try? modelContext.save()
-            // generate array of the last 30 day dates
-            let dates = (0..<30).compactMap { offset in
-                Calendar.current.date(byAdding: .day, value: -offset, to: lastDay)
-            }
-            
-            // fetch all existing habit values in the date range
-            let predicate = #Predicate<Habit.Value> { $0.date >= dates.last! && $0.date <= dates.first! }
-            let existing = (try? modelContext.fetch(FetchDescriptor(predicate: predicate))) ?? []
-            
-            // create efficient lookup structure
-            var lookup: [Habit.ID: [Date: Habit.Value]] = [:]
-            for value in existing {
-                guard let habitId = value.habit?.id else { continue }
-                lookup[habitId, default: [:]][value.date] = value
-            }
-            
-            // process each habit for each date
-            for habit in habits {
-                for date in dates {
-                    let randomValue = switch habit.kind {
-                        case .good: Int.random(in: 0...habit.target * 2)
-                        case .bad: Int.random(in: 0...habit.target + 1)
-                    }
-                    
-                    // check if value already exists in lookup
-                    if let existingValue = lookup[habit.id]?[date] {
-                        // update existing value in memory
-                        existingValue.currentValue = randomValue
-                    } else {
-                        // create new value and add to context
-                        modelContext.insert(Habit.Value(habit: habit, date: date, currentValue: randomValue))
-                    }
-                }
-            }
-            
-            // single database save operation for all changes
-            try? modelContext.save()
+
         }
     }
     
@@ -181,6 +186,7 @@ extension Habit.Dashboard {
         Button("Delete All", systemImage: "trash", role: .destructive) {
             try? modelContext.delete(model: Habit.self)
             try? modelContext.save()
+            refreshManagers()// Refresh after deletion
         }
     }
 }

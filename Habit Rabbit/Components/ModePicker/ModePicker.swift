@@ -26,7 +26,7 @@ extension Habit.Dashboard {
             }
             .background {
                 Capsule()
-                    .fill(.ultraThinMaterial)
+                    .fill(.quaternary)
                     .frame(width: width / 3)
                     .frame(maxWidth: .infinity, alignment: .leading)
                     .offset(x: CGFloat(Mode.allCases.firstIndex(of: mode) ?? 0) * (width / 3), y: 0)

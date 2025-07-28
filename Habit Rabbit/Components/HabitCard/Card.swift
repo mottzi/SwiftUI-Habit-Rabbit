@@ -8,56 +8,36 @@ extension Habit {
         @Environment(\.colorScheme) var colorScheme
         @Namespace var modeTransition
         
-        let habit: Habit // habit displayed
-        let lastDay: Date // last day of the time interval
-        let mode: Habit.Card.Mode // length of the time interval
-        let index: Int // index in parent container, used for animations
+        let manager: Habit.Card.Manager
+        let mode: Habit.Card.Mode
+        let index: Int
+        let onDelete: () -> Void
         
-        let weekDateRange: [Date]
-        
-        // fetches values of the habit, source of truth
-        @Query var monthlyValues: [Habit.Value]
         // card animates before being removed
         @State var isDeleting = false
         
-        init(habit: Habit, lastDay: Date, mode: Mode, index: Int) {
-            self.habit = habit
-            self.lastDay = lastDay.startOfDay
-            self.mode = mode
-            self.index = index
-            
-            // Pre-compute the 7 dates we need - this is static for the card's lifetime
-            self.weekDateRange = (0..<7).map { dayOffset in
-                Calendar.current.date(byAdding: .day, value: -dayOffset, to: lastDay)!
-            }.reversed()
-            
-            // fetches last 30 days of values ending on the day specified
-            _monthlyValues = Query(Habit.Value.filterByDays(30, for: habit, endingOn: lastDay))
-        }
-        
         var body: some View {
-            ZStack {
-                VStack(spacing: 0) {
-                    // Content that should blur
-                    Group {
-                        switch mode {
-                            case .daily: dailyView
-                            case .weekly: weeklyView
-                            case .monthly: monthlyView
-                        }
+            let _ = print("🔄 Card body evaluated: \(manager.habit.name)")
+            
+            VStack(spacing: 0) {
+                // Content that should blur
+                Group {
+                    switch mode {
+                        case .daily: dailyView
+                        case .weekly: weeklyView
+                        case .monthly: monthlyView
                     }
-                    .transition(.blurReplace)
-                                        
-                    VStack(spacing: mode == .monthly ? 4 : 2) {
-                        habitLabel
-                        if mode != .daily {
-                            progressLabelCompact
-                        }
-                    }
-                    .frame(maxHeight: .infinity, alignment: .bottom)
-                    .padding(.bottom, labelBottomPadding)
                 }
+                .transition(.blurReplace)
                 
+                VStack(spacing: mode == .monthly ? 4 : 2) {
+                    habitLabel
+                    if mode != .daily {
+                        progressLabelCompact
+                    }
+                }
+                .frame(maxHeight: .infinity, alignment: .bottom)
+                .padding(.bottom, labelBottomPadding)
             }
             .animation(.spring(duration: 0.62), value: mode)
             .frame(maxWidth: .infinity)
@@ -68,6 +48,7 @@ extension Habit {
             .contentShape(.contextMenuPreview, .rect(cornerRadius: 24))
             .contextMenu { contextMenuButtons }
             .offset(isDeleting ? deleteOffset : .zero)
+            .compositingGroup()
         }
         
         let contentHeight: CGFloat = 155
@@ -83,18 +64,23 @@ extension Habit {
 }
 
 extension Habit.Card {
-    // properties for easy access to habit properties
+    // properties for easy access to habit properties through viewModel
+    var habit: Habit { manager.habit }
     var name: String { habit.name }
     var unit: String { habit.unit }
     var icon: String { habit.icon }
     var color: Color { habit.color }
     
     // value of the last day in the time interval
-    var lastDayValue: Habit.Value? { monthlyValues.last }
+    var lastDayValue: Habit.Value? { manager.values.last }
     
     // values of the last 7 days of the time interval
     var weeklyValues: [Habit.Value] {
-        let recentValues = monthlyValues.suffix(7)
+        let recentValues = manager.values.suffix(7)
+        let weekDateRange = (0..<7).map { dayOffset in
+            Calendar.current.date(byAdding: .day, value: -dayOffset, to: manager.lastDay)!
+        }.reversed()
+        
         let lookup = Dictionary(recentValues.map { ($0.date, $0) }, uniquingKeysWith: { first, _ in first })
         return weekDateRange.map { lookup[$0] ?? Habit.Value(habit: habit, date: $0, currentValue: 0) }
     }
@@ -111,7 +97,7 @@ extension Habit.Card {
         switch mode {
             case .daily: lastDayValue?.currentValue ?? 0
             case .weekly: weeklyValues.reduce(0) { $0 + $1.currentValue }
-            case .monthly: monthlyValues.reduce(0) { $0 + $1.currentValue }
+            case .monthly: manager.values.reduce(0) { $0 + $1.currentValue }
         }
     }
     
@@ -148,7 +134,7 @@ extension Habit.Card {
             }
         }
         Button("Randomize", systemImage: "sparkles") {
-            lastDayValue?.currentValue = Int.random(in: 0...habit.target * 2)
+            manager.updateRandomValue()
         }
         Button("Reset", systemImage: "arrow.counterclockwise") {
             lastDayValue?.currentValue = 0
@@ -172,6 +158,9 @@ extension Habit.Card {
             
             try? await Task.sleep(nanoseconds: 10_000_000)
             modelContext.delete(habit)
+            
+            // here we need the parent to fetch and reconcile
+            onDelete()
         }
     }
     
@@ -189,18 +178,4 @@ extension Habit.Card {
         case weekly = "Weekly" // last 7 days
         case monthly = "Monthly" // last 30 days
     }
-}
-
-#Preview {
-    let columns = [
-        GridItem(.flexible(), spacing: 16),
-        GridItem(.flexible(), spacing: 16),
-    ]
-    
-    LazyVGrid(columns: columns, spacing: 16) {
-        Habit.Card(habit: Habit.examples[0], lastDay: .now, mode: .daily, index: 0)
-        Habit.Card(habit: Habit.examples[0], lastDay: .now, mode: .weekly, index: 1)
-        Habit.Card(habit: Habit.examples[0], lastDay: .now, mode: .monthly, index: 2)
-    }
-    .padding(16)
 }
