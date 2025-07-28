@@ -5,23 +5,29 @@ extension Habit.Card {
     @Observable
     class Manager {
         private let modelContext: ModelContext
+        private let lastDay: Date
+
         let habit: Habit
-        let lastDay: Date
-        
         var values: [Habit.Value] = []
-        var mode: Habit.Card.Mode = .daily
+        var mode: Habit.Card.Mode
         
-        init(modelContext: ModelContext, habit: Habit, lastDay: Date) {
+        init(
+            for habit: Habit,
+            until lastDay: Date,
+            mode: Habit.Card.Mode,
+            in modelContext: ModelContext,
+        ) {
             self.modelContext = modelContext
             self.habit = habit
             self.lastDay = lastDay
+            self.mode = mode
             
             fetchValues()
         }
         
         // fetch the values of the last 30 days
         func fetchValues() {
-            print(" ⬇ \(habit.name): fetching values")
+            print("    ⬇ fetching values")
             do {
                 let description = Habit.Value.filterByDays(30, for: habit, endingOn: lastDay)
                 values = try modelContext.fetch(description)                
@@ -37,10 +43,34 @@ extension Habit.Card {
         }
         
         // update the last fetched value
-        func updateRandomValue() {
-            if let value = values.last {
-                value.currentValue = Int.random(in: 0...habit.target * 2)
+        func randomizeLastDayValue() {
+            lastDayValue?.currentValue = Int.random(in: 0...habit.target * 2)
+        }
+        
+        // create and randomize 30 days of values for this habit
+        func createRandomizedHistory() {
+            let calendar = Calendar.current
+            
+            // create lookup of existing values by date
+            let existingValues = Dictionary(values.map { ($0.date, $0) }, uniquingKeysWith: { first, _ in first })
+            
+            // create or update 30 days of random values
+            for dayOffset in 0..<30 {
+                let date = calendar.startOfDay(for: calendar.date(byAdding: .day, value: -dayOffset, to: lastDay)!)
+                let randomValue = Int.random(in: 0...habit.target * 2)
+                
+                if let existingValue = existingValues[date] {
+                    // update existing value
+                    existingValue.currentValue = randomValue
+                } else {
+                    // create new value
+                    let value = Habit.Value(habit: habit, date: date, currentValue: randomValue)
+                    modelContext.insert(value)
+                }
             }
+            
+            // refresh this manager's values to include the new data
+            fetchValues()
         }
     }
 }

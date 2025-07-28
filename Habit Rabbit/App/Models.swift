@@ -14,6 +14,9 @@ import SwiftData
     var date: Date
     var kind: Habit.Kind
     
+    // Static cache for decoded colors
+    private static var colorCache: [Data: Color] = [:]
+    
     // creates a new habit instance, encoding its color
     init(name: String, unit: String, icon: String, color: Color, target: Int, kind: Habit.Kind) {
         self.name = name
@@ -28,9 +31,21 @@ import SwiftData
     
     // property that decodes color data into SwiftUI.Color
     var color: Color {
+        // Check cache first
+        if let cached = Habit.colorCache[colorData] {
+            return cached
+        }
+        
+        // Decode and cache
         let decode: (UIColor.Type, Data) throws -> UIColor? = NSKeyedUnarchiver.unarchivedObject
-        guard let uiColor = try? decode(UIColor.self, colorData) else { return Color.black }
-        return Color(uiColor)
+        guard let uiColor = try? decode(UIColor.self, colorData) else {
+            Habit.colorCache[colorData] = Color.black
+            return Color.black
+        }
+        
+        let decodedColor = Color(uiColor)
+        Self.colorCache[colorData] = decodedColor
+        return decodedColor
     }
 }
 
@@ -116,7 +131,7 @@ extension Habit {
               color: .green,
               target: 3,
               kind: .good,
-             ),
+        ),
         Habit(name: "Reading",
               unit: "page",
               icon: "books.vertical.fill",
@@ -130,34 +145,34 @@ extension Habit {
               color: .teal,
               target: 10,
               kind: .good,
-             ),
+        ),
         Habit(name: "Chores",
               unit: "task",
               icon: "house.fill",
               color: .red,
               target: 6,
               kind: .good,
-             ),
+        ),
         Habit(name: "Vocabulary",
               unit: "word",
               icon: "book.fill",
               color: .indigo,
               target: 5,
               kind: .good,
-             ),
+        ),
         Habit(name: "Stretching",
               unit: "minute",
               icon: "figure.cooldown",
               color: .brown,
               target: 10,
               kind: .good,
-             ),
+        ),
         Habit(name: "Journaling",
               unit: "entry",
               icon: "pencil.and.ellipsis.rectangle",
               color: .cyan,
               target: 1,
               kind: .good,
-             ),
+        ),
     ]}
 }

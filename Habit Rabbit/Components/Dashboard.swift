@@ -18,7 +18,7 @@ extension Habit {
             let _ = print("📊 Dashboard body evaluating with \(managerCache.count) habits")
             
             ScrollView {
-                VStack(spacing: 0) {
+                VStack(alignment: .center, spacing: 50){
                     LazyVGrid(columns: columns, spacing: 16) {
                         ForEach(managers.enumerated, id: \.element.habit.id) { index, manager in
                             Habit.Card(
@@ -28,15 +28,13 @@ extension Habit {
                             )
                         }
                     }
-                    .padding(16)
+                    debugButton
                 }
+                .padding(16)
             }
             .navigationTitle("Habit Rabbit")
             .animation(.default, value: managerCache.count)
-            .toolbar {
-                modePicker
-                //debugToolbar
-            }
+            .toolbar { modePicker }
             .onAppear { refreshManagers() }
             .onChange(of: mode) { refreshManagerModes() }
         }
@@ -50,11 +48,13 @@ extension Habit {
 
 extension Habit.Dashboard {
     // synchronizes manager modes with global mode
-    func refreshManagerModes() { managers.forEach { $0.updateMode(mode) } }
+    func refreshManagerModes() {
+        managers.forEach { $0.updateMode(mode) }
+    }
     
-    // ADD: The reconciliation function to manage ViewModel lifecycle.
+    // synchronize managers with database habits
     func refreshManagers() {
-        print("📊 Fetching habits to reconcile view models ...")
+        print("📊 Synchronizing view models and habits ...")
         do {
             // create new cache
             var newManagerCache: [Habit.ID: Habit.Card.Manager] = [:]
@@ -62,7 +62,7 @@ extension Habit.Dashboard {
             // fetch all habits, ordered by creation date
             let habits = try modelContext.fetch(FetchDescriptor<Habit>(sortBy: [SortDescriptor(\.date)]))
             
-            // recreate cache, creating managers only when necessary
+            // synchronize cache with habits, creating managers only when necessary
             for habit in habits {
                 // use cached manager for this habit if available
                 if let manager = managerCache[habit.id] {
@@ -70,11 +70,13 @@ extension Habit.Dashboard {
                     continue
                 }
                 // otherwise, create new manager for this habit
-                print("🧾 \(habit.name): creating view model")
+                print("Habit: \(habit.name)")
+                print("    🧾 creating view model")
                 let newManager = Habit.Card.Manager(
-                    modelContext: modelContext,
-                    habit: habit,
-                    lastDay: lastDay
+                    for: habit,
+                    until: lastDay,
+                    mode: mode,
+                    in: modelContext
                 )
                 newManager.updateMode(mode)
                 newManagerCache[habit.id] = newManager
@@ -83,12 +85,10 @@ extension Habit.Dashboard {
             // update cache
             self.managerCache = newManagerCache
             
-            // Step 3: Create the final, ordered array for the view to use.
-            // This is guaranteed to be consistent because we just reconciled the cache.
+            // update view models
             self.managers = habits.compactMap { habit in
                 newManagerCache[habit.id]
             }
-            
         } catch {
             print("Failed to fetch habits:", error)
         }
@@ -109,21 +109,7 @@ extension Habit.Dashboard {
     }
 }
 
-extension Habit.Dashboard {
-    var debugToolbar: some ToolbarContent {
-        ToolbarItem(placement: .topBarTrailing) { debugButton }
-    }
-    
-    // view that displays the current number of habits
-    var debugCounter: some View {
-        HStack {
-            Text("Habits: \(managers.count)")
-        }
-        .font(.footnote)
-        .fontWeight(.semibold)
-        .foregroundStyle(.primary.opacity(0.7))
-    }
-    
+extension Habit.Dashboard { 
     // hamburger menu containing various debug actions
     var debugButton: some View {
         Menu {
@@ -133,9 +119,23 @@ extension Habit.Dashboard {
             removeDBButton
             removeHabitsButton
         } label: {
-            Image(systemName: "hammer.fill")
-                .foregroundStyle(colorScheme == .light ? .black : .white)
+            HStack(spacing: 16) {
+                Image(systemName: "hammer.fill")
+                    .foregroundStyle(colorScheme == .light ? .black : .white)
+                    .frame(width: 64, height: 64)
+                    .background {
+                        Circle()
+                            .fill(.quaternary)
+                    }
+                    .padding()
+                
+                Text("Habits: \(managers.count)")
+                    .font(.footnote)
+                    .fontWeight(.semibold)
+                    .foregroundStyle(.primary.opacity(0.7))
+            }
         }
+        .buttonStyle(.plain)
     }
     
     var removeDBButton: some View {
@@ -179,7 +179,9 @@ extension Habit.Dashboard {
     
     var randomizeButton: some View {
         Button("Randomize all", systemImage: "sparkle") {
-
+            managers.forEach {
+                $0.createRandomizedHistory()
+            }
         }
     }
     
