@@ -50,7 +50,7 @@ extension Habit.Card {
     
     var dayLabels: some View {
         HStack(spacing: 6) {
-            ForEach(weeklyValues, id: \.id) { value in
+            ForEach(manager.weeklyValues, id: \.id) { value in
                 dayLetter(
                     for: value.date,
                     color: .primary.opacity(0.4)
@@ -65,20 +65,20 @@ extension Habit.Card {
     func cubeColor(for value: Habit.Value?) -> AnyShapeStyle {
         guard let value else { return AnyShapeStyle(.quaternary) }
         
-        let meetsTarget = habit.kind == .good
-        ? value.currentValue >= habit.target
-        : value.currentValue < habit.target
+        let meetsTarget = manager.habit.kind == .good
+        ? value.currentValue >= manager.habit.target
+        : value.currentValue < manager.habit.target
         
-        return meetsTarget ? AnyShapeStyle(habit.color) : AnyShapeStyle(.quaternary)
+        return meetsTarget ? AnyShapeStyle(manager.color) : AnyShapeStyle(.quaternary)
     }
     
     func cubeBrightness(for value: Habit.Value?) -> Double {
         guard let value else { return 0 }
         let isDark = colorScheme == .dark
-        let exceedsTarget = value.currentValue > habit.target
-        let meetsTarget = value.currentValue == habit.target
+        let exceedsTarget = value.currentValue > manager.habit.target
+        let meetsTarget = value.currentValue == manager.habit.target
         
-        return switch (habit.kind, isDark, exceedsTarget, meetsTarget) {
+        return switch (manager.habit.kind, isDark, exceedsTarget, meetsTarget) {
             case (.good, true, true, _)   :  0.1   // exceeding good habit in dark mode: brighter
             case (.good, true, false, _)  : -0.1   // not exceeding good habit in dark mode: darker
             case (.good, false, true, _)  : -0.1   // exceeding good habit in light mode: darker
@@ -93,9 +93,9 @@ extension Habit.Card {
     func cubeStrokeWidth(for value: Habit.Value?) -> Double {
         guard let value else { return 0 }
         let isDark = colorScheme == .dark
-        let exceedsTarget = value.currentValue > habit.target
+        let exceedsTarget = value.currentValue > manager.habit.target
         
-        return switch (habit.kind, isDark, exceedsTarget) {
+        return switch (manager.habit.kind, isDark, exceedsTarget) {
             case (.bad, true, true)  :  0.75  // exceeding bad habit in dark mode: medium stroke
             default                  :  0     // no stroke
         }

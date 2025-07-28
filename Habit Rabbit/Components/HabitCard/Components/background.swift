@@ -32,11 +32,11 @@ extension Habit.Card {
         
     var colorEffect: some View {
         Rectangle()
-            .fill(color.gradient)
-            .opacity(isCompleted ? (colorScheme == .dark ? 0.5 : 0.7) : 0)
+            .fill(manager.color.gradient)
+            .opacity(manager.isCompleted ? (colorScheme == .dark ? 0.5 : 0.7) : 0)
             .offset(x: 0, y: 180)
             .frame(maxWidth: .infinity, maxHeight: .infinity)
             .clipShape(.rect(cornerRadius: 24))
-            .animation(.bouncy, value: isCompleted)
+            .animation(.bouncy, value: manager.isCompleted)
     }
 }

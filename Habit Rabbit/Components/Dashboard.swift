@@ -20,14 +20,11 @@ extension Habit {
             ScrollView {
                 VStack(spacing: 0) {
                     LazyVGrid(columns: columns, spacing: 16) {
-                        ForEach(managers.enumerated, id: \.element.habit.id) { index, viewModel in
+                        ForEach(managers.enumerated, id: \.element.habit.id) { index, manager in
                             Habit.Card(
-                                manager: viewModel,
-                                mode: mode,
+                                manager: manager,
                                 index: index,
-                                onDelete: {
-                                    refreshManagers()
-                                }
+                                onDelete: refreshManagers,
                             )
                         }
                     }
@@ -36,59 +33,65 @@ extension Habit {
             }
             .navigationTitle("Habit Rabbit")
             .animation(.default, value: managerCache.count)
-            .task {
-                refreshManagers()
-            }
             .toolbar {
                 modePicker
                 //debugToolbar
             }
-        }
-        
-        // ADD: The reconciliation function to manage ViewModel lifecycle.
-        func refreshManagers() {
-            print("📊 Fetching habits to reconcile view models ...")
-            do {
-                // create new cache
-                var newManagerCache: [Habit.ID: Habit.Card.Manager] = [:]
-                
-                // fetch all habits, ordered by creation date
-                let habits = try modelContext.fetch(FetchDescriptor<Habit>(sortBy: [SortDescriptor(\.date)]))
-                
-                // recreate cache, creating managers only when necessary
-                for habit in habits {
-                    // use cached manager for this habit if available
-                    if let manager = managerCache[habit.id] {
-                        newManagerCache[habit.id] = manager
-                        continue
-                    }
-                    // otherwise, create new manager for this habit
-                    print("🧾 \(habit.name): creating view model")
-                    newManagerCache[habit.id] = Habit.Card.Manager(
-                        modelContext: modelContext,
-                        habit: habit,
-                        lastDay: lastDay
-                    )
-                }
-                
-                // update cache
-                self.managerCache = newManagerCache
-                
-                // Step 3: Create the final, ordered array for the view to use.
-                // This is guaranteed to be consistent because we just reconciled the cache.
-                self.managers = habits.compactMap { habit in
-                    newManagerCache[habit.id]
-                }
-                
-            } catch {
-                print("Failed to fetch habits:", error)
-            }
+            .onAppear { refreshManagers() }
+            .onChange(of: mode) { refreshManagerModes() }
         }
         
         let columns = [
             GridItem(.flexible(), spacing: 16),
             GridItem(.flexible(), spacing: 16),
         ]
+    }
+}
+
+extension Habit.Dashboard {
+    // synchronizes manager modes with global mode
+    func refreshManagerModes() { managers.forEach { $0.updateMode(mode) } }
+    
+    // ADD: The reconciliation function to manage ViewModel lifecycle.
+    func refreshManagers() {
+        print("📊 Fetching habits to reconcile view models ...")
+        do {
+            // create new cache
+            var newManagerCache: [Habit.ID: Habit.Card.Manager] = [:]
+            
+            // fetch all habits, ordered by creation date
+            let habits = try modelContext.fetch(FetchDescriptor<Habit>(sortBy: [SortDescriptor(\.date)]))
+            
+            // recreate cache, creating managers only when necessary
+            for habit in habits {
+                // use cached manager for this habit if available
+                if let manager = managerCache[habit.id] {
+                    newManagerCache[habit.id] = manager
+                    continue
+                }
+                // otherwise, create new manager for this habit
+                print("🧾 \(habit.name): creating view model")
+                let newManager = Habit.Card.Manager(
+                    modelContext: modelContext,
+                    habit: habit,
+                    lastDay: lastDay
+                )
+                newManager.updateMode(mode)
+                newManagerCache[habit.id] = newManager
+            }
+            
+            // update cache
+            self.managerCache = newManagerCache
+            
+            // Step 3: Create the final, ordered array for the view to use.
+            // This is guaranteed to be consistent because we just reconciled the cache.
+            self.managers = habits.compactMap { habit in
+                newManagerCache[habit.id]
+            }
+            
+        } catch {
+            print("Failed to fetch habits:", error)
+        }
     }
 }
 

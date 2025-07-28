@@ -4,12 +4,12 @@ extension Habit.Card {
     var dailyView: some View {
         HStack(spacing: 0) {
             ProgressBar(
-                currentValue: currentValue,
-                target: habit.target,
-                color: color,
+                currentValue: manager.currentValue,
+                target: manager.habit.target,
+                color: manager.color,
                 axis: .vertical,
-                kind: habit.kind,
-                mode: mode,
+                kind: manager.habit.kind,
+                mode: manager.mode,
                 width: 50,
                 height: contentHeight
             )

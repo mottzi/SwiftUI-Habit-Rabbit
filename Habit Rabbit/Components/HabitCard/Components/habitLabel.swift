@@ -2,7 +2,7 @@ import SwiftUI
 
 extension Habit.Card {
     var habitLabel: some View {
-        Label("\(name)", systemImage: icon)
+        Label("\(manager.name)", systemImage: manager.icon)
             .font(.headline)
             .fontWeight(.semibold)
             .foregroundStyle(.primary)

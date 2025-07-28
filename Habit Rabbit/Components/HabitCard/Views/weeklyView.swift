@@ -3,7 +3,7 @@ import SwiftUI
 extension Habit.Card {
     var weeklyView: some View {
         VStack(alignment: .leading, spacing: 9) {
-            ForEach(weeklyValues.enumerated, id: \.element.id) { index, value in
+            ForEach(manager.weeklyValues.enumerated, id: \.element.id) { index, value in
                 HStack(spacing: 12) {
                     dayLetter(
                         for: value.date,
@@ -13,11 +13,11 @@ extension Habit.Card {
                     
                     ProgressBar(
                         currentValue: value.currentValue,
-                        target: habit.target,
-                        color: color,
+                        target: manager.habit.target,
+                        color: manager.color,
                         axis: .horizontal,
-                        kind: habit.kind,
-                        mode: mode,
+                        kind: manager.habit.kind,
+                        mode: manager.mode,
                         width: 118,
                         height: 13,
                     )
