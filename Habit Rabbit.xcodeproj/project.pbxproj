@@ -19,8 +19,8 @@
 		9A61F0512E38E103004956BA /* dailyView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9A61F0382E38E103004956BA /* dailyView.swift */; };
 		9A61F0522E38E103004956BA /* monthlyView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9A61F0392E38E103004956BA /* monthlyView.swift */; };
 		9A61F0532E38E103004956BA /* weeklyView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9A61F03A2E38E103004956BA /* weeklyView.swift */; };
-		9A61F0542E38E103004956BA /* HabitCard.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9A61F03C2E38E103004956BA /* HabitCard.swift */; };
-		9A61F0552E38E103004956BA /* HabitCardManager.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9A61F03D2E38E103004956BA /* HabitCardManager.swift */; };
+		9A61F0542E38E103004956BA /* Card.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9A61F03C2E38E103004956BA /* Card.swift */; };
+		9A61F0552E38E103004956BA /* CardManager.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9A61F03D2E38E103004956BA /* CardManager.swift */; };
 		9A61F0562E38E103004956BA /* ModePicker.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9A61F03F2E38E103004956BA /* ModePicker.swift */; };
 		9A61F0572E38E103004956BA /* ProgressBar.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9A61F0412E38E103004956BA /* ProgressBar.swift */; };
 		9A61F05F2E38E1B2004956BA /* Dashboard.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9A61F05C2E38E1B2004956BA /* Dashboard.swift */; };
@@ -41,8 +41,8 @@
 		9A61F0382E38E103004956BA /* dailyView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = dailyView.swift; sourceTree = "<group>"; };
 		9A61F0392E38E103004956BA /* monthlyView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = monthlyView.swift; sourceTree = "<group>"; };
 		9A61F03A2E38E103004956BA /* weeklyView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = weeklyView.swift; sourceTree = "<group>"; };
-		9A61F03C2E38E103004956BA /* HabitCard.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = HabitCard.swift; sourceTree = "<group>"; };
-		9A61F03D2E38E103004956BA /* HabitCardManager.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = HabitCardManager.swift; sourceTree = "<group>"; };
+		9A61F03C2E38E103004956BA /* Card.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Card.swift; sourceTree = "<group>"; };
+		9A61F03D2E38E103004956BA /* CardManager.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CardManager.swift; sourceTree = "<group>"; };
 		9A61F03F2E38E103004956BA /* ModePicker.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ModePicker.swift; sourceTree = "<group>"; };
 		9A61F0412E38E103004956BA /* ProgressBar.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ProgressBar.swift; sourceTree = "<group>"; };
 		9A61F0462E38E103004956BA /* Assets.xcassets */ = {isa = PBXFileReference; lastKnownFileType = folder.assetcatalog; path = Assets.xcassets; sourceTree = "<group>"; };
@@ -113,8 +113,8 @@
 		9A61F03E2E38E103004956BA /* HabitCard */ = {
 			isa = PBXGroup;
 			children = (
-				9A61F03C2E38E103004956BA /* HabitCard.swift */,
-				9A61F03D2E38E103004956BA /* HabitCardManager.swift */,
+				9A61F03C2E38E103004956BA /* Card.swift */,
+				9A61F03D2E38E103004956BA /* CardManager.swift */,
 				9A61F03B2E38E103004956BA /* Views */,
 				9A61F0372E38E103004956BA /* Components */,
 			);
@@ -254,8 +254,8 @@
 				9A61F0512E38E103004956BA /* dailyView.swift in Sources */,
 				9A61F0522E38E103004956BA /* monthlyView.swift in Sources */,
 				9A61F0532E38E103004956BA /* weeklyView.swift in Sources */,
-				9A61F0542E38E103004956BA /* HabitCard.swift in Sources */,
-				9A61F0552E38E103004956BA /* HabitCardManager.swift in Sources */,
+				9A61F0542E38E103004956BA /* Card.swift in Sources */,
+				9A61F0552E38E103004956BA /* CardManager.swift in Sources */,
 				9A61F0562E38E103004956BA /* ModePicker.swift in Sources */,
 				9A61F0572E38E103004956BA /* ProgressBar.swift in Sources */,
 			);

@@ -6,10 +6,10 @@ extension Habit.Card {
     class Manager {
         private let modelContext: ModelContext
         private let lastDay: Date
-        
         let habit: Habit
-        var values: [Habit.Value] = []
-        var mode: Habit.Card.Mode
+        
+        private(set) var values: [Habit.Value] = []
+        private(set) var mode: Habit.Card.Mode
         
         init(
             for habit: Habit,
@@ -37,7 +37,7 @@ extension Habit.Card {
         }
         
         // update mode and handle any mode-specific logic
-        func updateMode(_ newMode: Habit.Card.Mode) {
+        func updateMode(to newMode: Habit.Card.Mode) {
             guard mode != newMode else { return }
             mode = newMode
         }
@@ -45,6 +45,10 @@ extension Habit.Card {
         // update the last fetched value
         func randomizeLastDayValue() {
             lastDayValue?.currentValue = Int.random(in: 0...habit.target * 2)
+        }
+        
+        func resetLastDayValue() {
+            lastDayValue?.currentValue = lastDayValue?.habit?.kind == .good ? 0 : habit.target
         }
         
         // create and randomize 30 days of values for this habit

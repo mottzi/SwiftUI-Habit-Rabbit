@@ -4,18 +4,15 @@ import SwiftData
 extension Habit {
     struct Dashboard: View {
         @Environment(\.colorScheme) var colorScheme
-        @Bindable var manager: Habit.Dashboard.Manager
         
-        private let columns = [
-            GridItem(.flexible(), spacing: 16),
-            GridItem(.flexible(), spacing: 16),
-        ]
+        @Bindable var manager: Habit.Dashboard.Manager
+        var cardManagers: [Habit.Card.Manager] { manager.cardManagers }
         
         var body: some View {
             ScrollView {
                 VStack(alignment: .center, spacing: 50) {
                     LazyVGrid(columns: columns, spacing: 16) {
-                        ForEach(manager.managers.enumerated, id: \.element.habit.id) { index, cardManager in
+                        ForEach(cardManagers.enumerated, id: \.element.habit.id) { index, cardManager in
                             Habit.Card(
                                 manager: cardManager,
                                 index: index,
@@ -28,10 +25,14 @@ extension Habit {
                 .padding(16)
             }
             .navigationTitle("Habit Rabbit")
-            .animation(.default, value: manager.managers.count)
+            .animation(.default, value: cardManagers.count)
             .toolbar { modePicker }
-            .onChange(of: manager.mode) { manager.refreshManagerModes() }
         }
+        
+        private let columns = [
+            GridItem(.flexible(), spacing: 16),
+            GridItem(.flexible(), spacing: 16),
+        ]
     }
 }
 
@@ -46,11 +47,13 @@ extension Habit.Dashboard {
             .sensoryFeedback(.selection, trigger: manager.mode)
         }
     }
-        
+}
+extension Habit.Dashboard {
     private var debugButton: some View {
         Menu {
             addExampleButton
             randomizeButton
+            resetAllButton
             Divider()
             removeDBButton
             removeHabitsButton
@@ -62,7 +65,7 @@ extension Habit.Dashboard {
                     .background(Circle().fill(.quaternary))
                     .padding()
                 
-                Text("Habits: \(manager.managers.count)")
+                Text("Habits: \(cardManagers.count)")
                     .font(.footnote)
                     .fontWeight(.semibold)
                     .foregroundStyle(.primary.opacity(0.7))
@@ -72,7 +75,7 @@ extension Habit.Dashboard {
     }
     
     private var removeDBButton: some View {
-        Button("Kill Database", systemImage: "sparkle") {
+        Button("Kill Database", systemImage: "xmark", role: .destructive) {
             manager.modelContext.container.deleteAllData()
             manager.refreshManagers()
         }
@@ -101,9 +104,17 @@ extension Habit.Dashboard {
     }
     
     private var randomizeButton: some View {
-        Button("Randomize All", systemImage: "sparkle") {
-            manager.managers.forEach {
+        Button("Randomize All", systemImage: "sparkles") {
+            cardManagers.forEach {
                 $0.createRandomizedHistory()
+            }
+        }
+    }
+    
+    private var resetAllButton: some View {
+        Button("Reset All", systemImage: "0.circle") {
+            cardManagers.forEach {
+                $0.resetLastDayValue()
             }
         }
     }
