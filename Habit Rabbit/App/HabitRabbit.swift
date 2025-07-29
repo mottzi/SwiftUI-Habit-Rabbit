@@ -6,10 +6,33 @@ struct HabitRabbit: App {
     var body: some Scene {
         WindowGroup {
             NavigationStack {
-                //                TestDashboard(lastDay: .now.startOfDay)
-                Habit.Dashboard()
+                ContentView()
             }
         }
         .modelContainer(for: [Habit.self, Habit.Value.self])
     }
 }
+
+struct ContentView: View {
+    @Environment(\.modelContext) private var modelContext
+    
+    var body: some View {
+        Habit.Dashboard.Container(modelContext: modelContext)
+    }
+}
+
+
+extension Habit.Dashboard {
+    struct Container: View {
+        @State private var manager: Habit.Dashboard.Manager
+        
+        init(modelContext: ModelContext) {
+            self._manager = State(initialValue: Habit.Dashboard.Manager(modelContext: modelContext))
+        }
+        
+        var body: some View {
+            Habit.Dashboard(manager: manager)
+        }
+    }
+}
+
