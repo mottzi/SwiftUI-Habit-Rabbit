@@ -10,7 +10,6 @@ extension Habit.Card {
     }
 }
 
-
 extension Habit {
     // displays the value data of a habit for the time interval specified
     struct Card: View {

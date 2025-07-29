@@ -6,7 +6,7 @@ extension Habit.Card {
     class Manager {
         private let modelContext: ModelContext
         private let lastDay: Date
-
+        
         let habit: Habit
         var values: [Habit.Value] = []
         var mode: Habit.Card.Mode
@@ -30,7 +30,7 @@ extension Habit.Card {
             print("    ⬇ fetching values")
             do {
                 let description = Habit.Value.filterByDays(30, for: habit, endingOn: lastDay)
-                values = try modelContext.fetch(description)                
+                values = try modelContext.fetch(description)
             } catch {
                 print("Failed to fetch values for \(habit.name):", error)
             }

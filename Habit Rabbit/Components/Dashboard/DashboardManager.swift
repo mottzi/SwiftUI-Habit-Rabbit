@@ -22,15 +22,13 @@ extension Habit.Dashboard {
             // Perform the initial data fetch upon creation.
             refreshManagers()
         }
-        
-        // MARK: Methods
-        
-        /// Synchronizes the display mode of all child card managers.
+                
+        // Synchronizes the display mode of all child card managers.
         func refreshManagerModes() {
             managers.forEach { $0.updateMode(mode) }
         }
         
-        /// Fetches all habits from the database and synchronizes the view models.
+        // Fetches all habits from the database and synchronizes the view models.
         func refreshManagers() {
             print("📊 Synchronizing view models and habits ...")
             do {
