@@ -17,16 +17,15 @@ struct ContentView: View {
     @Environment(\.modelContext) private var modelContext
     
     var body: some View {
-        Habit.Dashboard.Container(modelContext: modelContext)
+        Habit.Dashboard.Container(using: modelContext)
     }
 }
-
 
 extension Habit.Dashboard {
     struct Container: View {
         @State private var manager: Habit.Dashboard.Manager
         
-        init(modelContext: ModelContext) {
+        init(using modelContext: ModelContext) {
             self._manager = State(initialValue: Habit.Dashboard.Manager(modelContext: modelContext))
         }
         

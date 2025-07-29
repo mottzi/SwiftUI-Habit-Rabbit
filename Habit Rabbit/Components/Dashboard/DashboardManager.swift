@@ -4,7 +4,6 @@ import SwiftData
 extension Habit.Dashboard {
     @Observable
     class Manager {
-        // MARK: State Properties
         var mode: Habit.Card.Mode
         var lastDay: Date
         
