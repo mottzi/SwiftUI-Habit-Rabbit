@@ -10,19 +10,20 @@ extension Habit {
         
         var body: some View {
             ScrollView {
-                VStack(alignment: .center, spacing: 50) {
-                    LazyVGrid(columns: columns, spacing: 16) {
-                        ForEach(cardManagers.enumerated, id: \.element.habit.id) { index, cardManager in
-                            Habit.Card(
-                                manager: cardManager,
-                                index: index,
-                                onDelete: manager.refreshManagers
-                            )
-                        }
+                LazyVGrid(columns: columns, spacing: 16) {
+                    ForEach(cardManagers.enumerated, id: \.element.habit.id) { index, cardManager in
+                        Habit.Card(
+                            manager: cardManager,
+                            index: index,
+                            onDelete: manager.refreshManagers
+                        )
                     }
-                    debugButton
                 }
                 .padding(16)
+                .safeAreaInset(edge: .bottom) {
+                    debugButton
+                        .padding(.vertical, 16)
+                }
             }
             .navigationTitle("Habit Rabbit")
             .animation(.default, value: cardManagers.count)
