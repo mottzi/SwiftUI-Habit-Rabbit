@@ -61,7 +61,7 @@ extension Habit {
         // creates progress value for a habit, normalizing the date
         init(habit: Habit, date: Date, currentValue: Int = 0) {
             self.habit = habit
-            self.date = Calendar.current.startOfDay(for: date)
+            self.date = date.startOfDay
             self.currentValue = currentValue
         }
     }

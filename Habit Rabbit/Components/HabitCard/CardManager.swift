@@ -92,13 +92,16 @@ extension Habit.Card.Manager {
     
     // values of the last 7 days of the time interval
     var weeklyValues: [Habit.Value] {
-        let recentValues = values.suffix(7)
-        let weekDateRange = (0..<7).map { dayOffset in
-            Calendar.current.date(byAdding: .day, value: -dayOffset, to: lastDay)!
-        }.reversed()
+        let firstDay = Calendar.current.date(byAdding: .day, value: -6, to: lastDay)!
+        let allDays = (0..<7).map {
+            Calendar.current.date(byAdding: .day, value: $0, to: firstDay)!
+        }
+                
+        let lookup = Dictionary(values.suffix(7).map { ($0.date, $0) }, uniquingKeysWith: { _, latest in latest })
         
-        let lookup = Dictionary(recentValues.map { ($0.date, $0) }, uniquingKeysWith: { first, _ in first })
-        return weekDateRange.map { lookup[$0] ?? Habit.Value(habit: habit, date: $0, currentValue: 0) }
+        return allDays.map { day in
+            lookup[day] ?? Habit.Value(habit: habit, date: day, currentValue: 0)
+        }
     }
     
     var displayValue: Int {

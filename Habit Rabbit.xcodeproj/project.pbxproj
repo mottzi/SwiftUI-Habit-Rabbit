@@ -104,8 +104,8 @@
 			isa = PBXGroup;
 			children = (
 				9A61F0382E38E103004956BA /* dailyView.swift */,
-				9A61F0392E38E103004956BA /* monthlyView.swift */,
 				9A61F03A2E38E103004956BA /* weeklyView.swift */,
+				9A61F0392E38E103004956BA /* monthlyView.swift */,
 			);
 			path = Views;
 			sourceTree = "<group>";

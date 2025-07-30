@@ -72,11 +72,6 @@ extension Habit {
 extension Habit.Card {
     @ViewBuilder
     var contextMenuButtons: some View {
-        Button("Weekly Values", systemImage: "7.circle.fill") {
-            for value in manager.weeklyValues {
-                print("Value: \(value.currentValue)")
-            }
-        }
         Button("Randomize", systemImage: "sparkles") {
             manager.randomizeLastDayValue()
         }
