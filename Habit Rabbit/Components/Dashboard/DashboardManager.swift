@@ -4,9 +4,9 @@ import SwiftData
 extension Habit.Dashboard {
     @Observable
     class Manager {
-        let modelContext: ModelContext
         var mode: Habit.Card.Mode { didSet { synchronizeModes() } }
         private var lastDay: Date
+        let modelContext: ModelContext
 
         private(set) var cardManagers: [Habit.Card.Manager] = []
         private var cardManagerCache: [Habit.ID: Habit.Card.Manager] = [:]
@@ -14,7 +14,7 @@ extension Habit.Dashboard {
         init(
             mode: Habit.Card.Mode = .daily,
             lastDay: Date = .now.startOfDay,
-            modelContext: ModelContext
+            using modelContext: ModelContext
         ) {
             self.mode = mode
             self.lastDay = lastDay
@@ -22,9 +22,10 @@ extension Habit.Dashboard {
             refreshManagers()
         }
                 
-        // Synchronizes the display mode of all child card managers.
         func synchronizeModes() {
-            cardManagers.forEach { $0.updateMode(to: mode) }
+            cardManagers.forEach {
+                $0.updateMode(to: mode)
+            }
         }
         
         // Fetches all habits from the database and synchronizes the view models.
@@ -35,21 +36,20 @@ extension Habit.Dashboard {
                 let habits = try modelContext.fetch(FetchDescriptor<Habit>(sortBy: [SortDescriptor(\.date)]))
                 
                 for habit in habits {
-                    if let manager = cardManagerCache[habit.id] {
-                        newCache[habit.id] = manager
+                    if let cachedManager = cardManagerCache[habit.id] {
+                        newCache[habit.id] = cachedManager
                         continue
                     }
                     
                     print("Habit: \(habit.name)")
                     print("    🧾 creating view model")
                     
-                    let newManager = Habit.Card.Manager(
+                    newCache[habit.id] = Habit.Card.Manager(
                         for: habit,
                         until: lastDay,
                         mode: mode,
-                        in: modelContext
+                        using: modelContext
                     )
-                    newCache[habit.id] = newManager
                 }
                 
                 self.cardManagerCache = newCache

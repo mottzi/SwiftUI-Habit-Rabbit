@@ -63,7 +63,13 @@ extension Habit.Card {
 
 extension Habit.Card {
     func cubeColor(for value: Habit.Value?) -> AnyShapeStyle {
-        guard let value else { return AnyShapeStyle(.quaternary) }
+        guard let value else {
+            if manager.kind == .good {
+                return AnyShapeStyle(.quaternary)
+            } else {
+                return AnyShapeStyle(manager.color)
+            }
+        }
         
         let meetsTarget = manager.habit.kind == .good
         ? value.currentValue >= manager.habit.target

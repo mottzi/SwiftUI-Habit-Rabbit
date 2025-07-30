@@ -4,9 +4,14 @@ import SwiftData
 extension Habit {
     struct Dashboard: View {
         @Environment(\.colorScheme) var colorScheme
-        
-        @Bindable var manager: Habit.Dashboard.Manager
-        var cardManagers: [Habit.Card.Manager] { manager.cardManagers }
+                
+        @State private var manager: Habit.Dashboard.Manager
+        private var cardManagers: [Habit.Card.Manager] { manager.cardManagers }
+
+        init(using modelContext: ModelContext) {
+            let manager = Habit.Dashboard.Manager(using: modelContext)
+            self._manager = State(initialValue: manager)
+        }
         
         var body: some View {
             ScrollView {
@@ -49,6 +54,7 @@ extension Habit.Dashboard {
         }
     }
 }
+
 extension Habit.Dashboard {
     private var debugButton: some View {
         Menu {

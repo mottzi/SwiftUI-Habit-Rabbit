@@ -15,12 +15,12 @@ extension Habit.Card {
             for habit: Habit,
             until lastDay: Date,
             mode: Habit.Card.Mode,
-            in modelContext: ModelContext,
+            using modelContext: ModelContext,
         ) {
-            self.modelContext = modelContext
             self.habit = habit
-            self.lastDay = lastDay
             self.mode = mode
+            self.lastDay = lastDay
+            self.modelContext = modelContext
             
             fetchValues()
         }
