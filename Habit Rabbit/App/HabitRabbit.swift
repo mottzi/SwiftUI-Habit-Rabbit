@@ -3,6 +3,7 @@ import SwiftData
 
 @main
 struct HabitRabbit: App {
+    
     var body: some Scene {
         WindowGroup {
             NavigationStack {
@@ -11,9 +12,11 @@ struct HabitRabbit: App {
         }
         .modelContainer(for: [Habit.self, Habit.Value.self])
     }
+    
 }
 
 extension Habit.Dashboard {
+    
     struct Container: View {
         @Environment(\.modelContext) private var modelContext
         
@@ -21,4 +24,5 @@ extension Habit.Dashboard {
             Habit.Dashboard(using: modelContext)
         }
     }
+    
 }

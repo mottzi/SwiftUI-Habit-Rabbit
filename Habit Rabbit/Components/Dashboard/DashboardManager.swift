@@ -2,8 +2,10 @@ import SwiftUI
 import SwiftData
 
 extension Habit.Dashboard {
+    
     @Observable
     class Manager {
+        
         var mode: Habit.Card.Mode { didSet { synchronizeModes() } }
         private var lastDay: Date
         let modelContext: ModelContext
@@ -23,12 +25,9 @@ extension Habit.Dashboard {
         }
                 
         func synchronizeModes() {
-            cardManagers.forEach {
-                $0.updateMode(to: mode)
-            }
+            cardManagers.forEach { $0.updateMode(to: mode) }
         }
         
-        // Fetches all habits from the database and synchronizes the view models.
         func refreshManagers() {
             print("📊 Synchronizing view models and habits ...")
             do {
@@ -59,5 +58,7 @@ extension Habit.Dashboard {
                 print("Failed to fetch habits:", error)
             }
         }
+        
     }
+    
 }

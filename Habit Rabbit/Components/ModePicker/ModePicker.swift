@@ -1,7 +1,9 @@
 import SwiftUI
 
 extension Habit.Dashboard {
+    
     struct ModePicker: View {
+        
         var width: CGFloat
         @Binding var mode: Habit.Card.Mode
         
@@ -35,4 +37,5 @@ extension Habit.Dashboard {
             .frame(width: width)
         }
     }
+    
 }

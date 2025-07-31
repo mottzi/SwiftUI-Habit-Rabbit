@@ -1,6 +1,7 @@
 import SwiftUI
 
 extension Habit.Card {
+    
     func dayLetter(for date: Date, color: Color) -> some View {
         Text(date.weekday)
             .font(.caption2)
@@ -8,4 +9,5 @@ extension Habit.Card {
             .foregroundStyle(color)
             .lineLimit(1)
     }
+    
 }

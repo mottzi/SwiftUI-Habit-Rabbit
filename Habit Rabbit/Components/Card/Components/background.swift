@@ -1,6 +1,7 @@
 import SwiftUI
 
 extension Habit.Card {
+    
     var background: some View {
         RoundedRectangle(cornerRadius: 24)
             .fill(.regularMaterial)
@@ -39,4 +40,5 @@ extension Habit.Card {
             .clipShape(.rect(cornerRadius: 24))
             .animation(.bouncy, value: manager.isCompleted)
     }
+    
 }

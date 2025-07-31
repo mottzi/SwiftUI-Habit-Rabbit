@@ -1,6 +1,7 @@
 import SwiftUI
 
 extension Habit.Card {
+    
     var habitLabel: some View {
         Label("\(manager.name)", systemImage: manager.icon)
             .font(.headline)
@@ -8,4 +9,5 @@ extension Habit.Card {
             .foregroundStyle(.primary)
             .lineLimit(1)
     }
+    
 }

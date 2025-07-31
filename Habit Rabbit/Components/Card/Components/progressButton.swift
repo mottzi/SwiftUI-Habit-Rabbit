@@ -1,6 +1,7 @@
 import SwiftUI
 
 extension Habit.Card {
+    
     var progressButton: some View {
         Button {
             manager.lastDayValue?.currentValue += 1
@@ -32,4 +33,5 @@ extension Habit.Card {
             return 0
         }
     }
+    
 }

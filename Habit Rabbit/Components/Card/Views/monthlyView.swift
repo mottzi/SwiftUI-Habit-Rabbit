@@ -1,6 +1,7 @@
 import SwiftUI
 
 extension Habit.Card {
+    
     var monthlyView: some View {
         VStack(spacing: 6) {
             dayLabels
@@ -31,9 +32,11 @@ extension Habit.Card {
         .frame(height: contentHeight)
         .padding(.top, 10)
     }
+    
 }
 
 extension Habit.Card {
+    
     // Clean computed property like weeklyValues - creates 5x7 grid with today at bottom-right
     var monthlyGridValues: [[Habit.Value?]] {
         let totalCells = 5 * 7
@@ -59,9 +62,11 @@ extension Habit.Card {
             }
         }
     }
+    
 }
 
 extension Habit.Card {
+    
     func cubeColor(for value: Habit.Value?) -> AnyShapeStyle {
         guard let value else {
             if manager.kind == .good {
@@ -106,4 +111,5 @@ extension Habit.Card {
             default                  :  0     // no stroke
         }
     }
+    
 }

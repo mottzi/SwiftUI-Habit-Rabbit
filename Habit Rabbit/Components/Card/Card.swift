@@ -2,17 +2,19 @@ import SwiftUI
 import SwiftData
 
 extension Habit.Card {
-    // length of time interval habit card can display values for
+
     enum Mode: String, CaseIterable {
-        case daily = "Daily" // current day
-        case weekly = "Weekly" // last 7 days
-        case monthly = "Monthly" // last 30 days
+        case daily = "Daily"
+        case weekly = "Weekly"
+        case monthly = "Monthly"
     }
+    
 }
 
 extension Habit {
-    // displays the value data of a habit for the time interval specified
+
     struct Card: View {
+        
         @Environment(\.modelContext) var modelContext
         @Environment(\.colorScheme) var colorScheme
         @Namespace var modeTransition
@@ -25,7 +27,6 @@ extension Habit {
         
         var body: some View {
             let _ = print("🔄 Card body evaluated: \(manager.habit.name)")
-            
             VStack(spacing: 0) {
                 Group {
                     switch manager.mode {
@@ -66,10 +67,13 @@ extension Habit {
                 case .monthly: 14
             }
         }
+        
     }
+    
 }
 
 extension Habit.Card {
+    
     @ViewBuilder
     var contextMenuButtons: some View {
         Button("Randomize", systemImage: "sparkles") {
@@ -82,11 +86,12 @@ extension Habit.Card {
             deleteWithAnimation()
         }
     }
+    
 }
 
 extension Habit.Card {
+    
     func deleteWithAnimation() {
-        // animate card before deleting habit and all its values from context
         Task {
             try? await Task.sleep(nanoseconds: 10_000_000)
             withAnimation(.spring(duration: 0.8)) {
@@ -98,14 +103,13 @@ extension Habit.Card {
             try? await Task.sleep(nanoseconds: 10_000_000)
             modelContext.delete(manager.habit)
             
-            // here we need the parent to fetch and reconcile
             onDelete()
         }
     }
     
     var deleteOffset: CGSize {
-        // cards animate towards nearest horizontal edge
         let offset = (index % 2 == 0) ? -250 : 250
         return CGSize(width: CGFloat(offset), height: 100)
     }
+    
 }

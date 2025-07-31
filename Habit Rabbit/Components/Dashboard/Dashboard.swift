@@ -2,9 +2,11 @@ import SwiftUI
 import SwiftData
 
 extension Habit {
+    
     struct Dashboard: View {
+        
         @Environment(\.colorScheme) var colorScheme
-                
+        
         @State private var manager: Habit.Dashboard.Manager
         private var cardManagers: [Habit.Card.Manager] { manager.cardManagers }
 
@@ -39,10 +41,13 @@ extension Habit {
             GridItem(.flexible(), spacing: 16),
             GridItem(.flexible(), spacing: 16),
         ]
+        
     }
+    
 }
 
 extension Habit.Dashboard {
+    
     private var modePicker: some ToolbarContent {
         ToolbarItem(placement: .topBarTrailing) {
             ModePicker(
@@ -53,9 +58,11 @@ extension Habit.Dashboard {
             .sensoryFeedback(.selection, trigger: manager.mode)
         }
     }
+    
 }
 
 extension Habit.Dashboard {
+    
     private var debugButton: some View {
         Menu {
             addExampleButton
@@ -97,7 +104,14 @@ extension Habit.Dashboard {
                     
                     for i in 0..<count {
                         let template = templates[i % templates.count]
-                        let newHabit = Habit(name: template.name, unit: template.unit, icon: template.icon, color: template.color, target: template.target, kind: template.kind)
+                        let newHabit = Habit(
+                            name: template.name,
+                            unit: template.unit,
+                            icon: template.icon,
+                            color: template.color,
+                            target: template.target,
+                            kind: template.kind
+                        )
                         manager.modelContext.insert(habit: newHabit)
                     }
                     
@@ -112,17 +126,13 @@ extension Habit.Dashboard {
     
     private var randomizeButton: some View {
         Button("Randomize All", systemImage: "sparkles") {
-            cardManagers.forEach {
-                $0.createRandomizedHistory()
-            }
+            cardManagers.forEach { $0.createRandomizedHistory() }
         }
     }
     
     private var resetAllButton: some View {
         Button("Reset All", systemImage: "0.circle") {
-            cardManagers.forEach {
-                $0.resetLastDayValue()
-            }
+            cardManagers.forEach { $0.resetLastDayValue() }
         }
     }
     
@@ -133,4 +143,5 @@ extension Habit.Dashboard {
             manager.refreshManagers()
         }
     }
+    
 }

@@ -1,7 +1,9 @@
 import SwiftUI
 
 extension Habit.Card {
+    
     struct ProgressBar: View {
+        
         @Environment(\.colorScheme) var colorScheme
         
         let currentValue: Int
@@ -35,12 +37,16 @@ extension Habit.Card {
                 .animation(.bouncy, value: currentValue)
         }
     }
+    
 }
 
 extension Habit.Card.ProgressBar {
+    
     var isDark: Bool { colorScheme == .dark }
-    var exceedsTarget: Bool { currentValue > target }
+    
     var isDaily: Bool { mode == .daily }
+    
+    var exceedsTarget: Bool { currentValue > target }
     
     var colorBrightness: Double {
         switch (kind, isDark, exceedsTarget) {
@@ -70,9 +76,11 @@ extension Habit.Card.ProgressBar {
             case (.bad, true, true, false) :  0.75  // exceeding bad habit in other dark mode: medium stroke
         }
     }
+    
 }
 
 extension Habit.Card.ProgressBar {
+    
     var progress: CGFloat {
         guard target > 0 else { return 0 }
         return CGFloat(currentValue) / CGFloat(target)
@@ -99,4 +107,5 @@ extension Habit.Card.ProgressBar {
             default: kind == .good ? baseOffset : 0
         }
     }
+    
 }

@@ -1,24 +1,26 @@
 import SwiftUI
 
 extension CaseIterable where Self: Equatable {
-    // returns next case in an enum, or the first case if called on last case
+
     var next: Self {
         let all = Self.allCases
         let current = all.firstIndex(of: self)!
         let next = all.index(current, offsetBy: 1)
         return all[next == all.endIndex ? all.startIndex : next]
     }
+    
 }
 
 extension RandomAccessCollection {
-    // returns the collaction as enumerated array
+
     var enumerated: [(offset: Int, element: Element)] {
         Array(self.enumerated())
     }
+    
 }
 
 extension Date {
-    // abbreviated weekday
+    
     var weekday: String {
         let dateFormatter = DateFormatter()
         dateFormatter.locale = Locale.current
@@ -29,11 +31,11 @@ extension Date {
     var startOfDay: Date {
         Calendar.current.startOfDay(for: self)
     }
+    
 }
 
-// adds view modifiers for debugging and applying conditional transformations.
 extension View {
-    // adds visible frame border for debugging layout
+
     func debug(_ color: Color? = nil, _ width: CGFloat? = nil) -> some View {
         self.border(color ?? .orange, width: width ?? 2)
     }
@@ -62,13 +64,15 @@ extension View {
             self
         }
     }
+    
 }
 
 extension String {
-    // returns a pluralized string based on given count
+
     func pluralized(count: Int) -> String {
         return pluralize(name: self, count: count)
     }
+    
 }
 
 func pluralize(name: String, count: Int) -> String {

@@ -1,11 +1,11 @@
 import SwiftUI
 
 extension Habit.Card {
+    
     var progressLabel: some View {
         VStack(spacing: 2) {
             VStack {
-                HStack(spacing: 2) {
-//                    Text("\(displayValue)")
+                (
                     Text("\(manager.currentValue)")
                         .foregroundStyle(.primary.opacity(colorScheme == .dark ? 1 : 0.8))
                     +
@@ -14,7 +14,7 @@ extension Habit.Card {
                     +
                     Text("\(manager.habit.target)")
                         .foregroundStyle(.primary.opacity(0.6))
-                }
+                )
                 .font(.title2)
                 .fontWeight(.semibold)
                 .monospacedDigit()
@@ -32,4 +32,5 @@ extension Habit.Card {
         .padding(.horizontal, 2)
         .animation(.bouncy, value: manager.displayValue)
     }
+    
 }

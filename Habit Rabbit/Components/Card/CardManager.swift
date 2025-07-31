@@ -2,8 +2,10 @@ import SwiftUI
 import SwiftData
 
 extension Habit.Card {
+    
     @Observable
     class Manager {
+        
         private let modelContext: ModelContext
         private let lastDay: Date
         let habit: Habit
@@ -25,7 +27,6 @@ extension Habit.Card {
             fetchValues()
         }
         
-        // fetch the values of the last 30 days
         func fetchValues() {
             print("    ⬇ fetching values")
             do {
@@ -36,10 +37,8 @@ extension Habit.Card {
             }
         }
         
-        // update mode and handle any mode-specific logic
         func updateMode(to newMode: Habit.Card.Mode) {
-            guard mode != newMode else { return }
-            mode = newMode
+            if mode != newMode { mode = newMode }
         }
         
         // update the last fetched value
@@ -48,7 +47,7 @@ extension Habit.Card {
         }
         
         func resetLastDayValue() {
-            lastDayValue?.currentValue = lastDayValue?.habit?.kind == .good ? 0 : habit.target
+            lastDayValue?.currentValue = 0
         }
         
         // create and randomize 30 days of values for this habit

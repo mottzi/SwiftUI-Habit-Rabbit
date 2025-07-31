@@ -1,6 +1,7 @@
 import SwiftUI
 
 extension Habit.Card {
+    
     var dailyView: some View {
         HStack(spacing: 0) {
             ProgressBar(
@@ -28,4 +29,5 @@ extension Habit.Card {
         .padding(.horizontal, 20)
         .padding(.top, 20)
     }
+    
 }
