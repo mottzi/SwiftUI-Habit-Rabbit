@@ -3,19 +3,17 @@ import SwiftData
 
 @Model
 class Habit: Identifiable {
-    
+
     var name: String
     var unit: String
     var icon: String
-    private var colorData: Data
     var target: Int
     var date: Date
     var kind: Habit.Kind
-    
+    var colorData: Data
+
     @Relationship(deleteRule: .cascade, inverse: \Habit.Value.habit)
     var values: [Habit.Value]?
-    
-    private static var colorCache: [Data: Color] = [:]
     
     init(
         name: String,
@@ -31,14 +29,22 @@ class Habit: Identifiable {
         self.target = target
         self.date = .now
         self.kind = kind
-        let encode: (UIColor, Bool) throws -> Data = NSKeyedArchiver.archivedData
-        self.colorData = (try? encode(UIColor(color), false)) ?? Data()
+        self.colorData = (try? NSKeyedArchiver.archivedData(
+            withRootObject: UIColor(color),
+            requiringSecureCoding: false)
+        ) ?? Data()
     }
     
     enum Kind: String, Codable {
         case good
         case bad
     }
+    
+}
+
+extension Habit {
+
+    private static var colorCache: [Data: Color] = [:]
     
     var color: Color {
         if let cached = Habit.colorCache[colorData] {
@@ -51,8 +57,8 @@ class Habit: Identifiable {
             return color
         }
         
-        Habit.colorCache[colorData] = Color.black
-        return Color.black
+        Habit.colorCache[colorData] = .black
+        return .black
     }
     
 }
