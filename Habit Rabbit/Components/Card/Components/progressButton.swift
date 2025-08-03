@@ -4,7 +4,7 @@ extension Habit.Card {
     
     var progressButton: some View {
         Button {
-            manager.lastDayValue?.currentValue += 1
+            manager.dailyValue?.currentValue += 1
         } label: {
             ZStack {
                 Circle()
@@ -23,7 +23,7 @@ extension Habit.Card {
             }
         }
         .buttonStyle(.plain)
-        .sensoryFeedback(.increase, trigger: manager.lastDayValue?.currentValue)
+        .sensoryFeedback(.increase, trigger: manager.dailyValue?.currentValue)
     }
     
     var buttonBrightness: Double {

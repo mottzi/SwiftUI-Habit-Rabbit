@@ -21,7 +21,7 @@ extension Habit.Card {
                 .contentTransition(.numericText())
             }
             
-            Text(manager.unit.pluralized(count: manager.displayValue))
+            Text(manager.unit.pluralized(count: manager.currentValue))
                 .font(.footnote)
                 .fontWeight(.medium)
                 .foregroundStyle(.secondary)
@@ -30,7 +30,7 @@ extension Habit.Card {
         .minimumScaleFactor(0.7)
         .lineLimit(1)
         .padding(.horizontal, 2)
-        .animation(.bouncy, value: manager.displayValue)
+        .animation(.bouncy, value: manager.currentValue)
     }
     
 }

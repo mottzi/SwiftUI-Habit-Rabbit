@@ -45,11 +45,11 @@ extension Habit.Card {
         
         // update the last fetched value
         func randomizeLastDayValue() {
-            lastDayValue?.currentValue = Int.random(in: 0...habit.target * 2)
+            dailyValue?.currentValue = Int.random(in: 0...habit.target * 2)
         }
         
         func resetLastDayValue() {
-            lastDayValue?.currentValue = 0
+            dailyValue?.currentValue = 0
         }
         
         // create and randomize 30 days of values for this habit
@@ -82,23 +82,32 @@ extension Habit.Card {
 
 extension Habit.Card.Manager {
     
-    // properties for easy access to habit properties through viewModel
-    var kind: Habit.Kind { habit.kind }
     var name: String { habit.name }
     var unit: String { habit.unit }
     var icon: String { habit.icon }
     var color: Color { habit.color }
+    var kind: Habit.Kind { habit.kind }
+
+    var labelBottomPadding: CGFloat {
+        switch mode {
+            case .daily: 20
+            case .weekly: 10
+            case .monthly: 14
+        }
+    }
     
-    // value of the last day in the time interval
-    var lastDayValue: Habit.Value? { values.last }
+}
+
+extension Habit.Card.Manager {
     
-    // values of the last 7 days of the time interval
+    var dailyValue: Habit.Value? { values.last }
+    
     var weeklyValues: [Habit.Value] {
         let firstDay = Calendar.current.date(byAdding: .day, value: -6, to: lastDay)!
         let allDays = (0..<7).map {
             Calendar.current.date(byAdding: .day, value: $0, to: firstDay)!
         }
-                
+        
         let lookup = Dictionary(values.suffix(7).map { ($0.date, $0) }, uniquingKeysWith: { _, latest in latest })
         
         return allDays.map { day in
@@ -106,7 +115,6 @@ extension Habit.Card.Manager {
         }
     }
     
-    // 5x7 grid with today at bottom-right
     var monthlyValues: [[Habit.Value?]] {
         let totalCells = 5 * 7
         let paddingCount = totalCells - values.count
@@ -114,29 +122,23 @@ extension Habit.Card.Manager {
         var paddedValues: [Habit.Value?] = Array(repeating: nil, count: paddingCount)
         paddedValues.append(contentsOf: values.map { $0 as Habit.Value? })
         
-        // Convert flat array to 5x7 grid
         return stride(from: 0, to: paddedValues.count, by: 7).map { startIndex in
             Array(paddedValues[startIndex..<min(startIndex + 7, paddedValues.count)])
         }
     }
     
-    var displayValue: Int {
-        switch habit.kind {
-            case .good: currentValue
-            case .bad: target - currentValue
-        }
-    }
+}
+
+extension Habit.Card.Manager {
     
-    // cumulative value for the time interval
     var currentValue: Int {
         switch mode {
-            case .daily: lastDayValue?.currentValue ?? 0
+            case .daily: dailyValue?.currentValue ?? 0
             case .weekly: weeklyValues.reduce(0) { $0 + $1.currentValue }
             case .monthly: values.reduce(0) { $0 + $1.currentValue }
         }
     }
     
-    // cumulative target, proportional to daily target
     var target: Int {
         switch mode {
             case .daily: habit.target
@@ -145,25 +147,15 @@ extension Habit.Card.Manager {
         }
     }
     
-    // progress from 0 to 1
     var progress: CGFloat {
         guard target > 0 else { return 0 }
         return CGFloat(currentValue) / CGFloat(target)
     }
     
-    // true if target has been reached
     var isCompleted: Bool {
-        switch habit.kind {
+        switch kind {
             case .good: currentValue >= target
             case .bad: currentValue < target
-        }
-    }
-    
-    var labelBottomPadding: CGFloat {
-        switch mode {
-            case .daily: 20
-            case .weekly: 10
-            case .monthly: 14
         }
     }
     

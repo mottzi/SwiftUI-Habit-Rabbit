@@ -70,7 +70,7 @@ extension Habit.Card {
             manager.randomizeLastDayValue()
         }
         Button("Reset", systemImage: "arrow.counterclockwise") {
-            manager.lastDayValue?.currentValue = 0
+            manager.dailyValue?.currentValue = 0
         }
         Button("Delete", systemImage: "trash", role: .destructive) {
             deleteWithAnimation()
