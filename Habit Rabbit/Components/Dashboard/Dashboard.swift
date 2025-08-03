@@ -126,13 +126,13 @@ extension Habit.Dashboard {
     
     private var randomizeButton: some View {
         Button("Randomize All", systemImage: "sparkles") {
-            cardManagers.forEach { $0.createRandomizedHistory() }
+            cardManagers.forEach { $0.randomizeMonthlyValues() }
         }
     }
     
     private var resetAllButton: some View {
         Button("Reset All", systemImage: "0.circle") {
-            cardManagers.forEach { $0.resetLastDayValue() }
+            cardManagers.forEach { $0.resetDailyValue() }
         }
     }
     

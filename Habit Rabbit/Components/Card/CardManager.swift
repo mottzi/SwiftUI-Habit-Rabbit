@@ -43,59 +43,32 @@ extension Habit.Card {
             if mode != newMode { mode = newMode }
         }
         
-        // update the last fetched value
-        func randomizeLastDayValue() {
-            dailyValue?.currentValue = Int.random(in: 0...habit.target * 2)
-        }
-        
-        func resetLastDayValue() {
+        func resetDailyValue() {
             dailyValue?.currentValue = 0
         }
         
-        // create and randomize 30 days of values for this habit
-        func createRandomizedHistory() {
-            let calendar = Calendar.current
-            
-            // create lookup of existing values by date
+        func randomizeDailyValue() {
+            dailyValue?.currentValue = Int.random(in: 0...habit.target * 2)
+        }
+        
+        func randomizeMonthlyValues() {
             let existingValues = Dictionary(values.map { ($0.date, $0) }, uniquingKeysWith: { first, _ in first })
             
-            // create or update 30 days of random values
             for dayOffset in 0..<30 {
-                let date = calendar.startOfDay(for: calendar.date(byAdding: .day, value: -dayOffset, to: lastDay)!)
+                let date = Calendar.current.date(byAdding: .day, value: -dayOffset, to: lastDay)!.startOfDay
                 let randomValue = Int.random(in: 0...habit.target * 2)
                 
                 if let existingValue = existingValues[date] {
-                    // update existing value
                     existingValue.currentValue = randomValue
                 } else {
-                    // create new value
                     let value = Habit.Value(habit: habit, date: date, currentValue: randomValue)
                     modelContext.insert(value)
                 }
             }
             
-            // refresh this manager's values to include the new data
             fetchValues()
         }
     }
-}
-
-extension Habit.Card.Manager {
-    
-    var name: String { habit.name }
-    var unit: String { habit.unit }
-    var icon: String { habit.icon }
-    var color: Color { habit.color }
-    var kind: Habit.Kind { habit.kind }
-
-    var labelBottomPadding: CGFloat {
-        switch mode {
-            case .daily: 20
-            case .weekly: 10
-            case .monthly: 14
-        }
-    }
-    
 }
 
 extension Habit.Card.Manager {
@@ -124,6 +97,24 @@ extension Habit.Card.Manager {
         
         return stride(from: 0, to: paddedValues.count, by: 7).map { startIndex in
             Array(paddedValues[startIndex..<min(startIndex + 7, paddedValues.count)])
+        }
+    }
+    
+}
+
+extension Habit.Card.Manager {
+    
+    var name: String { habit.name }
+    var unit: String { habit.unit }
+    var icon: String { habit.icon }
+    var color: Color { habit.color }
+    var kind: Habit.Kind { habit.kind }
+    
+    var labelBottomPadding: CGFloat {
+        switch mode {
+            case .daily: 20
+            case .weekly: 10
+            case .monthly: 14
         }
     }
     

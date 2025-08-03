@@ -67,7 +67,7 @@ extension Habit.Card {
     @ViewBuilder
     var contextMenuButtons: some View {
         Button("Randomize", systemImage: "sparkles") {
-            manager.randomizeLastDayValue()
+            manager.randomizeDailyValue()
         }
         Button("Reset", systemImage: "arrow.counterclockwise") {
             manager.dailyValue?.currentValue = 0
