@@ -81,6 +81,7 @@ extension Habit.Card {
 }
 
 extension Habit.Card.Manager {
+    
     // properties for easy access to habit properties through viewModel
     var kind: Habit.Kind { habit.kind }
     var name: String { habit.name }
@@ -143,4 +144,13 @@ extension Habit.Card.Manager {
             case .bad: currentValue < target
         }
     }
+    
+    var labelBottomPadding: CGFloat {
+        switch mode {
+            case .daily: 20
+            case .weekly: 10
+            case .monthly: 14
+        }
+    }
+    
 }

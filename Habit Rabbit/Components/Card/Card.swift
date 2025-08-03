@@ -44,7 +44,7 @@ extension Habit {
                     }
                 }
                 .frame(maxHeight: .infinity, alignment: .bottom)
-                .padding(.bottom, labelBottomPadding)
+                .padding(.bottom, manager.labelBottomPadding)
             }
             .animation(.spring(duration: 0.62), value: manager.mode)
             .frame(maxWidth: .infinity)
@@ -56,16 +56,6 @@ extension Habit {
             .contextMenu { contextMenuButtons }
             .offset(isDeleting ? deleteOffset : .zero)
             .compositingGroup()
-        }
-        
-//        let contentHeight: CGFloat = 155
-        
-        var labelBottomPadding: CGFloat {
-            switch manager.mode {
-                case .daily: 20
-                case .weekly: 10
-                case .monthly: 14
-            }
         }
         
     }
