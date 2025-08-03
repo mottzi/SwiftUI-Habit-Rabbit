@@ -106,6 +106,20 @@ extension Habit.Card.Manager {
         }
     }
     
+    // 5x7 grid with today at bottom-right
+    var monthlyValues: [[Habit.Value?]] {
+        let totalCells = 5 * 7
+        let paddingCount = totalCells - values.count
+        
+        var paddedValues: [Habit.Value?] = Array(repeating: nil, count: paddingCount)
+        paddedValues.append(contentsOf: values.map { $0 as Habit.Value? })
+        
+        // Convert flat array to 5x7 grid
+        return stride(from: 0, to: paddedValues.count, by: 7).map { startIndex in
+            Array(paddedValues[startIndex..<min(startIndex + 7, paddedValues.count)])
+        }
+    }
+    
     var displayValue: Int {
         switch habit.kind {
             case .good: currentValue
