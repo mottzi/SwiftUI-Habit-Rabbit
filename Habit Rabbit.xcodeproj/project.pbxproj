@@ -7,6 +7,7 @@
 	objects = {
 
 /* Begin PBXBuildFile section */
+		9A37D6E92E3FE398004304BD /* debugButton.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9A37D6E82E3FE398004304BD /* debugButton.swift */; };
 		9A61F0482E38E103004956BA /* Extensions.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9A61F02D2E38E103004956BA /* Extensions.swift */; };
 		9A61F0492E38E103004956BA /* HabitRabbit.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9A61F02E2E38E103004956BA /* HabitRabbit.swift */; };
 		9A61F04A2E38E103004956BA /* Habit.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9A61F02F2E38E103004956BA /* Habit.swift */; };
@@ -30,6 +31,7 @@
 
 /* Begin PBXFileReference section */
 		9A2409F92E0584930088539D /* Habit Rabbit.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = "Habit Rabbit.app"; sourceTree = BUILT_PRODUCTS_DIR; };
+		9A37D6E82E3FE398004304BD /* debugButton.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = debugButton.swift; sourceTree = "<group>"; };
 		9A61F02D2E38E103004956BA /* Extensions.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Extensions.swift; sourceTree = "<group>"; };
 		9A61F02E2E38E103004956BA /* HabitRabbit.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = HabitRabbit.swift; sourceTree = "<group>"; };
 		9A61F02F2E38E103004956BA /* Habit.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Habit.swift; sourceTree = "<group>"; };
@@ -165,6 +167,7 @@
 			children = (
 				9A61F05C2E38E1B2004956BA /* Dashboard.swift */,
 				9A61F05D2E38E1B2004956BA /* DashboardManager.swift */,
+				9A37D6E82E3FE398004304BD /* debugButton.swift */,
 			);
 			path = Dashboard;
 			sourceTree = "<group>";
@@ -264,6 +267,7 @@
 				9A61F04A2E38E103004956BA /* Habit.swift in Sources */,
 				9A61F04B2E38E103004956BA /* background.swift in Sources */,
 				9A61F04C2E38E103004956BA /* dayLetter.swift in Sources */,
+				9A37D6E92E3FE398004304BD /* debugButton.swift in Sources */,
 				9A61F04D2E38E103004956BA /* habitLabel.swift in Sources */,
 				9A61F05F2E38E1B2004956BA /* Dashboard.swift in Sources */,
 				9A61F0602E38E1B2004956BA /* DashboardManager.swift in Sources */,
