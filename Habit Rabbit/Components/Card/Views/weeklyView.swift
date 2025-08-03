@@ -29,7 +29,7 @@ extension Habit.Card {
             }
         }
         .geometryGroup()
-        .frame(height: contentHeight)
+        .frame(height: manager.contentHeight)
         .padding(.top, 18)
         .padding(.trailing, 4)
     }

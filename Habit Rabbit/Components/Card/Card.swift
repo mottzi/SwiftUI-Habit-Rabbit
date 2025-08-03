@@ -58,7 +58,7 @@ extension Habit {
             .compositingGroup()
         }
         
-        let contentHeight: CGFloat = 155
+//        let contentHeight: CGFloat = 155
         
         var labelBottomPadding: CGFloat {
             switch manager.mode {

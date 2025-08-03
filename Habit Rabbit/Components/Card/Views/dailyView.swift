@@ -12,7 +12,7 @@ extension Habit.Card {
                 kind: manager.habit.kind,
                 mode: manager.mode,
                 width: 50,
-                height: contentHeight
+                height: manager.contentHeight
             )
             .matchedGeometryEffect(id: "bar6", in: modeTransition, anchor: .topLeading)
             
@@ -25,9 +25,11 @@ extension Habit.Card {
                     .frame(width: 70, height: 70)
             }
         }
-        .frame(height: contentHeight)
+        .frame(height: manager.contentHeight)
         .padding(.horizontal, 20)
         .padding(.top, 20)
     }
     
 }
+
+

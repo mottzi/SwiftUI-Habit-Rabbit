@@ -6,13 +6,15 @@ extension Habit.Card {
     @Observable
     class Manager {
         
-        private let modelContext: ModelContext
-        private let lastDay: Date
-        let habit: Habit
-        
         private(set) var values: [Habit.Value] = []
         private(set) var mode: Habit.Card.Mode
         
+        let habit: Habit
+        let lastDay: Date
+        let modelContext: ModelContext
+        
+        let contentHeight: CGFloat = 155
+
         init(
             for habit: Habit,
             until lastDay: Date,
