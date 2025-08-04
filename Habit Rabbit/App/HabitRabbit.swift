@@ -4,7 +4,7 @@ import SwiftData
 @main
 struct HabitRabbit: App {
     
-    let container: ModelContainer = try! ModelContainer(for: Habit.self, Habit.Value.self)
+    let container = try! ModelContainer(for: Habit.self, Habit.Value.self)
     
     var body: some Scene {
         WindowGroup {

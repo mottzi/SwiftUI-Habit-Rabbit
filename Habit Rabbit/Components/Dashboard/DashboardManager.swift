@@ -1,16 +1,19 @@
 import SwiftUI
 import SwiftData
+import Observation
 
 extension Habit.Dashboard {
     
     @Observable
     class Manager {
-        
-        var mode: Habit.Card.Mode { didSet { synchronizeModes() } }
-        private var lastDay: Date
-        let modelContext: ModelContext
 
+        private let lastDay: Date
+        private let modelContext: ModelContext
+        
+        private(set) var mode: Habit.Card.Mode
         private(set) var cardManagers: [Habit.Card.Manager] = []
+        
+        @ObservationIgnored
         private var cardManagerCache: [Habit.ID: Habit.Card.Manager] = [:]
                 
         init(
@@ -21,11 +24,8 @@ extension Habit.Dashboard {
             self.mode = mode
             self.lastDay = lastDay
             self.modelContext = modelContext
+            
             refreshCardManagers()
-        }
-                
-        func synchronizeModes() {
-            cardManagers.forEach { $0.updateMode(to: mode) }
         }
         
         func refreshCardManagers() {
@@ -59,6 +59,70 @@ extension Habit.Dashboard {
             }
         }
         
+        func updateMode(_ newMode: Habit.Card.Mode) {
+            if newMode == mode { return }
+            mode = newMode
+            synchronizeModes()
+        }
+                
+        func synchronizeModes() {
+            cardManagers.forEach { $0.updateMode(to: mode) }
+        }
+        
+    }
+    
+}
+
+extension Habit.Dashboard.Manager {
+    
+    func randomizeAllHabits() {
+        cardManagers.forEach { $0.randomizeMonthlyValues() }
+    }
+    
+    func resetAllHabits() {
+        cardManagers.forEach { $0.resetDailyValue() }
+    }
+    
+    func addHabit(_ habit: Habit) throws {
+        modelContext.insert(habit)
+        try modelContext.save()
+        refreshCardManagers()
+    }
+    
+    func addHabits(_ habits: [Habit]) throws {
+        habits.forEach { modelContext.insert($0) }
+        try modelContext.save()
+        refreshCardManagers()
+    }
+    
+    func addExampleHabits(count: Int) throws {
+        let templates = Habit.examples
+        guard !templates.isEmpty else { return }
+        
+        let habits = (0..<count).map { i in
+            let template = templates[i % templates.count]
+            return Habit(
+                name: template.name,
+                unit: template.unit,
+                icon: template.icon,
+                color: template.color,
+                target: template.target,
+                kind: template.kind
+            )
+        }
+        
+        try addHabits(habits)
+    }
+    
+    func deleteAllHabits() throws {
+        try modelContext.delete(model: Habit.self)
+        try modelContext.save()
+        refreshCardManagers()
+    }
+    
+    func deleteAllData() {
+        modelContext.container.deleteAllData()
+        refreshCardManagers()
     }
     
 }

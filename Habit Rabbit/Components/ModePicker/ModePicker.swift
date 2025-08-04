@@ -4,14 +4,16 @@ extension Habit.Dashboard {
     
     struct ModePicker: View {
         
-        var width: CGFloat
-        @Binding var mode: Habit.Card.Mode
-                
+        let width: CGFloat
+        let mode: Habit.Card.Mode
+        let onSelection: (Habit.Card.Mode) -> Void
+        
         var body: some View {
             HStack(spacing: 0) {
                 ForEach(Habit.Card.Mode.allCases, id: \.self) { item in
                     Button {
-                        mode = mode == item ? mode.next : item
+                        let newMode = mode == item ? mode.next : item
+                        onSelection(newMode)
                     } label: {
                         Text(item.rawValue)
                             .font(.system(size: 14, weight: .medium))

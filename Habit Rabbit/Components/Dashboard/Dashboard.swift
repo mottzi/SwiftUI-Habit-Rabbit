@@ -51,7 +51,10 @@ extension Habit.Dashboard {
         ToolbarItem(placement: .topBarTrailing) {
             ModePicker(
                 width: 240,
-                mode: $dashboardManager.mode
+                mode: dashboardManager.mode,
+                onSelection: { newMode in
+                    dashboardManager.updateMode(newMode)
+                }
             )
             .padding(.leading, 8)
             .sensoryFeedback(.selection, trigger: dashboardManager.mode)

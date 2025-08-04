@@ -35,24 +35,7 @@ extension Habit.Dashboard {
         Menu {
             ForEach([1, 2, 4, 8, 20, 50, 100], id: \.self) { count in
                 Button("\(count)") {
-                    let templates = Habit.examples
-                    guard !templates.isEmpty else { return }
-                    
-                    for i in 0..<count {
-                        let template = templates[i % templates.count]
-                        let newHabit = Habit(
-                            name: template.name,
-                            unit: template.unit,
-                            icon: template.icon,
-                            color: template.color,
-                            target: template.target,
-                            kind: template.kind
-                        )
-                        dashboardManager.modelContext.insert(habit: newHabit)
-                    }
-                    
-                    try? dashboardManager.modelContext.save()
-                    dashboardManager.refreshCardManagers()
+                    try? dashboardManager.addExampleHabits(count: count)
                 }
             }
         } label: {
@@ -62,28 +45,25 @@ extension Habit.Dashboard {
     
     private var randomizeButton: some View {
         Button("Randomize All", systemImage: "sparkles") {
-            cardManagers.forEach { $0.randomizeMonthlyValues() }
+            dashboardManager.randomizeAllHabits()
         }
     }
     
     private var resetAllButton: some View {
         Button("Reset All", systemImage: "0.circle") {
-            cardManagers.forEach { $0.resetDailyValue() }
+            dashboardManager.resetAllHabits()
         }
     }
     
     private var removeDBButton: some View {
         Button("Kill Database", systemImage: "xmark", role: .destructive) {
-            dashboardManager.modelContext.container.deleteAllData()
-            dashboardManager.refreshCardManagers()
+            dashboardManager.deleteAllData()
         }
     }
     
     private var removeHabitsButton: some View {
         Button("Delete All", systemImage: "trash", role: .destructive) {
-            try? dashboardManager.modelContext.delete(model: Habit.self)
-            try? dashboardManager.modelContext.save()
-            dashboardManager.refreshCardManagers()
+            try? dashboardManager.deleteAllHabits()
         }
     }
     
