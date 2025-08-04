@@ -26,7 +26,8 @@ extension Habit {
         @State var isDeleting = false
         
         var body: some View {
-            let _ = print("🔄 Card body evaluated: \(manager.habit.name)")
+            let _ = print("🔄 Card body evaluated: \(manager.name)")
+            let _ = Self._printChanges()
             VStack(spacing: 0) {
                 Group {
                     switch manager.mode {

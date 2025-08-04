@@ -10,7 +10,7 @@ extension Habit.Card {
             Text(" / ")
                 .foregroundStyle(.primary.opacity(0.6))
             +
-            Text("\(manager.target)")
+            Text("\(manager.currentTarget)")
                 .foregroundStyle(.primary.opacity(0.6))
         )
         .font(.subheadline)

@@ -1,6 +1,5 @@
 import SwiftUI
 import SwiftData
-import Observation
 
 extension Habit.Dashboard {
     
@@ -29,35 +28,35 @@ extension Habit.Dashboard {
         }
         
         func refreshCardManagers() {
-            print("📊 Synchronizing view models and habits ...")
-            do {
-                var newCache: [Habit.ID: Habit.Card.Manager] = [:]
-                let habits = try modelContext.fetch(FetchDescriptor<Habit>(sortBy: [SortDescriptor(\.date)]))
-                
-                for habit in habits {
-                    if let cachedManager = cardManagerCache[habit.id] {
-                        newCache[habit.id] = cachedManager
-                        continue
-                    }
-                    
-                    print("Habit: \(habit.name)")
-                    print("    🧾 creating view model")
-                    
-                    newCache[habit.id] = Habit.Card.Manager(
-                        for: habit,
-                        until: lastDay,
-                        mode: mode,
-                        using: modelContext
-                    )
+        print("📊 Synchronizing view models and habits ...")
+        do {
+            var newCache: [Habit.ID: Habit.Card.Manager] = [:]
+            let habits = try modelContext.fetch(FetchDescriptor<Habit>(sortBy: [SortDescriptor(\.date)]))
+            
+            for habit in habits {
+                if let cachedManager = cardManagerCache[habit.id] {
+                    newCache[habit.id] = cachedManager
+                    continue
                 }
                 
-                self.cardManagerCache = newCache
-                self.cardManagers = habits.compactMap { newCache[$0.id] }
+                print("Habit: \(habit.name)")
+                print("    🧾 creating view model")
                 
-            } catch {
-                print("Failed to fetch habits:", error)
+                newCache[habit.id] = Habit.Card.Manager(
+                    for: habit,
+                    until: lastDay,
+                    mode: mode,
+                    using: modelContext
+                )
             }
+            
+            self.cardManagerCache = newCache
+            self.cardManagers = habits.compactMap { newCache[$0.id] }
+            
+        } catch {
+            print("Failed to fetch habits:", error)
         }
+    }
         
         func updateMode(_ newMode: Habit.Card.Mode) {
             if newMode == mode { return }
@@ -65,7 +64,7 @@ extension Habit.Dashboard {
             synchronizeModes()
         }
                 
-        func synchronizeModes() {
+        private func synchronizeModes() {
             cardManagers.forEach { $0.updateMode(to: mode) }
         }
         
@@ -81,12 +80,6 @@ extension Habit.Dashboard.Manager {
     
     func resetAllHabits() {
         cardManagers.forEach { $0.resetDailyValue() }
-    }
-    
-    func addHabit(_ habit: Habit) throws {
-        modelContext.insert(habit)
-        try modelContext.save()
-        refreshCardManagers()
     }
     
     func addHabits(_ habits: [Habit]) throws {
