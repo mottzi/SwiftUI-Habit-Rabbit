@@ -5,7 +5,7 @@ extension Habit.Card {
     
     @Observable
     class Manager {
-        
+
         private var values: [Habit.Value] = []
         private(set) var mode: Habit.Card.Mode
         
