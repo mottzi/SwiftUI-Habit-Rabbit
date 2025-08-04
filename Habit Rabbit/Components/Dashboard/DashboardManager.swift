@@ -21,14 +21,14 @@ extension Habit.Dashboard {
             self.mode = mode
             self.lastDay = lastDay
             self.modelContext = modelContext
-            refreshManagers()
+            refreshCardManagers()
         }
                 
         func synchronizeModes() {
             cardManagers.forEach { $0.updateMode(to: mode) }
         }
         
-        func refreshManagers() {
+        func refreshCardManagers() {
             print("📊 Synchronizing view models and habits ...")
             do {
                 var newCache: [Habit.ID: Habit.Card.Manager] = [:]

@@ -48,11 +48,11 @@ extension Habit.Dashboard {
                             target: template.target,
                             kind: template.kind
                         )
-                        manager.modelContext.insert(habit: newHabit)
+                        dashboardManager.modelContext.insert(habit: newHabit)
                     }
                     
-                    try? manager.modelContext.save()
-                    manager.refreshManagers()
+                    try? dashboardManager.modelContext.save()
+                    dashboardManager.refreshCardManagers()
                 }
             }
         } label: {
@@ -74,16 +74,16 @@ extension Habit.Dashboard {
     
     private var removeDBButton: some View {
         Button("Kill Database", systemImage: "xmark", role: .destructive) {
-            manager.modelContext.container.deleteAllData()
-            manager.refreshManagers()
+            dashboardManager.modelContext.container.deleteAllData()
+            dashboardManager.refreshCardManagers()
         }
     }
     
     private var removeHabitsButton: some View {
         Button("Delete All", systemImage: "trash", role: .destructive) {
-            try? manager.modelContext.delete(model: Habit.self)
-            try? manager.modelContext.save()
-            manager.refreshManagers()
+            try? dashboardManager.modelContext.delete(model: Habit.self)
+            try? dashboardManager.modelContext.save()
+            dashboardManager.refreshCardManagers()
         }
     }
     

@@ -4,25 +4,15 @@ import SwiftData
 @main
 struct HabitRabbit: App {
     
+    let container: ModelContainer = try! ModelContainer(for: Habit.self, Habit.Value.self)
+    
     var body: some Scene {
         WindowGroup {
             NavigationStack {
-                Habit.Dashboard.Container()
+                Habit.Dashboard(using: container.mainContext)
             }
         }
-        .modelContainer(for: [Habit.self, Habit.Value.self])
-    }
-    
-}
-
-extension Habit.Dashboard {
-    
-    struct Container: View {
-        @Environment(\.modelContext) private var modelContext
-        
-        var body: some View {
-            Habit.Dashboard(using: modelContext)
-        }
+        .modelContainer(container)
     }
     
 }

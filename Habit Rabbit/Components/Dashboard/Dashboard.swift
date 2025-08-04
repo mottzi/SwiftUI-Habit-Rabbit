@@ -6,14 +6,8 @@ extension Habit {
     struct Dashboard: View {
         
         @Environment(\.colorScheme) var colorScheme
-        
-        @State var manager: Habit.Dashboard.Manager
-        var cardManagers: [Habit.Card.Manager] { manager.cardManagers }
-
-        init(using modelContext: ModelContext) {
-            let manager = Habit.Dashboard.Manager(using: modelContext)
-            self._manager = State(initialValue: manager)
-        }
+        @State var dashboardManager: Habit.Dashboard.Manager
+        var cardManagers: [Habit.Card.Manager] { dashboardManager.cardManagers }
         
         var body: some View {
             ScrollView {
@@ -22,7 +16,7 @@ extension Habit {
                         Habit.Card(
                             manager: cardManager,
                             index: index,
-                            onDelete: manager.refreshManagers
+                            onDelete: dashboardManager.refreshCardManagers
                         )
                     }
                 }
@@ -42,6 +36,11 @@ extension Habit {
             GridItem(.flexible(), spacing: 16),
         ]
         
+        init(using modelContext: ModelContext) {
+            let manager = Habit.Dashboard.Manager(using: modelContext)
+            self._dashboardManager = State(initialValue: manager)
+        }
+        
     }
     
 }
@@ -52,10 +51,10 @@ extension Habit.Dashboard {
         ToolbarItem(placement: .topBarTrailing) {
             ModePicker(
                 width: 240,
-                mode: $manager.mode
+                mode: $dashboardManager.mode
             )
             .padding(.leading, 8)
-            .sensoryFeedback(.selection, trigger: manager.mode)
+            .sensoryFeedback(.selection, trigger: dashboardManager.mode)
         }
     }
     
