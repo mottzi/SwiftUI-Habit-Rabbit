@@ -6,8 +6,7 @@ extension Habit {
     struct Dashboard: View {
         
         @Environment(\.colorScheme) var colorScheme
-        
-        @Environment(Manager.self) var dashboardManager
+        @Environment(Habit.Dashboard.Manager.self) var dashboardManager
         
         var cardManagers: [Card.Manager] { dashboardManager.cardManagers }
         
@@ -17,10 +16,9 @@ extension Habit {
                 LazyVGrid(columns: columns, spacing: 16) {
                     ForEach(cardManagers.enumerated, id: \.element.habit.id) { index, cardManager in
                         Habit.Card(
-                            manager: cardManager,
-                            index: index,
-                            onDelete: dashboardManager.refreshCardManagers
+                            index: index
                         )
+                        .environment(cardManager)
                     }
                 }
                 .padding(16)

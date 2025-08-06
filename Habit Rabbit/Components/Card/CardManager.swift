@@ -60,9 +60,7 @@ extension Habit.Card.Manager {
     }
     
     func randomizeName() {
-        print("randomizing name of \(habit.name)")
-        habit.name = "Test \(Int.random(in: 1...1000))"
-        
+        habit.name = "Test \(Int.random(in: 1...1000))"        
     }
     
     func randomizeMonthlyValues() {

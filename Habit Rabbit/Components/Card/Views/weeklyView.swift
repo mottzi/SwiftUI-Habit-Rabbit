@@ -4,7 +4,7 @@ extension Habit.Card {
     
     var weeklyView: some View {
         VStack(alignment: .leading, spacing: 9) {
-            ForEach(manager.weeklyValues.enumerated, id: \.element.id) { index, value in
+            ForEach(cardManager.weeklyValues.enumerated, id: \.element.id) { index, value in
                 HStack(spacing: 12) {
                     dayLetter(
                         for: value.date,
@@ -14,11 +14,11 @@ extension Habit.Card {
                     
                     ProgressBar(
                         currentValue: value.currentValue,
-                        target: manager.habit.target,
-                        color: manager.color,
+                        target: cardManager.habit.target,
+                        color: cardManager.color,
                         axis: .horizontal,
-                        kind: manager.habit.kind,
-                        mode: manager.mode,
+                        kind: cardManager.habit.kind,
+                        mode: cardManager.mode,
                         width: 118,
                         height: 13,
                     )

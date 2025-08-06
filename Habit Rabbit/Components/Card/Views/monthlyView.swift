@@ -5,7 +5,7 @@ extension Habit.Card {
     var monthlyView: some View {
         VStack(spacing: 6) {
             HStack(spacing: 6) {
-                ForEach(manager.weeklyValues, id: \.id) { value in
+                ForEach(cardManager.weeklyValues, id: \.id) { value in
                     dayLetter(
                         for: value.date,
                         color: .primary.opacity(0.4)
@@ -15,7 +15,7 @@ extension Habit.Card {
             }
             .padding(.bottom, 2)
             
-            ForEach(manager.monthlyValues.enumerated, id: \.offset) { rowIndex, weekValues in
+            ForEach(cardManager.monthlyValues.enumerated, id: \.offset) { rowIndex, weekValues in
                 HStack(spacing: 6) {
                     ForEach(weekValues.enumerated, id: \.offset) { colIndex, dayValue in
                         let isBlankCell = dayValue == nil && rowIndex == 0 && colIndex < 5
@@ -47,27 +47,27 @@ extension Habit.Card {
     
     func cubeColor(for value: Habit.Value?) -> AnyShapeStyle {
         guard let value else {
-            if manager.kind == .good {
+            if cardManager.kind == .good {
                 return AnyShapeStyle(.quaternary)
             } else {
-                return AnyShapeStyle(manager.color)
+                return AnyShapeStyle(cardManager.color)
             }
         }
         
-        let meetsTarget = manager.habit.kind == .good
-        ? value.currentValue >= manager.habit.target
-        : value.currentValue < manager.habit.target
+        let meetsTarget = cardManager.habit.kind == .good
+        ? value.currentValue >= cardManager.habit.target
+        : value.currentValue < cardManager.habit.target
         
-        return meetsTarget ? AnyShapeStyle(manager.color) : AnyShapeStyle(.quaternary)
+        return meetsTarget ? AnyShapeStyle(cardManager.color) : AnyShapeStyle(.quaternary)
     }
     
     func cubeBrightness(for value: Habit.Value?) -> Double {
         guard let value else { return 0 }
         let isDark = colorScheme == .dark
-        let exceedsTarget = value.currentValue > manager.habit.target
-        let meetsTarget = value.currentValue == manager.habit.target
+        let exceedsTarget = value.currentValue > cardManager.habit.target
+        let meetsTarget = value.currentValue == cardManager.habit.target
         
-        return switch (manager.habit.kind, isDark, exceedsTarget, meetsTarget) {
+        return switch (cardManager.habit.kind, isDark, exceedsTarget, meetsTarget) {
             case (.good, true, true, _)   :  0.1   // exceeding good habit in dark mode: brighter
             case (.good, true, false, _)  : -0.1   // not exceeding good habit in dark mode: darker
             case (.good, false, true, _)  : -0.1   // exceeding good habit in light mode: darker
@@ -82,9 +82,9 @@ extension Habit.Card {
     func cubeStrokeWidth(for value: Habit.Value?) -> Double {
         guard let value else { return 0 }
         let isDark = colorScheme == .dark
-        let exceedsTarget = value.currentValue > manager.habit.target
+        let exceedsTarget = value.currentValue > cardManager.habit.target
         
-        return switch (manager.habit.kind, isDark, exceedsTarget) {
+        return switch (cardManager.habit.kind, isDark, exceedsTarget) {
             case (.bad, true, true)  :  0.75  // exceeding bad habit in dark mode: medium stroke
             default                  :  0     // no stroke
         }

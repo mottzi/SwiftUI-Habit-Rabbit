@@ -15,21 +15,22 @@ extension Habit {
 
     struct Card: View {
         
-        @Environment(\.colorScheme) var colorScheme
         @Namespace var modeTransition
+        @Environment(\.colorScheme) var colorScheme
+        @Environment(Habit.Card.Manager.self) var cardManager
+        @Environment(Habit.Dashboard.Manager.self) var dashboardManager
         
-        let manager: Habit.Card.Manager
         let index: Int
-        let onDelete: () -> Void
+//        let onDelete: () -> Void
         
         @State var isDeleting = false
         
         var body: some View {
-            let _ = print("🔄 Card body evaluated \(manager.name):")
+            let _ = print("Habit.Card: 🔄 \(cardManager.name):")
             let _ = Self._printChanges()
             VStack(spacing: 0) {
                 Group {
-                    switch manager.mode {
+                    switch cardManager.mode {
                         case .daily: dailyView
                         case .weekly: weeklyView
                         case .monthly: monthlyView
@@ -37,16 +38,16 @@ extension Habit {
                 }
                 .transition(.blurReplace)
                 
-                VStack(spacing: manager.mode == .monthly ? 4 : 2) {
+                VStack(spacing: cardManager.mode == .monthly ? 4 : 2) {
                     habitLabel
-                    if manager.mode != .daily {
+                    if cardManager.mode != .daily {
                         progressLabelCompact
                     }
                 }
                 .frame(maxHeight: .infinity, alignment: .bottom)
-                .padding(.bottom, manager.labelBottomPadding)
+                .padding(.bottom, cardManager.labelBottomPadding)
             }
-            .animation(.spring(duration: 0.62), value: manager.mode)
+            .animation(.spring(duration: 0.62), value: cardManager.mode)
             .frame(maxWidth: .infinity)
             .frame(height: 232)
             .background { background }
@@ -67,13 +68,13 @@ extension Habit.Card {
     @ViewBuilder
     var contextMenuButtons: some View {
         Button("Randomize", systemImage: "sparkles") {
-            manager.randomizeDailyValue()
+            cardManager.randomizeDailyValue()
         }
         Button("Randomize Name", systemImage: "characters.uppercase") {
-            manager.randomizeName()
+            cardManager.randomizeName()
         }
         Button("Reset", systemImage: "arrow.counterclockwise") {
-            manager.dailyValue?.currentValue = 0
+            cardManager.dailyValue?.currentValue = 0
         }
         Button("Delete", systemImage: "trash", role: .destructive) {
             deleteWithAnimation()
@@ -94,9 +95,9 @@ extension Habit.Card {
             }
             
             try? await Task.sleep(nanoseconds: 10_000_000)
-            manager.modelContext.delete(manager.habit)
+            cardManager.modelContext.delete(cardManager.habit)
             
-            onDelete()
+            dashboardManager.refreshCardManagers()
         }
     }
     
