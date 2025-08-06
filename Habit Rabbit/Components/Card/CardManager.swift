@@ -9,9 +9,8 @@ extension Habit.Card {
         private var values: [Habit.Value] = []
         private(set) var mode: Habit.Card.Mode
         
-//        @ObservationIgnored
         let habit: Habit
-        private let lastDay: Date
+        let lastDay: Date
         let modelContext: ModelContext
                 
         init(
