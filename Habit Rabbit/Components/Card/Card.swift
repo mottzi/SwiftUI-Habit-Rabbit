@@ -79,8 +79,6 @@ extension Habit.Card {
             try? await Task.sleep(nanoseconds: 10_000_000)
             withAnimation(.spring(duration: 0.8)) {
                 isDeleting = true
-            } completion: {
-                isDeleting = false
             }
             
             try? await Task.sleep(nanoseconds: 10_000_000)
