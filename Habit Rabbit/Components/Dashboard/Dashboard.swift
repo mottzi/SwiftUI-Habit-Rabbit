@@ -6,7 +6,7 @@ extension Habit {
     struct Dashboard: View {
         
         @Environment(\.colorScheme) var colorScheme
-        @Environment(\.modelContext) var modelContext
+        let modelContext: ModelContext
         
         @State var dashboardManager: Habit.Dashboard.Manager? = nil
         var manager: Habit.Dashboard.Manager { dashboardManager! }

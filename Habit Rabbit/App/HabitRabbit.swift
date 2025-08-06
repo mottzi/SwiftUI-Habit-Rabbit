@@ -11,27 +11,10 @@ struct HabitRabbit: App {
         
         WindowGroup {
             NavigationStack {
-                Habit.Dashboard.Container()
+                Habit.Dashboard(modelContext: container.mainContext)
             }
         }
         .modelContainer(container)
-    }
-    
-}
-
-extension Habit.Dashboard {
-    
-    struct Container: View {
-        
-        @Environment(\.modelContext) var modelContext
-        
-        var body: some View {
-            let _ = print("container")
-            let _ = Self._printChanges()
-            
-            Habit.Dashboard()
-        }
-        
     }
     
 }
