@@ -27,6 +27,7 @@ extension Habit {
         
         var body: some View {
             let _ = print("🔄 Card body evaluated: \(manager.name)")
+            let _ = Self._printChanges()
             VStack(spacing: 0) {
                 Group {
                     switch manager.mode {
@@ -68,6 +69,9 @@ extension Habit.Card {
     var contextMenuButtons: some View {
         Button("Randomize", systemImage: "sparkles") {
             manager.randomizeDailyValue()
+        }
+        Button("Randomize Name", systemImage: "characters.uppercase") {
+            manager.randomizeName()
         }
         Button("Reset", systemImage: "arrow.counterclockwise") {
             manager.dailyValue?.currentValue = 0

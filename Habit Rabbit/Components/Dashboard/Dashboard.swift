@@ -6,29 +6,42 @@ extension Habit {
     struct Dashboard: View {
         
         @Environment(\.colorScheme) var colorScheme
-        @State var dashboardManager: Habit.Dashboard.Manager
-        var cardManagers: [Habit.Card.Manager] { dashboardManager.cardManagers }
+        @Environment(\.modelContext) var modelContext
+        
+        @State var dashboardManager: Habit.Dashboard.Manager? = nil
+        var manager: Habit.Dashboard.Manager { dashboardManager! }
+        var cardManagers: [Habit.Card.Manager] { manager.cardManagers }
         
         var body: some View {
-            ScrollView {
-                LazyVGrid(columns: columns, spacing: 16) {
-                    ForEach(cardManagers.enumerated, id: \.element.habit.id) { index, cardManager in
-                        Habit.Card(
-                            manager: cardManager,
-                            index: index,
-                            onDelete: dashboardManager.refreshCardManagers
-                        )
+            let _ = Self._printChanges()
+            VStack {
+                if let dashboardManager {
+                    ScrollView {
+                        LazyVGrid(columns: columns, spacing: 16) {
+                            ForEach(cardManagers.enumerated, id: \.element.habit.id) { index, cardManager in
+                                Habit.Card(
+                                    manager: cardManager,
+                                    index: index,
+                                    onDelete: dashboardManager.refreshCardManagers
+                                )
+                            }
+                        }
+                        .padding(16)
+                        .safeAreaInset(edge: .bottom) {
+                            debugButton
+                                .padding(.vertical, 16)
+                        }
                     }
-                }
-                .padding(16)
-                .safeAreaInset(edge: .bottom) {
-                    debugButton
-                        .padding(.vertical, 16)
+                    .navigationTitle("Habit Rabbit")
+                    .animation(.default, value: cardManagers.count)
+                    .toolbar { modePicker }
                 }
             }
-            .navigationTitle("Habit Rabbit")
-            .animation(.default, value: cardManagers.count)
-            .toolbar { modePicker }
+            .task {
+                if dashboardManager == nil {
+                    dashboardManager = Habit.Dashboard.Manager(using: modelContext)
+                }
+            }
         }
         
         private let columns = [
@@ -36,10 +49,11 @@ extension Habit {
             GridItem(.flexible(), spacing: 16),
         ]
         
-        init(using modelContext: ModelContext) {
-            let manager = Habit.Dashboard.Manager(using: modelContext)
-            self._dashboardManager = State(initialValue: manager)
-        }
+//        init(using modelContext: ModelContext) {
+//            print("Dashboard initializing ... ")
+//            let manager = Habit.Dashboard.Manager(using: modelContext)
+//            self._dashboardManager = State(initialValue: manager)
+//        }
         
     }
     
@@ -51,13 +65,13 @@ extension Habit.Dashboard {
         ToolbarItem(placement: .topBarTrailing) {
             ModePicker(
                 width: 240,
-                mode: dashboardManager.mode,
+                mode: manager.mode,
                 onSelection: { newMode in
-                    dashboardManager.updateMode(newMode)
+                    manager.updateMode(newMode)
                 }
             )
             .padding(.leading, 8)
-            .sensoryFeedback(.selection, trigger: dashboardManager.mode)
+            .sensoryFeedback(.selection, trigger: manager.mode)
         }
     }
     

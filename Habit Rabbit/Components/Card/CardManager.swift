@@ -9,6 +9,7 @@ extension Habit.Card {
         private var values: [Habit.Value] = []
         private(set) var mode: Habit.Card.Mode
         
+//        @ObservationIgnored
         let habit: Habit
         private let lastDay: Date
         private let modelContext: ModelContext
@@ -57,6 +58,12 @@ extension Habit.Card.Manager {
     
     func randomizeDailyValue() {
         dailyValue?.currentValue = Int.random(in: 0...habit.target * 2)
+    }
+    
+    func randomizeName() {
+        print("randomizing name of \(habit.name)")
+        habit.name = "Test \(Int.random(in: 1...1000))"
+        
     }
     
     func randomizeMonthlyValues() {

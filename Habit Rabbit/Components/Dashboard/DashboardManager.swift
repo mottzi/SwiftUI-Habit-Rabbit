@@ -24,6 +24,7 @@ extension Habit.Dashboard {
             self.lastDay = lastDay
             self.modelContext = modelContext
             
+            print("Dashboard.Manager initialized ... ")
             refreshCardManagers()
         }
         
@@ -35,6 +36,8 @@ extension Habit.Dashboard {
             
             for habit in habits {
                 if let cachedManager = cardManagerCache[habit.id] {
+                    print("cachedManager.habit == habit (\(habit.name)): \(cachedManager.habit == habit)")
+
                     newCache[habit.id] = cachedManager
                     continue
                 }
@@ -83,8 +86,9 @@ extension Habit.Dashboard.Manager {
     }
     
     func addHabits(_ habits: [Habit]) throws {
-        habits.forEach { modelContext.insert($0) }
+        habits.forEach { modelContext.insert(habit: $0) }
         try modelContext.save()
+        print("Dashboard.Manager: addHabits executed ... ")
         refreshCardManagers()
     }
     
@@ -110,11 +114,13 @@ extension Habit.Dashboard.Manager {
     func deleteAllHabits() throws {
         try modelContext.delete(model: Habit.self)
         try modelContext.save()
+        print("Dashboard.Manager: deleteAllHabits executed ... ")
         refreshCardManagers()
     }
     
     func deleteAllData() {
         modelContext.container.deleteAllData()
+        print("Dashboard.Manager: deleteAllData executed ... ")
         refreshCardManagers()
     }
     

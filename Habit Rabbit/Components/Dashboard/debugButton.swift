@@ -18,7 +18,7 @@ extension Habit.Dashboard {
                     .background(Circle().fill(.quaternary))
                     .padding()
                 
-                Text("Habits: \(cardManagers.count)")
+                Text("Habits: \(manager.cardManagers.count)")
                     .font(.footnote)
                     .fontWeight(.semibold)
                     .foregroundStyle(.primary.opacity(0.7))
@@ -35,7 +35,7 @@ extension Habit.Dashboard {
         Menu {
             ForEach([1, 2, 4, 8, 20, 50, 100], id: \.self) { count in
                 Button("\(count)") {
-                    try? dashboardManager.addExampleHabits(count: count)
+                    try? manager.addExampleHabits(count: count)
                 }
             }
         } label: {
@@ -45,25 +45,25 @@ extension Habit.Dashboard {
     
     private var randomizeButton: some View {
         Button("Randomize All", systemImage: "sparkles") {
-            dashboardManager.randomizeAllHabits()
+            manager.randomizeAllHabits()
         }
     }
     
     private var resetAllButton: some View {
         Button("Reset All", systemImage: "0.circle") {
-            dashboardManager.resetAllHabits()
+            manager.resetAllHabits()
         }
     }
     
     private var removeDBButton: some View {
         Button("Kill Database", systemImage: "xmark", role: .destructive) {
-            dashboardManager.deleteAllData()
+            manager.deleteAllData()
         }
     }
     
     private var removeHabitsButton: some View {
         Button("Delete All", systemImage: "trash", role: .destructive) {
-            try? dashboardManager.deleteAllHabits()
+            try? manager.deleteAllHabits()
         }
     }
     
