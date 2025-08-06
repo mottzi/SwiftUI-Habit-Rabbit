@@ -7,8 +7,8 @@ extension Habit {
         
         @Environment(\.colorScheme) var colorScheme
         
-        let dashboardManager: Habit.Dashboard.Manager
-        var cardManagers: [Habit.Card.Manager] { dashboardManager.cardManagers }
+        let manager: Habit.Dashboard.Manager
+        var cardManagers: [Habit.Card.Manager] { manager.cardManagers }
         
         var body: some View {
             let _ = Self._printChanges()
@@ -18,7 +18,7 @@ extension Habit {
                         Habit.Card(
                             manager: cardManager,
                             index: index,
-                            onDelete: dashboardManager.refreshCardManagers
+                            onDelete: manager.refreshCardManagers
                         )
                     }
                 }
@@ -38,13 +38,6 @@ extension Habit {
             GridItem(.flexible(), spacing: 16),
         ]
         
-        init(manager: Habit.Dashboard.Manager) {
-            self.dashboardManager = manager
-//            print("Dashboard initializing ... ")
-//            let manager = Habit.Dashboard.Manager(using: modelContext)
-//            self._dashboardManager = State(initialValue: manager)
-        }
-        
     }
     
 }
@@ -55,13 +48,13 @@ extension Habit.Dashboard {
         ToolbarItem(placement: .topBarTrailing) {
             ModePicker(
                 width: 240,
-                mode: dashboardManager.mode,
+                mode: manager.mode,
                 onSelection: { newMode in
-                    dashboardManager.updateMode(newMode)
+                    manager.updateMode(newMode)
                 }
             )
             .padding(.leading, 8)
-            .sensoryFeedback(.selection, trigger: dashboardManager.mode)
+            .sensoryFeedback(.selection, trigger: manager.mode)
         }
     }
     
