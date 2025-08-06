@@ -4,23 +4,21 @@ import SwiftData
 @main
 struct HabitRabbit: App {
     
-    let container: ModelContainer
-    
-    @State var manager: Habit.Dashboard.Manager
+    let modelContainer: ModelContainer
+    let dashboardManager: Habit.Dashboard.Manager
         
     var body: some Scene {        
         WindowGroup {
             NavigationStack {
-                Habit.Dashboard(manager: manager)
+                Habit.Dashboard()
+                    .environment(dashboardManager)
             }
         }
-        .modelContainer(container)
     }
     
     init() {
-        container = try! ModelContainer(for: Habit.self, Habit.Value.self)
-        let manager = Habit.Dashboard.Manager(using: container.mainContext)
-        self._manager = State(initialValue: manager)
+        modelContainer = try! ModelContainer(for: Habit.self, Habit.Value.self)
+        dashboardManager = Habit.Dashboard.Manager(using: modelContainer.mainContext)
     }
     
 }
