@@ -12,7 +12,7 @@ extension Habit.Card {
 //        @ObservationIgnored
         let habit: Habit
         private let lastDay: Date
-        private let modelContext: ModelContext
+        let modelContext: ModelContext
                 
         init(
             for habit: Habit,
