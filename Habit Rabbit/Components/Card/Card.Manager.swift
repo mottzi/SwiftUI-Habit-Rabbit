@@ -4,7 +4,15 @@ import SwiftData
 extension Habit.Card {
     
     @Observable
-    class Manager {
+    class Manager: Hashable {
+
+        static func == (lhs: Manager, rhs: Manager) -> Bool {
+            lhs.habit.id == rhs.habit.id
+        }
+        
+        func hash(into hasher: inout Hasher) {
+            hasher.combine(habit.id)
+        }
 
         private var values: [Habit.Value] = []
         private(set) var mode: Habit.Card.Mode

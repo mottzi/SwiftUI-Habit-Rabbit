@@ -8,9 +8,6 @@
 
 /* Begin PBXBuildFile section */
 		9A37D6E92E3FE398004304BD /* debugButton.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9A37D6E82E3FE398004304BD /* debugButton.swift */; };
-		9A61F0482E38E103004956BA /* Extensions.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9A61F02D2E38E103004956BA /* Extensions.swift */; };
-		9A61F0492E38E103004956BA /* HabitRabbit.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9A61F02E2E38E103004956BA /* HabitRabbit.swift */; };
-		9A61F04A2E38E103004956BA /* Habit.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9A61F02F2E38E103004956BA /* Habit.swift */; };
 		9A61F04B2E38E103004956BA /* background.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9A61F0312E38E103004956BA /* background.swift */; };
 		9A61F04C2E38E103004956BA /* dayLetter.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9A61F0322E38E103004956BA /* dayLetter.swift */; };
 		9A61F04D2E38E103004956BA /* habitLabel.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9A61F0332E38E103004956BA /* habitLabel.swift */; };
@@ -26,15 +23,12 @@
 		9A61F0572E38E103004956BA /* ProgressBar.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9A61F0412E38E103004956BA /* ProgressBar.swift */; };
 		9A61F05F2E38E1B2004956BA /* Dashboard.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9A61F05C2E38E1B2004956BA /* Dashboard.swift */; };
 		9A61F0602E38E1B2004956BA /* Dashboard.Manager.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9A61F05D2E38E1B2004956BA /* Dashboard.Manager.swift */; };
-		9A61F0632E3AE232004956BA /* Value.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9A61F0622E3AE232004956BA /* Value.swift */; };
+		9A6786A22E44091F00E8276F /* HabitDetailView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9A6786A12E44091F00E8276F /* HabitDetailView.swift */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXFileReference section */
 		9A2409F92E0584930088539D /* Habit Rabbit.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = "Habit Rabbit.app"; sourceTree = BUILT_PRODUCTS_DIR; };
 		9A37D6E82E3FE398004304BD /* debugButton.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = debugButton.swift; sourceTree = "<group>"; };
-		9A61F02D2E38E103004956BA /* Extensions.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Extensions.swift; sourceTree = "<group>"; };
-		9A61F02E2E38E103004956BA /* HabitRabbit.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = HabitRabbit.swift; sourceTree = "<group>"; };
-		9A61F02F2E38E103004956BA /* Habit.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Habit.swift; sourceTree = "<group>"; };
 		9A61F0312E38E103004956BA /* background.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = background.swift; sourceTree = "<group>"; };
 		9A61F0322E38E103004956BA /* dayLetter.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = dayLetter.swift; sourceTree = "<group>"; };
 		9A61F0332E38E103004956BA /* habitLabel.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = habitLabel.swift; sourceTree = "<group>"; };
@@ -51,8 +45,16 @@
 		9A61F0462E38E103004956BA /* Assets.xcassets */ = {isa = PBXFileReference; lastKnownFileType = folder.assetcatalog; path = Assets.xcassets; sourceTree = "<group>"; };
 		9A61F05C2E38E1B2004956BA /* Dashboard.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Dashboard.swift; sourceTree = "<group>"; };
 		9A61F05D2E38E1B2004956BA /* Dashboard.Manager.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Dashboard.Manager.swift; sourceTree = "<group>"; };
-		9A61F0622E3AE232004956BA /* Value.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Value.swift; sourceTree = "<group>"; };
+		9A6786A12E44091F00E8276F /* HabitDetailView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = HabitDetailView.swift; sourceTree = "<group>"; };
 /* End PBXFileReference section */
+
+/* Begin PBXFileSystemSynchronizedRootGroup section */
+		9A6786B42E4409C400E8276F /* App */ = {
+			isa = PBXFileSystemSynchronizedRootGroup;
+			path = App;
+			sourceTree = "<group>";
+		};
+/* End PBXFileSystemSynchronizedRootGroup section */
 
 /* Begin PBXFrameworksBuildPhase section */
 		9A2409F62E0584930088539D /* Frameworks */ = {
@@ -79,16 +81,6 @@
 				9A2409F92E0584930088539D /* Habit Rabbit.app */,
 			);
 			name = Products;
-			sourceTree = "<group>";
-		};
-		9A61F0302E38E103004956BA /* App */ = {
-			isa = PBXGroup;
-			children = (
-				9A61F02E2E38E103004956BA /* HabitRabbit.swift */,
-				9A61F0612E3AE1FF004956BA /* Models */,
-				9A61F0642E3AE2C1004956BA /* Extensions */,
-			);
-			path = App;
 			sourceTree = "<group>";
 		};
 		9A61F0372E38E103004956BA /* Components */ = {
@@ -155,7 +147,7 @@
 		9A61F0472E38E103004956BA /* Habit Rabbit */ = {
 			isa = PBXGroup;
 			children = (
-				9A61F0302E38E103004956BA /* App */,
+				9A6786B42E4409C400E8276F /* App */,
 				9A61F0452E38E103004956BA /* Components */,
 				9A61F0462E38E103004956BA /* Assets.xcassets */,
 			);
@@ -168,25 +160,9 @@
 				9A61F05C2E38E1B2004956BA /* Dashboard.swift */,
 				9A61F05D2E38E1B2004956BA /* Dashboard.Manager.swift */,
 				9A37D6E82E3FE398004304BD /* debugButton.swift */,
+				9A6786A12E44091F00E8276F /* HabitDetailView.swift */,
 			);
 			path = Dashboard;
-			sourceTree = "<group>";
-		};
-		9A61F0612E3AE1FF004956BA /* Models */ = {
-			isa = PBXGroup;
-			children = (
-				9A61F02F2E38E103004956BA /* Habit.swift */,
-				9A61F0622E3AE232004956BA /* Value.swift */,
-			);
-			path = Models;
-			sourceTree = "<group>";
-		};
-		9A61F0642E3AE2C1004956BA /* Extensions */ = {
-			isa = PBXGroup;
-			children = (
-				9A61F02D2E38E103004956BA /* Extensions.swift */,
-			);
-			path = Extensions;
 			sourceTree = "<group>";
 		};
 /* End PBXGroup section */
@@ -203,6 +179,9 @@
 			buildRules = (
 			);
 			dependencies = (
+			);
+			fileSystemSynchronizedGroups = (
+				9A6786B42E4409C400E8276F /* App */,
 			);
 			name = "Habit Rabbit";
 			packageProductDependencies = (
@@ -262,9 +241,6 @@
 			isa = PBXSourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
-				9A61F0482E38E103004956BA /* Extensions.swift in Sources */,
-				9A61F0492E38E103004956BA /* HabitRabbit.swift in Sources */,
-				9A61F04A2E38E103004956BA /* Habit.swift in Sources */,
 				9A61F04B2E38E103004956BA /* background.swift in Sources */,
 				9A61F04C2E38E103004956BA /* dayLetter.swift in Sources */,
 				9A37D6E92E3FE398004304BD /* debugButton.swift in Sources */,
@@ -278,8 +254,8 @@
 				9A61F0522E38E103004956BA /* monthlyView.swift in Sources */,
 				9A61F0532E38E103004956BA /* weeklyView.swift in Sources */,
 				9A61F0542E38E103004956BA /* Card.swift in Sources */,
-				9A61F0632E3AE232004956BA /* Value.swift in Sources */,
 				9A61F0552E38E103004956BA /* Card.Manager.swift in Sources */,
+				9A6786A22E44091F00E8276F /* HabitDetailView.swift in Sources */,
 				9A61F0562E38E103004956BA /* ModePicker.swift in Sources */,
 				9A61F0572E38E103004956BA /* ProgressBar.swift in Sources */,
 			);

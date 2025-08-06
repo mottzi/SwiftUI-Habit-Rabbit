@@ -7,7 +7,8 @@ extension Habit {
         
         @Environment(\.colorScheme) var colorScheme
         @Environment(Habit.Dashboard.Manager.self) var dashboardManager
-        
+        @Namespace private var habitTransition
+
         var cardManagers: [Card.Manager] { dashboardManager.cardManagers }
         
         var body: some View {
@@ -15,9 +16,16 @@ extension Habit {
             ScrollView {
                 LazyVGrid(columns: columns, spacing: 16) {
                     ForEach(cardManagers.enumerated, id: \.element.habit.id) { index, cardManager in
-                        Habit.Card()
-                            .environment(\.cardOffset, index)
-                            .environment(cardManager)
+                        NavigationLink {
+                            HabitDetailView(cardManager: cardManager)
+                                .navigationTransition(.zoom(sourceID: cardManager.habit.id, in: habitTransition))
+                        } label: {
+                            Habit.Card()
+                                .environment(cardManager)
+                                .environment(\.cardOffset, index)
+                                .matchedTransitionSource(id: cardManager.habit.id, in: habitTransition)
+                        }
+                        .buttonStyle(.plain)
                     }
                 }
                 .padding(16)
@@ -26,7 +34,7 @@ extension Habit {
                         .padding(.vertical, 16)
                 }
             }
-            .navigationTitle("Habit Rabbit")
+            .navigationTitle("Habits")
             .animation(.default, value: cardManagers.count)
             .toolbar { modePicker }
         }
