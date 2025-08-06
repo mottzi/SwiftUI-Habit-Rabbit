@@ -36,8 +36,7 @@ extension Habit.Dashboard {
             
             for habit in habits {
                 if let cachedManager = cardManagerCache[habit.id] {
-                    print("cachedManager.habit == habit (\(habit.name)): \(cachedManager.habit == habit)")
-
+                    // alert: updated habit metadata will not reach our cache
                     newCache[habit.id] = cachedManager
                     continue
                 }

@@ -1,28 +1,17 @@
 import SwiftUI
 import SwiftData
 
-extension Habit.Card {
-
-    enum Mode: String, CaseIterable {
-        case daily = "Daily"
-        case weekly = "Weekly"
-        case monthly = "Monthly"
-    }
-    
-}
-
 extension Habit {
 
     struct Card: View {
         
-        @Namespace var modeTransition
+        @Environment(Card.Manager.self) var cardManager
+        @Environment(Dashboard.Manager.self) var dashboardManager
+        
+        @Environment(\.cardOffset) var cardOffset
         @Environment(\.colorScheme) var colorScheme
-        @Environment(Habit.Card.Manager.self) var cardManager
-        @Environment(Habit.Dashboard.Manager.self) var dashboardManager
         
-        let index: Int
-//        let onDelete: () -> Void
-        
+        @Namespace var modeTransition
         @State var isDeleting = false
         
         var body: some View {
@@ -102,8 +91,24 @@ extension Habit.Card {
     }
     
     var deleteOffset: CGSize {
-        let offset = (index % 2 == 0) ? -250 : 250
+        let offset = (cardOffset % 2 == 0) ? -250 : 250
         return CGSize(width: CGFloat(offset), height: 100)
     }
+    
+}
+
+extension Habit.Card {
+    
+    enum Mode: String, CaseIterable {
+        case daily = "Daily"
+        case weekly = "Weekly"
+        case monthly = "Monthly"
+    }
+    
+}
+
+extension EnvironmentValues {
+    
+    @Entry var cardOffset: Int = 0
     
 }

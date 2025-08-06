@@ -15,10 +15,9 @@ extension Habit {
             ScrollView {
                 LazyVGrid(columns: columns, spacing: 16) {
                     ForEach(cardManagers.enumerated, id: \.element.habit.id) { index, cardManager in
-                        Habit.Card(
-                            index: index
-                        )
-                        .environment(cardManager)
+                        Habit.Card()
+                            .environment(\.cardOffset, index)
+                            .environment(cardManager)
                     }
                 }
                 .padding(16)
