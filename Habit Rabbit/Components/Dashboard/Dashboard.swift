@@ -17,14 +17,16 @@ extension Habit {
                 LazyVGrid(columns: columns, spacing: 16) {
                     ForEach(cardManagers.enumerated, id: \.element.habit.id) { index, cardManager in
                         NavigationLink {
-                            HabitDetailView(cardManager: cardManager)
+                            HabitDetailView()
+                                .environment(cardManager)
+                                .environment(dashboardManager)
                                 .navigationTransition(.zoom(sourceID: cardManager.habit.id, in: habitTransition))
                         } label: {
                             Habit.Card()
                                 .environment(cardManager)
                                 .environment(\.cardOffset, index)
-                                .matchedTransitionSource(id: cardManager.habit.id, in: habitTransition)
                         }
+                        .matchedTransitionSource(id: cardManager.habit.id, in: habitTransition)
                         .buttonStyle(.plain)
                     }
                 }
@@ -34,7 +36,7 @@ extension Habit {
                         .padding(.vertical, 16)
                 }
             }
-            .navigationTitle("Habits")
+            .navigationTitle("Habit Rabbit")
             .animation(.default, value: cardManagers.count)
             .toolbar { modePicker }
         }

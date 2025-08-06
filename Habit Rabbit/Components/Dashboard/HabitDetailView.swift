@@ -3,10 +3,10 @@ import SwiftUI
 
 struct HabitDetailView: View {
     
-    var cardManager: Habit.Card.Manager
+    @Environment(Habit.Card.Manager.self) var cardManager
     
     var body: some View {
-        Text(cardManager.habit.name)
+        Text(cardManager.name)
     }
     
 }
