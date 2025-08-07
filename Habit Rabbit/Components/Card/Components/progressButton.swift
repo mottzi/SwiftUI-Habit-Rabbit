@@ -28,7 +28,7 @@ extension Habit.Card {
     
     var buttonBrightness: Double {
         if cardManager.habit.kind == .good {
-            return cardManager.currentValue > cardManager.habit.target ? (colorScheme == .dark ? 0.1 : -0.1) : (colorScheme == .dark ? -0.1 : 0.1)
+            return cardManager.currentValue(for: mode) > cardManager.habit.target ? (colorScheme == .dark ? 0.1 : -0.1) : (colorScheme == .dark ? -0.1 : 0.1)
         } else {
             return 0
         }

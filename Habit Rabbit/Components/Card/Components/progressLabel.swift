@@ -6,7 +6,7 @@ extension Habit.Card {
         VStack(spacing: 2) {
             VStack {
                 (
-                    Text("\(cardManager.currentValue)")
+                    Text("\(cardManager.currentValue(for: mode))")
                         .foregroundStyle(.primary.opacity(colorScheme == .dark ? 1 : 0.8))
                     +
                     Text(" / ")
@@ -21,7 +21,7 @@ extension Habit.Card {
                 .contentTransition(.numericText())
             }
             
-            Text(cardManager.unit.pluralized(count: cardManager.currentValue))
+            Text(cardManager.unit.pluralized(count: cardManager.currentValue(for: mode)))
                 .font(.footnote)
                 .fontWeight(.medium)
                 .foregroundStyle(.secondary)
@@ -30,7 +30,7 @@ extension Habit.Card {
         .minimumScaleFactor(0.7)
         .lineLimit(1)
         .padding(.horizontal, 2)
-        .animation(.bouncy, value: cardManager.currentValue)
+        .animation(.bouncy, value: cardManager.currentValue(for: mode))
     }
     
 }

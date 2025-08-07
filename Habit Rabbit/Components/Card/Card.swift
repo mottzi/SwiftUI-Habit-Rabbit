@@ -15,7 +15,7 @@ extension Habit {
         @Namespace var modeTransition
         @State var isDeleting = false
         
-        private var mode: Habit.Card.Mode {
+        var mode: Habit.Card.Mode {
             cardMode ?? cardManager.mode
         }
         

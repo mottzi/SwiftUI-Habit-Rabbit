@@ -124,31 +124,26 @@ extension Habit.Card.Manager {
 
 extension Habit.Card.Manager {
     
-    var currentValue: Int {
-        switch mode {
+    func currentValue(for mode: Habit.Card.Mode? = nil) -> Int {
+        switch mode ?? self.mode {
             case .daily: dailyValue?.currentValue ?? 0
             case .weekly: weeklyValues.reduce(0) { $0 + $1.currentValue }
             case .monthly: values.reduce(0) { $0 + $1.currentValue }
         }
     }
     
-    var currentTarget: Int {
-        switch mode {
+    func currentTarget(for mode: Habit.Card.Mode? = nil) -> Int {
+        switch mode ?? self.mode {
             case .daily: habit.target
             case .weekly: habit.target * 7
             case .monthly: habit.target * 30
         }
     }
     
-    var currentProgress: CGFloat {
-        guard currentTarget > 0 else { return 0 }
-        return CGFloat(currentValue) / CGFloat(currentTarget)
-    }
-    
-    var isCompleted: Bool {
+    func isCompleted(for mode: Habit.Card.Mode? = nil) -> Bool {
         switch kind {
-            case .good: currentValue >= currentTarget
-            case .bad: currentValue < currentTarget
+            case .good: currentValue(for: mode) >= currentTarget(for: mode)
+            case .bad: currentValue(for: mode) < currentTarget(for: mode)
         }
     }
     
