@@ -2,12 +2,13 @@ import SwiftUI
 
 extension Habit.Dashboard {
     
-    
     var debugButton: some View {
         Menu {
             addExampleButton
             randomizeButton
             resetAllButton
+            Divider()
+            zoomTransitionButton
             Divider()
             removeDBButton
             removeHabitsButton
@@ -66,6 +67,16 @@ extension Habit.Dashboard {
         Button("Delete All", systemImage: "trash", role: .destructive) {
             try? dashboardManager.deleteAllHabits()
         }
+    }
+    
+    private var zoomTransitionButton: some View {
+        Button(action: dashboardManager.toggleZoomTransition) {
+            Label("Zoom Transition", systemImage: zoomTransitionSymbol)
+        }
+    }
+    
+    private var zoomTransitionSymbol: String {
+        dashboardManager.useZoomTransition ? "checkmark.circle.fill" : "circle"
     }
     
 }
