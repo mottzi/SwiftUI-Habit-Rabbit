@@ -12,6 +12,7 @@ extension Habit {
         var cardManagers: [Card.Manager] { dashboardManager.cardManagers }
         
         var body: some View {
+            let _ = print("Habit.Dashboard: 🔄 (\(cardManagers.count))")
             let _ = Self._printChanges()
             ScrollView {
                 LazyVGrid(columns: columns, spacing: 16) {

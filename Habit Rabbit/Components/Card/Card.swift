@@ -8,18 +8,23 @@ extension Habit {
         @Environment(Card.Manager.self) var cardManager
         @Environment(Dashboard.Manager.self) var dashboardManager
         
+        @Environment(\.cardMode) var cardMode
         @Environment(\.cardOffset) var cardOffset
         @Environment(\.colorScheme) var colorScheme
         
         @Namespace var modeTransition
         @State var isDeleting = false
         
+        private var mode: Habit.Card.Mode {
+            cardMode ?? cardManager.mode
+        }
+        
         var body: some View {
-            let _ = print("Habit.Card: 🔄 \(cardManager.name):")
-            let _ = Self._printChanges()
+            let _ = print("Habit.Card: 🔄 \(cardManager.name)")
+//            let _ = Self._printChanges()
             VStack(spacing: 0) {
                 Group {
-                    switch cardManager.mode {
+                    switch mode {
                         case .daily: dailyView
                         case .weekly: weeklyView
                         case .monthly: monthlyView
@@ -27,16 +32,16 @@ extension Habit {
                 }
                 .transition(.blurReplace)
                 
-                VStack(spacing: cardManager.mode == .monthly ? 4 : 2) {
+                VStack(spacing: mode == .monthly ? 4 : 2) {
                     habitLabel
-                    if cardManager.mode != .daily {
+                    if mode != .daily {
                         progressLabelCompact
                     }
                 }
                 .frame(maxHeight: .infinity, alignment: .bottom)
                 .padding(.bottom, cardManager.labelBottomPadding)
             }
-            .animation(.spring(duration: 0.62), value: cardManager.mode)
+            .animation(.spring(duration: 0.62), value: mode)
             .frame(maxWidth: .infinity)
             .frame(height: 232)
             .background { background }
@@ -108,5 +113,14 @@ extension Habit.Card {
 extension EnvironmentValues {
     
     @Entry var cardOffset: Int = 0
+    @Entry var cardMode: Habit.Card.Mode? = nil
+    
+}
+
+extension Habit.Card {
+    
+    func cardMode(_ mode: Habit.Card.Mode) -> some View {
+        self.environment(\.cardMode, mode)
+    }
     
 }

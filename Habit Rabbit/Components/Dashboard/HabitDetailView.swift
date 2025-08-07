@@ -3,14 +3,26 @@ import SwiftUI
 
 struct HabitDetailView: View {
     
-    @Environment(Habit.Dashboard.Manager.self) var dashboardManager
     @Environment(Habit.Card.Manager.self) var cardManager
     
     var body: some View {
-        Habit.Card()
-            .environment(dashboardManager)
+        ScrollView {
+            VStack(spacing: 16) {
+                Habit.Card()
+                    .cardMode(.daily)
+                    .containerRelativeFrame(.horizontal, count: 2, spacing: 16)
+                Habit.Card()
+                    .cardMode(.weekly)
+                    .containerRelativeFrame(.horizontal, count: 2, spacing: 16)
+                Habit.Card()
+                    .cardMode(.monthly)
+                    .containerRelativeFrame(.horizontal, count: 2, spacing: 16)
+            }
             .environment(cardManager)
-            .containerRelativeFrame(.horizontal, count: 2, spacing: 16)        
+            .frame(maxWidth: .infinity)
+            .padding(16)
+            .padding(.top, 16)
+        }
     }
     
 }
