@@ -6,52 +6,27 @@
 	objectVersion = 77;
 	objects = {
 
-/* Begin PBXBuildFile section */
-		9A37D6E92E3FE398004304BD /* debugButton.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9A37D6E82E3FE398004304BD /* debugButton.swift */; };
-		9A61F04B2E38E103004956BA /* background.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9A61F0312E38E103004956BA /* background.swift */; };
-		9A61F04C2E38E103004956BA /* dayLetter.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9A61F0322E38E103004956BA /* dayLetter.swift */; };
-		9A61F04D2E38E103004956BA /* habitLabel.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9A61F0332E38E103004956BA /* habitLabel.swift */; };
-		9A61F04E2E38E103004956BA /* progressButton.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9A61F0342E38E103004956BA /* progressButton.swift */; };
-		9A61F04F2E38E103004956BA /* progressLabel.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9A61F0352E38E103004956BA /* progressLabel.swift */; };
-		9A61F0502E38E103004956BA /* progressLabelCompact.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9A61F0362E38E103004956BA /* progressLabelCompact.swift */; };
-		9A61F0512E38E103004956BA /* dailyView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9A61F0382E38E103004956BA /* dailyView.swift */; };
-		9A61F0522E38E103004956BA /* monthlyView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9A61F0392E38E103004956BA /* monthlyView.swift */; };
-		9A61F0532E38E103004956BA /* weeklyView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9A61F03A2E38E103004956BA /* weeklyView.swift */; };
-		9A61F0542E38E103004956BA /* Card.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9A61F03C2E38E103004956BA /* Card.swift */; };
-		9A61F0552E38E103004956BA /* Card.Manager.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9A61F03D2E38E103004956BA /* Card.Manager.swift */; };
-		9A61F0562E38E103004956BA /* ModePicker.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9A61F03F2E38E103004956BA /* ModePicker.swift */; };
-		9A61F0572E38E103004956BA /* ProgressBar.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9A61F0412E38E103004956BA /* ProgressBar.swift */; };
-		9A61F05F2E38E1B2004956BA /* Dashboard.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9A61F05C2E38E1B2004956BA /* Dashboard.swift */; };
-		9A61F0602E38E1B2004956BA /* Dashboard.Manager.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9A61F05D2E38E1B2004956BA /* Dashboard.Manager.swift */; };
-		9A6786A22E44091F00E8276F /* HabitDetailView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9A6786A12E44091F00E8276F /* HabitDetailView.swift */; };
-/* End PBXBuildFile section */
-
 /* Begin PBXFileReference section */
 		9A2409F92E0584930088539D /* Habit Rabbit.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = "Habit Rabbit.app"; sourceTree = BUILT_PRODUCTS_DIR; };
-		9A37D6E82E3FE398004304BD /* debugButton.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = debugButton.swift; sourceTree = "<group>"; };
-		9A61F0312E38E103004956BA /* background.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = background.swift; sourceTree = "<group>"; };
-		9A61F0322E38E103004956BA /* dayLetter.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = dayLetter.swift; sourceTree = "<group>"; };
-		9A61F0332E38E103004956BA /* habitLabel.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = habitLabel.swift; sourceTree = "<group>"; };
-		9A61F0342E38E103004956BA /* progressButton.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = progressButton.swift; sourceTree = "<group>"; };
-		9A61F0352E38E103004956BA /* progressLabel.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = progressLabel.swift; sourceTree = "<group>"; };
-		9A61F0362E38E103004956BA /* progressLabelCompact.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = progressLabelCompact.swift; sourceTree = "<group>"; };
-		9A61F0382E38E103004956BA /* dailyView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = dailyView.swift; sourceTree = "<group>"; };
-		9A61F0392E38E103004956BA /* monthlyView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = monthlyView.swift; sourceTree = "<group>"; };
-		9A61F03A2E38E103004956BA /* weeklyView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = weeklyView.swift; sourceTree = "<group>"; };
-		9A61F03C2E38E103004956BA /* Card.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Card.swift; sourceTree = "<group>"; };
-		9A61F03D2E38E103004956BA /* Card.Manager.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Card.Manager.swift; sourceTree = "<group>"; };
-		9A61F03F2E38E103004956BA /* ModePicker.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ModePicker.swift; sourceTree = "<group>"; };
-		9A61F0412E38E103004956BA /* ProgressBar.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ProgressBar.swift; sourceTree = "<group>"; };
-		9A61F0462E38E103004956BA /* Assets.xcassets */ = {isa = PBXFileReference; lastKnownFileType = folder.assetcatalog; path = Assets.xcassets; sourceTree = "<group>"; };
-		9A61F05C2E38E1B2004956BA /* Dashboard.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Dashboard.swift; sourceTree = "<group>"; };
-		9A61F05D2E38E1B2004956BA /* Dashboard.Manager.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Dashboard.Manager.swift; sourceTree = "<group>"; };
-		9A6786A12E44091F00E8276F /* HabitDetailView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = HabitDetailView.swift; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
+/* Begin PBXFileSystemSynchronizedBuildFileExceptionSet section */
+		9A6787132E44CC3D00E8276F /* Exceptions for "Habit Rabbit" folder in "Habit Rabbit" target */ = {
+			isa = PBXFileSystemSynchronizedBuildFileExceptionSet;
+			membershipExceptions = (
+				Assets.xcassets,
+			);
+			target = 9A2409F82E0584930088539D /* Habit Rabbit */;
+		};
+/* End PBXFileSystemSynchronizedBuildFileExceptionSet section */
+
 /* Begin PBXFileSystemSynchronizedRootGroup section */
-		9A6786B42E4409C400E8276F /* App */ = {
+		9A6786FC2E44CC3D00E8276F /* Habit Rabbit */ = {
 			isa = PBXFileSystemSynchronizedRootGroup;
-			path = App;
+			exceptions = (
+				9A6787132E44CC3D00E8276F /* Exceptions for "Habit Rabbit" folder in "Habit Rabbit" target */,
+			);
+			path = "Habit Rabbit";
 			sourceTree = "<group>";
 		};
 /* End PBXFileSystemSynchronizedRootGroup section */
@@ -70,7 +45,7 @@
 		9A2409F02E0584930088539D = {
 			isa = PBXGroup;
 			children = (
-				9A61F0472E38E103004956BA /* Habit Rabbit */,
+				9A6786FC2E44CC3D00E8276F /* Habit Rabbit */,
 				9A2409FA2E0584930088539D /* Products */,
 			);
 			sourceTree = "<group>";
@@ -81,88 +56,6 @@
 				9A2409F92E0584930088539D /* Habit Rabbit.app */,
 			);
 			name = Products;
-			sourceTree = "<group>";
-		};
-		9A61F0372E38E103004956BA /* Components */ = {
-			isa = PBXGroup;
-			children = (
-				9A61F0312E38E103004956BA /* background.swift */,
-				9A61F0322E38E103004956BA /* dayLetter.swift */,
-				9A61F0332E38E103004956BA /* habitLabel.swift */,
-				9A61F0342E38E103004956BA /* progressButton.swift */,
-				9A61F0352E38E103004956BA /* progressLabel.swift */,
-				9A61F0362E38E103004956BA /* progressLabelCompact.swift */,
-			);
-			path = Components;
-			sourceTree = "<group>";
-		};
-		9A61F03B2E38E103004956BA /* Views */ = {
-			isa = PBXGroup;
-			children = (
-				9A61F0382E38E103004956BA /* dailyView.swift */,
-				9A61F03A2E38E103004956BA /* weeklyView.swift */,
-				9A61F0392E38E103004956BA /* monthlyView.swift */,
-			);
-			path = Views;
-			sourceTree = "<group>";
-		};
-		9A61F03E2E38E103004956BA /* Card */ = {
-			isa = PBXGroup;
-			children = (
-				9A61F03C2E38E103004956BA /* Card.swift */,
-				9A61F03D2E38E103004956BA /* Card.Manager.swift */,
-				9A61F03B2E38E103004956BA /* Views */,
-				9A61F0372E38E103004956BA /* Components */,
-			);
-			path = Card;
-			sourceTree = "<group>";
-		};
-		9A61F0402E38E103004956BA /* ModePicker */ = {
-			isa = PBXGroup;
-			children = (
-				9A61F03F2E38E103004956BA /* ModePicker.swift */,
-			);
-			path = ModePicker;
-			sourceTree = "<group>";
-		};
-		9A61F0422E38E103004956BA /* ProgressBar */ = {
-			isa = PBXGroup;
-			children = (
-				9A61F0412E38E103004956BA /* ProgressBar.swift */,
-			);
-			path = ProgressBar;
-			sourceTree = "<group>";
-		};
-		9A61F0452E38E103004956BA /* Components */ = {
-			isa = PBXGroup;
-			children = (
-				9A61F05E2E38E1B2004956BA /* Dashboard */,
-				9A61F03E2E38E103004956BA /* Card */,
-				9A61F0402E38E103004956BA /* ModePicker */,
-				9A61F0422E38E103004956BA /* ProgressBar */,
-			);
-			path = Components;
-			sourceTree = "<group>";
-		};
-		9A61F0472E38E103004956BA /* Habit Rabbit */ = {
-			isa = PBXGroup;
-			children = (
-				9A6786B42E4409C400E8276F /* App */,
-				9A61F0452E38E103004956BA /* Components */,
-				9A61F0462E38E103004956BA /* Assets.xcassets */,
-			);
-			path = "Habit Rabbit";
-			sourceTree = "<group>";
-		};
-		9A61F05E2E38E1B2004956BA /* Dashboard */ = {
-			isa = PBXGroup;
-			children = (
-				9A61F05C2E38E1B2004956BA /* Dashboard.swift */,
-				9A61F05D2E38E1B2004956BA /* Dashboard.Manager.swift */,
-				9A37D6E82E3FE398004304BD /* debugButton.swift */,
-				9A6786A12E44091F00E8276F /* HabitDetailView.swift */,
-			);
-			path = Dashboard;
 			sourceTree = "<group>";
 		};
 /* End PBXGroup section */
@@ -181,7 +74,7 @@
 			dependencies = (
 			);
 			fileSystemSynchronizedGroups = (
-				9A6786B42E4409C400E8276F /* App */,
+				9A6786FC2E44CC3D00E8276F /* Habit Rabbit */,
 			);
 			name = "Habit Rabbit";
 			packageProductDependencies = (
@@ -241,23 +134,6 @@
 			isa = PBXSourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
-				9A61F04B2E38E103004956BA /* background.swift in Sources */,
-				9A61F04C2E38E103004956BA /* dayLetter.swift in Sources */,
-				9A37D6E92E3FE398004304BD /* debugButton.swift in Sources */,
-				9A61F04D2E38E103004956BA /* habitLabel.swift in Sources */,
-				9A61F05F2E38E1B2004956BA /* Dashboard.swift in Sources */,
-				9A61F0602E38E1B2004956BA /* Dashboard.Manager.swift in Sources */,
-				9A61F04E2E38E103004956BA /* progressButton.swift in Sources */,
-				9A61F04F2E38E103004956BA /* progressLabel.swift in Sources */,
-				9A61F0502E38E103004956BA /* progressLabelCompact.swift in Sources */,
-				9A61F0512E38E103004956BA /* dailyView.swift in Sources */,
-				9A61F0522E38E103004956BA /* monthlyView.swift in Sources */,
-				9A61F0532E38E103004956BA /* weeklyView.swift in Sources */,
-				9A61F0542E38E103004956BA /* Card.swift in Sources */,
-				9A61F0552E38E103004956BA /* Card.Manager.swift in Sources */,
-				9A6786A22E44091F00E8276F /* HabitDetailView.swift in Sources */,
-				9A61F0562E38E103004956BA /* ModePicker.swift in Sources */,
-				9A61F0572E38E103004956BA /* ProgressBar.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};

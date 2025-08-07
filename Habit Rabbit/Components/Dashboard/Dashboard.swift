@@ -18,7 +18,7 @@ extension Habit {
                 LazyVGrid(columns: columns, spacing: 16) {
                     ForEach(cardManagers.enumerated, id: \.element.habit.id) { index, cardManager in
                         NavigationLink {
-                            HabitDetailView()
+                            Habit.Card.DetailView()
                                 .environment(cardManager)
                                 .environment(dashboardManager)
                                 .navigationTransition(.zoom(sourceID: cardManager.habit.id, in: habitTransition))
@@ -26,8 +26,8 @@ extension Habit {
                             Habit.Card()
                                 .environment(cardManager)
                                 .environment(\.cardOffset, index)
+                                .matchedTransitionSource(id: cardManager.habit.id, in: habitTransition)
                         }
-                        .matchedTransitionSource(id: cardManager.habit.id, in: habitTransition)
                         .buttonStyle(.plain)
                     }
                 }
