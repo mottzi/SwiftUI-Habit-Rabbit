@@ -10,9 +10,9 @@ extension Habit.Dashboard {
         private let modelContext: ModelContext
         
         private(set) var mode: Habit.Card.Mode
-        private(set) var cardManagers: [Habit.Card.Manager] = []
+        private(set) var useZoomTransition: Bool = false
         
-        var useZoomTransition: Bool = false
+        private(set) var cardManagers: [Habit.Card.Manager] = []
         
         @ObservationIgnored
         private var cardManagerCache: [Habit.ID: Habit.Card.Manager] = [:]
@@ -26,56 +26,59 @@ extension Habit.Dashboard {
             self.lastDay = lastDay
             self.modelContext = modelContext
             
-            print("Dashboard.Manager initialized ... ")
             refreshCardManagers()
         }
         
-        func toggleZoomTransition() {
-            useZoomTransition.toggle()
+    }
+    
+}
+
+extension Habit.Dashboard.Manager {
+    
+    func refreshCardManagers() {
+        print("* Refreshing view models ...")
+        var newCache: [Habit.ID: Habit.Card.Manager] = [:]
+        
+        let query = FetchDescriptor<Habit>(sortBy: [SortDescriptor(\.date)])
+        
+        guard let habits = try? modelContext.fetch(query) else {
+            print("Failed to fetch habits.")
+            return
         }
         
-        func refreshCardManagers() {
-        print("📊 Synchronizing view models and habits ...")
-        do {
-            var newCache: [Habit.ID: Habit.Card.Manager] = [:]
-            let habits = try modelContext.fetch(FetchDescriptor<Habit>(sortBy: [SortDescriptor(\.date)]))
-            
-            for habit in habits {
-                if let cachedManager = cardManagerCache[habit.id] {
-                    // alert: updated habit metadata will not reach our cache
-                    newCache[habit.id] = cachedManager
-                    continue
-                }
-                
-                print("Habit: \(habit.name)")
-                print("    🧾 creating view model")
-                
-                newCache[habit.id] = Habit.Card.Manager(
-                    for: habit,
-                    until: lastDay,
-                    mode: mode,
-                    using: modelContext
-                )
+        for habit in habits {
+            if let cachedManager = cardManagerCache[habit.id] {
+                newCache[habit.id] = cachedManager
+                continue
             }
             
-            self.cardManagerCache = newCache
-            self.cardManagers = habits.compactMap { newCache[$0.id] }
+            print("Habit.Manager: 🧾 \(habit.name)")
             
-        } catch {
-            print("Failed to fetch habits:", error)
+            newCache[habit.id] = Habit.Card.Manager(
+                for: habit,
+                until: lastDay,
+                mode: mode,
+                using: modelContext
+            )
         }
+        
+        self.cardManagerCache = newCache
+        self.cardManagers = habits.compactMap { newCache[$0.id] }
+        
+    }
+    
+    func toggleZoomTransition() {
+        useZoomTransition.toggle()
     }
         
-        func updateMode(_ newMode: Habit.Card.Mode) {
-            if newMode == mode { return }
-            mode = newMode
-            synchronizeModes()
-        }
-                
-        private func synchronizeModes() {
-            cardManagers.forEach { $0.updateMode(to: mode) }
-        }
-        
+    func updateMode(to newMode: Habit.Card.Mode) {
+        if newMode == mode { return }
+        mode = newMode
+        synchronizeModes()
+    }
+    
+    private func synchronizeModes() {
+        cardManagers.forEach { $0.updateMode(to: mode) }
     }
     
 }
@@ -90,14 +93,13 @@ extension Habit.Dashboard.Manager {
         cardManagers.forEach { $0.resetDailyValue() }
     }
     
-    func addHabits(_ habits: [Habit]) throws {
+    func addHabits(_ habits: [Habit]) {
         habits.forEach { modelContext.insert(habit: $0) }
-        try modelContext.save()
-        print("Dashboard.Manager: addHabits executed ... ")
+        guard let _ = try? modelContext.save() else { return }
         refreshCardManagers()
     }
     
-    func addExampleHabits(count: Int) throws {
+    func addExampleHabits(count: Int) {
         let templates = Habit.examples
         guard !templates.isEmpty else { return }
         
@@ -113,7 +115,7 @@ extension Habit.Dashboard.Manager {
             )
         }
         
-        try addHabits(habits)
+        addHabits(habits)
     }
     
     func deleteAllHabits() throws {

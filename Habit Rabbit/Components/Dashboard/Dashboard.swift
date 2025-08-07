@@ -12,8 +12,8 @@ extension Habit {
         var cardManagers: [Card.Manager] { dashboardManager.cardManagers }
         
         var body: some View {
-            let _ = print("Habit.Dashboard: 🔄 (\(cardManagers.count))")
-            let _ = Self._printChanges()
+            let _ = print("Habit.Dashboard: 🔄 \(cardManagers.count) Habit.Cards")
+            // let _ = Self._printChanges()
             NavigationStack {
                 ScrollView {
                     LazyVGrid(columns: columns, spacing: 16) {
@@ -65,8 +65,8 @@ extension Habit.Dashboard {
             ModePicker(
                 width: 240,
                 mode: dashboardManager.mode,
-                onSelection: { newMode in
-                    dashboardManager.updateMode(newMode)
+                onSelection: { mode in
+                    dashboardManager.updateMode(to: mode)
                 }
             )
             .padding(.leading, 8)

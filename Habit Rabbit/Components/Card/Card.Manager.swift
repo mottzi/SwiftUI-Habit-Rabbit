@@ -49,7 +49,6 @@ extension Habit.Card {
 extension Habit.Card.Manager {
         
     private func fetchValues() {
-        print("    ⬇ fetching values")
         let description = Habit.Value.filterByDays(30, for: habit, endingOn: lastDay)
         guard let newValues = try? modelContext.fetch(description) else { return }
         values = newValues

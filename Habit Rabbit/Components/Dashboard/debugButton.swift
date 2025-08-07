@@ -9,8 +9,6 @@ extension Habit.Dashboard {
             randomizeButton
             resetAllButton
             Divider()
-            zoomTransitionButton
-            Divider()
             removeDBButton
             removeHabitsButton
         } label: {
@@ -38,7 +36,7 @@ extension Habit.Dashboard {
         Menu {
             ForEach([1, 2, 4, 8, 20, 50, 100], id: \.self) { count in
                 Button("\(count)") {
-                    try? dashboardManager.addExampleHabits(count: count)
+                    dashboardManager.addExampleHabits(count: count)
                 }
             }
         } label: {
@@ -67,15 +65,6 @@ extension Habit.Dashboard {
     private var removeHabitsButton: some View {
         Button("Delete All", systemImage: "trash", role: .destructive) {
             try? dashboardManager.deleteAllHabits()
-        }
-    }
-    
-    private var zoomTransitionButton: some View {
-        Button(action: { dashboardManager.toggleZoomTransition() }) {
-            Label(
-                "Zoom Transition",
-                systemImage: dashboardManager.useZoomTransition ? "checkmark.circle.fill" : "circle"
-            )
         }
     }
     

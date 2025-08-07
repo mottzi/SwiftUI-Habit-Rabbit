@@ -21,7 +21,7 @@ extension Habit {
         
         var body: some View {
             let _ = print("Habit.Card: 🔄 \(cardManager.name)")
-//            let _ = Self._printChanges()
+            // let _ = Self._printChanges()
             VStack(spacing: 0) {
                 Group {
                     switch mode {
