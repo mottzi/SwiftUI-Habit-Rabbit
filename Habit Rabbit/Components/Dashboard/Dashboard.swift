@@ -5,41 +5,48 @@ extension Habit {
     
     struct Dashboard: View {
         
+        @Namespace private var habitTransition
         @Environment(\.colorScheme) var colorScheme
         @Environment(Habit.Dashboard.Manager.self) var dashboardManager
-        @Namespace private var habitTransition
 
         var cardManagers: [Card.Manager] { dashboardManager.cardManagers }
         
         var body: some View {
             let _ = print("Habit.Dashboard: 🔄 (\(cardManagers.count))")
             let _ = Self._printChanges()
-            ScrollView {
-                LazyVGrid(columns: columns, spacing: 16) {
-                    ForEach(cardManagers.enumerated, id: \.element.habit.id) { index, cardManager in
-                        NavigationLink {
-                            Habit.Card.DetailView()
-                                .environment(cardManager)
-                                .environment(dashboardManager)
-                                .navigationTransition(.zoom(sourceID: cardManager.habit.id, in: habitTransition))
-                        } label: {
-                            Habit.Card()
-                                .environment(cardManager)
-                                .environment(\.cardOffset, index)
-                                .matchedTransitionSource(id: cardManager.habit.id, in: habitTransition)
+            NavigationStack {
+                ScrollView {
+                    LazyVGrid(columns: columns, spacing: 16) {
+                        ForEach(cardManagers.enumerated, id: \.element.habit.id) { index, cardManager in
+                            NavigationLink {
+                                Habit.Card.DetailView()
+                                    .environment(cardManager)
+                                    .environment(dashboardManager)
+                                    .if(dashboardManager.useZoomTransition) { view in
+                                        view.navigationTransition(.zoom(sourceID: cardManager.habit.id, in: habitTransition))
+                                    }
+                            } label: {
+                                Habit.Card()
+                                    .environment(cardManager)
+                                    .environment(\.cardOffset, index)
+                                    .if(dashboardManager.useZoomTransition) { view in
+                                        view.matchedTransitionSource(id: cardManager.habit.id, in: habitTransition)
+                                    }
+                            }
+                            .buttonStyle(.plain)
                         }
-                        .buttonStyle(.plain)
+                    }
+                    .padding(16)
+                    .safeAreaInset(edge: .bottom) {
+                        debugButton
+                            .padding(.vertical, 16)
                     }
                 }
-                .padding(16)
-                .safeAreaInset(edge: .bottom) {
-                    debugButton
-                        .padding(.vertical, 16)
-                }
+                .navigationTitle("Habit Rabbit")
+                .animation(.default, value: cardManagers.count)
+                .toolbar { modePicker }
             }
-            .navigationTitle("Habit Rabbit")
-            .animation(.default, value: cardManagers.count)
-            .toolbar { modePicker }
+            .tint(colorScheme == .dark ? .white : .black)
         }
         
         private let columns = [

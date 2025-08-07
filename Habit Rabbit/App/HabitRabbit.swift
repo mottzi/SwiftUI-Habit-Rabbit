@@ -6,13 +6,11 @@ struct HabitRabbit: App {
     
     let modelContainer: ModelContainer
     let dashboardManager: Habit.Dashboard.Manager
-        
-    var body: some Scene {        
+    
+    var body: some Scene {
         WindowGroup {
-            NavigationStack {
-                Habit.Dashboard()
-                    .environment(dashboardManager)
-            }
+            Habit.Dashboard()
+                .environment(dashboardManager)
         }
     }
     

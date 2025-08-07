@@ -12,6 +12,8 @@ extension Habit.Dashboard {
         private(set) var mode: Habit.Card.Mode
         private(set) var cardManagers: [Habit.Card.Manager] = []
         
+        var useZoomTransition: Bool = false
+        
         @ObservationIgnored
         private var cardManagerCache: [Habit.ID: Habit.Card.Manager] = [:]
                 
@@ -26,6 +28,10 @@ extension Habit.Dashboard {
             
             print("Dashboard.Manager initialized ... ")
             refreshCardManagers()
+        }
+        
+        func toggleZoomTransition() {
+            useZoomTransition.toggle()
         }
         
         func refreshCardManagers() {
