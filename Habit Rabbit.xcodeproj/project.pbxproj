@@ -10,22 +10,9 @@
 		9A2409F92E0584930088539D /* Habit Rabbit.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = "Habit Rabbit.app"; sourceTree = BUILT_PRODUCTS_DIR; };
 /* End PBXFileReference section */
 
-/* Begin PBXFileSystemSynchronizedBuildFileExceptionSet section */
-		9A6787132E44CC3D00E8276F /* Exceptions for "Habit Rabbit" folder in "Habit Rabbit" target */ = {
-			isa = PBXFileSystemSynchronizedBuildFileExceptionSet;
-			membershipExceptions = (
-				Assets.xcassets,
-			);
-			target = 9A2409F82E0584930088539D /* Habit Rabbit */;
-		};
-/* End PBXFileSystemSynchronizedBuildFileExceptionSet section */
-
 /* Begin PBXFileSystemSynchronizedRootGroup section */
 		9A6786FC2E44CC3D00E8276F /* Habit Rabbit */ = {
 			isa = PBXFileSystemSynchronizedRootGroup;
-			exceptions = (
-				9A6787132E44CC3D00E8276F /* Exceptions for "Habit Rabbit" folder in "Habit Rabbit" target */,
-			);
 			path = "Habit Rabbit";
 			sourceTree = "<group>";
 		};
