@@ -16,6 +16,9 @@ extension Habit.Dashboard {
         
         @ObservationIgnored
         private var cardManagerCache: [Habit.ID: Habit.Card.Manager] = [:]
+        
+        let weekdaySymbols: [String]
+        let lastDayIndex: Int
                 
         init(
             mode: Habit.Card.Mode = .daily,
@@ -25,6 +28,9 @@ extension Habit.Dashboard {
             self.mode = mode
             self.lastDay = lastDay
             self.modelContext = modelContext
+            
+            self.weekdaySymbols = Calendar.current.weekdaySymbols
+            self.lastDayIndex = Calendar.current.weekdayIndex(for: lastDay)
             
             refreshCardManagers()
         }

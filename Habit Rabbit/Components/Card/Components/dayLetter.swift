@@ -4,7 +4,7 @@ extension Habit.Card {
     
     func dayLetter(for date: Date, color: Color) -> some View {
         dayLetter(
-            symbol: date.weekday,
+            symbol: date.weekdaySymbol,
             color: color
         )
     }
