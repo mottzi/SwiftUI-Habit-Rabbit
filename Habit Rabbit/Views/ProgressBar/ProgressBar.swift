@@ -33,7 +33,8 @@ extension Habit {
                         .padding(axis == .vertical ? 3 : 0)
                 }
                 .geometryGroup()
-                .frame(maxWidth: width, maxHeight: height)
+                .frame(width: width, height: height)
+                .fixedSize()
                 .animation(.bouncy, value: value)
         }
     }
@@ -48,6 +49,7 @@ extension Habit.ProgressBar {
     }
     
     var offset: CGFloat {
+        let padding = axis == .vertical ? -12.0 : 0.0
         let max = axis == .vertical ? height : width
         let baseOffset: CGFloat = switch (kind, axis) {
             case (.good, .vertical): max      // fills upward
@@ -60,7 +62,7 @@ extension Habit.ProgressBar {
                 // no progress -> good: start hidden, bad: start full
             case ...0: kind == .good ? baseOffset : 0
                 // partial progress -> good: fill up, bad: deplete down
-            case 0..<1: baseOffset * (kind == .good ? 1 - progress : progress)
+            case 0..<1: (baseOffset + padding) * (kind == .good ? 1 - progress : progress)
                 // target reached -> good: fully visible, Bad: fully hidden
             case 1...: kind == .good ? 0 : baseOffset
                 // edge cases
