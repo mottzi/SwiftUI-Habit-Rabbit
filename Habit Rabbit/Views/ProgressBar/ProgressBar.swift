@@ -49,23 +49,23 @@ extension Habit.ProgressBar {
     }
     
     var offset: CGFloat {
-        let padding = axis == .vertical ? -12.0 : 0.0
         let max = axis == .vertical ? height : width
+        let inset = axis == .vertical ? 3.0 : 0.0
         let baseOffset: CGFloat = switch (kind, axis) {
-            case (.good, .vertical): max      // fills upward
+            case (.good, .vertical): max - inset * 2  // fills upward
             case (.good, .horizontal): -max   // fills rightward
-            case (.bad, .vertical): max       // depletes downward
+            case (.bad, .vertical): max - inset * 2   // depletes downward
             case (.bad, .horizontal): -max    // depletes leftward
         }
         
         return switch progress {
-                // no progress -> good: start hidden, bad: start full
+            // no progress -> good: start hidden, bad: start full
             case ...0: kind == .good ? baseOffset : 0
-                // partial progress -> good: fill up, bad: deplete down
-            case 0..<1: (baseOffset + padding) * (kind == .good ? 1 - progress : progress)
-                // target reached -> good: fully visible, Bad: fully hidden
+            // partial progress -> good: fill up, bad: deplete down
+            case 0..<1: baseOffset * (kind == .good ? 1 - progress : progress)
+            // target reached -> good: fully visible, Bad: fully hidden
             case 1...: kind == .good ? 0 : baseOffset
-                // edge cases
+            // edge cases
             default: kind == .good ? baseOffset : 0
         }
     }
