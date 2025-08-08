@@ -1,6 +1,6 @@
 import SwiftUI
 
-extension Habit.Card {
+extension Habit {
     
     struct ProgressBar: View {
         
@@ -40,7 +40,7 @@ extension Habit.Card {
     
 }
 
-extension Habit.Card.ProgressBar {
+extension Habit.ProgressBar {
     
     var isDark: Bool { colorScheme == .dark }
     
@@ -79,7 +79,7 @@ extension Habit.Card.ProgressBar {
     
 }
 
-extension Habit.Card.ProgressBar {
+extension Habit.ProgressBar {
     
     var progress: CGFloat {
         guard target > 0 else { return 0 }

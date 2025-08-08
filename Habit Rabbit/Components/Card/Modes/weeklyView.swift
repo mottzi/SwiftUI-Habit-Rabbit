@@ -6,13 +6,13 @@ extension Habit.Card {
         VStack(alignment: .leading, spacing: 9) {
             ForEach(cardManager.weeklyValues.enumerated, id: \.element.id) { index, value in
                 HStack(spacing: 12) {
-                    dayLetter(
-                        for: value.date,
+                    Habit.WeekdaySymbol(
+                        date: value.date,
                         color: .primary.opacity(index == 6 ? 0.8 : 0.4)
                     )
                     .frame(width: 10, height: 13)
                     
-                    ProgressBar(
+                    Habit.ProgressBar(
                         currentValue: value.currentValue,
                         target: cardManager.habit.target,
                         color: cardManager.color,

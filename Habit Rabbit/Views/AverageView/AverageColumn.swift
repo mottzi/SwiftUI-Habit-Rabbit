@@ -20,7 +20,7 @@ extension Habit.AverageView {
                     .foregroundStyle(.secondary)
                     .frame(maxWidth: .infinity)
 
-                Habit.Card.ProgressBar(
+                Habit.ProgressBar(
                     currentValue: currentValue,
                     target: target,
                     color: color,

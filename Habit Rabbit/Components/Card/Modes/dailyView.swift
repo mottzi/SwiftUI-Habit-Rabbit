@@ -4,7 +4,7 @@ extension Habit.Card {
     
     var dailyView: some View {
         HStack(spacing: 0) {
-            ProgressBar(
+            Habit.ProgressBar(
                 currentValue: cardManager.currentValue(for: mode),
                 target: cardManager.target,
                 color: cardManager.color,

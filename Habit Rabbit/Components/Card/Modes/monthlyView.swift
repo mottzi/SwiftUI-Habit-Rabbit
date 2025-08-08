@@ -6,8 +6,8 @@ extension Habit.Card {
         VStack(spacing: 6) {
             HStack(spacing: 6) {
                 ForEach(dashboardManager.weekdaySymbols.enumerated, id: \.offset) { index, symbol in
-                    dayLetter(
-                        symbol: symbol, 
+                    Habit.WeekdaySymbol(
+                        symbol: symbol,
                         color: weekdaySymbolStyle(for: index)
                     )
                     .frame(width: 16, height: 16)
