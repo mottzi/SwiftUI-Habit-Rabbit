@@ -108,14 +108,30 @@ extension Habit.Card.Manager {
     }
     
     var monthlyValues: [[Habit.Value?]] {
-        let totalCells = 5 * 7
-        let paddingCount = totalCells - values.count
-        
-        var paddedValues: [Habit.Value?] = Array(repeating: nil, count: paddingCount)
-        paddedValues.append(contentsOf: values.map { $0 as Habit.Value? })
-        
-        return stride(from: 0, to: paddedValues.count, by: 7).map { startIndex in
-            Array(paddedValues[startIndex..<min(startIndex + 7, paddedValues.count)])
+        let startDate = Calendar.current.date(byAdding: .day, value: -29, to: lastDay)!
+
+        // determine the grid range: align last row to the week containing endDate (locale-aware)
+        let lastGridWeekStart = Calendar.current.dateInterval(of: .weekOfYear, for: lastDay)!.start
+        let lastGridDate = Calendar.current.date(byAdding: .day, value: 6, to: lastGridWeekStart)!
+        let firstGridDate = Calendar.current.date(byAdding: .day, value: -34, to: lastGridDate)!
+
+        // build a lookup for quick value resolution
+        let valueByDate: [Date: Habit.Value] = Dictionary(values.map { ($0.date, $0) }, uniquingKeysWith: { _, latest in latest })
+
+        // create 35 cells (5 weeks x 7 days), padding with nil outside the [startDate, endDate] range
+        let normalizedStart = startDate.startOfDay
+        let flatCells: [Habit.Value?] = (0..<35).map { dayOffset in
+            let date = Calendar.current.date(byAdding: .day, value: dayOffset, to: firstGridDate)!.startOfDay
+            if date < normalizedStart || date > lastDay {
+                return nil
+            } else {
+                return valueByDate[date] ?? Habit.Value(habit: habit, date: date, currentValue: 0)
+            }
+        }
+
+        // chunk into weeks
+        return stride(from: 0, to: flatCells.count, by: 7).map { startIndex in
+            Array(flatCells[startIndex..<min(startIndex + 7, flatCells.count)])
         }
     }
     

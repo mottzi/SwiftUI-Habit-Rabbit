@@ -34,6 +34,20 @@ extension Date {
     
 }
 
+extension Calendar {
+    
+    var shortWeekdaySymbols: [String] {
+        let locale = locale ?? .current
+        let formatter = DateFormatter()
+        formatter.locale = locale
+        guard let symbols = formatter.veryShortWeekdaySymbols, !symbols.isEmpty else { return [] }
+        let first = (firstWeekday - 1) % symbols.count
+        let rotated = Array(symbols[first...] + symbols[..<first])
+        return rotated
+    }
+    
+}
+
 extension View {
 
     func debug(_ color: Color? = nil, _ width: CGFloat? = nil) -> some View {

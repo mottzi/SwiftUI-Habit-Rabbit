@@ -5,12 +5,13 @@ extension Habit.Card {
     var monthlyView: some View {
         VStack(spacing: 6) {
             HStack(spacing: 6) {
-                ForEach(cardManager.weeklyValues, id: \.id) { value in
-                    dayLetter(
-                        for: value.date,
-                        color: .primary.opacity(0.4)
-                    )
-                    .frame(width: 16, height: 16)
+                ForEach(Calendar.current.shortWeekdaySymbols.enumerated, id: \.offset) { index, symbol in
+                    Text(symbol)
+                        .font(.caption2)
+                        .fontWeight(.medium)
+                        .foregroundStyle(.primary.opacity(0.4))
+                        .lineLimit(1)
+                        .frame(width: 16, height: 16)
                 }
             }
             .padding(.bottom, 2)
@@ -18,17 +19,16 @@ extension Habit.Card {
             ForEach(cardManager.monthlyValues.enumerated, id: \.offset) { rowIndex, weekValues in
                 HStack(spacing: 6) {
                     ForEach(weekValues.enumerated, id: \.offset) { colIndex, dayValue in
-                        let isBlankCell = dayValue == nil && rowIndex == 0 && colIndex < 5
-                        let isLastRow = rowIndex == 4
-                        
+                        let isBlankCell = dayValue == nil
+                        let matchedId = matchedBarId(for: dayValue?.date)
                         RoundedRectangle(cornerRadius: 4)
                             .fill(cubeColor(for: dayValue))
                             .strokeBorder(.tertiary, lineWidth: cubeStrokeWidth(for: dayValue))
                             .brightness(cubeBrightness(for: dayValue))
                             .frame(width: 16, height: 16)
                             .opacity(isBlankCell ? 0 : 1)
-                            .if(isLastRow) {
-                                $0.matchedGeometryEffect(id: "bar\(colIndex)", in: modeTransition)
+                            .if(matchedId != nil) { 
+                                $0.matchedGeometryEffect(id: matchedId!, in: modeTransition) 
                             }
                             .animation(.bouncy, value: dayValue?.currentValue)
                     }
@@ -44,6 +44,13 @@ extension Habit.Card {
 }
 
 extension Habit.Card {
+    
+    func matchedBarId(for date: Date?) -> String? {
+        guard let date else { return nil }
+        let days = Calendar.current.dateComponents([.day], from: date, to: cardManager.lastDay).day!
+        guard (0...6).contains(days) else { return nil }
+        return "bar\(6 - days)"
+    }
     
     func cubeColor(for value: Habit.Value?) -> AnyShapeStyle {
         guard let value else {
