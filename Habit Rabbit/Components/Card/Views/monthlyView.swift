@@ -59,6 +59,10 @@ extension Habit.Card {
         guard (0...6).contains(days) else { return nil }
         return "bar\(6 - days)"
     }
+
+}
+
+extension Habit.Card {
     
     func cubeColor(for value: Habit.Value?) -> AnyShapeStyle {
         guard let value else {
