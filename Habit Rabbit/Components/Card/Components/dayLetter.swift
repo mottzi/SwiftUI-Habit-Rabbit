@@ -10,4 +10,12 @@ extension Habit.Card {
             .lineLimit(1)
     }
     
+    func dayLetter(symbol: String, color: Color) -> some View {
+        Text(symbol)
+            .font(.caption2)
+            .fontWeight(.medium)
+            .foregroundStyle(color)
+            .lineLimit(1)
+    }
+    
 }

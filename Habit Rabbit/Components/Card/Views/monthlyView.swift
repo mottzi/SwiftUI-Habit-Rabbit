@@ -6,12 +6,11 @@ extension Habit.Card {
         VStack(spacing: 6) {
             HStack(spacing: 6) {
                 ForEach(Calendar.current.shortWeekdaySymbols.enumerated, id: \.offset) { index, symbol in
-                    Text(symbol)
-                        .font(.caption2)
-                        .fontWeight(.medium)
-                        .foregroundStyle(.primary.opacity(0.4))
-                        .lineLimit(1)
-                        .frame(width: 16, height: 16)
+                    dayLetter(
+                        symbol: symbol, 
+                        color: weekdaySymbolStyle(for: index)
+                    )
+                    .frame(width: 16, height: 16)
                 }
             }
             .padding(.bottom, 2)
@@ -44,6 +43,15 @@ extension Habit.Card {
 }
 
 extension Habit.Card {
+    
+    private func weekdaySymbolStyle(for index: Int) -> Color {
+        .primary.opacity(index == weekdayLastIndex ? 0.8 : 0.4)
+    }
+    
+    private var weekdayLastIndex: Int {
+        let weekday = Calendar.current.component(.weekday, from: cardManager.lastDay)
+        return (weekday - Calendar.current.firstWeekday + 7) % 7
+    }
     
     func matchedBarId(for date: Date?) -> String? {
         guard let date else { return nil }
