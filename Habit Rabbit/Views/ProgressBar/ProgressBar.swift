@@ -64,7 +64,7 @@ extension Habit.ProgressBar {
             case .horizontal: height / 2.0 * 0.5
         }
         
-        let offset: CGFloat = switch kind {
+        return switch kind {
             case .good:
                 switch progress {
                     case  ...0: base
@@ -81,7 +81,6 @@ extension Habit.ProgressBar {
                 }
         }
         
-        return offset
     }
     
 }
