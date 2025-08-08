@@ -6,7 +6,7 @@ extension Habit {
         
         @Environment(\.colorScheme) var colorScheme
         
-        let currentValue: Int
+        let value: Int
         let target: Int
         let color: Color
         let axis: Axis
@@ -34,7 +34,7 @@ extension Habit {
                 }
                 .geometryGroup()
                 .frame(maxWidth: width, maxHeight: height)
-                .animation(.bouncy, value: currentValue)
+                .animation(.bouncy, value: value)
         }
     }
     
@@ -46,7 +46,7 @@ extension Habit.ProgressBar {
     
     var isDaily: Bool { mode == .daily }
     
-    var exceedsTarget: Bool { currentValue > target }
+    var exceedsTarget: Bool { value > target }
     
     var colorBrightness: Double {
         switch (kind, isDark, exceedsTarget) {
@@ -83,11 +83,10 @@ extension Habit.ProgressBar {
     
     var progress: CGFloat {
         guard target > 0 else { return 0 }
-        return CGFloat(currentValue) / CGFloat(target)
+        return CGFloat(value) / CGFloat(target)
     }
     
     var offset: CGFloat {
-        let padding = axis == .vertical ? -12.0 : 0.0
         let max = axis == .vertical ? height : width
         let baseOffset: CGFloat = switch (kind, axis) {
             case (.good, .vertical): max      // fills upward
@@ -100,7 +99,7 @@ extension Habit.ProgressBar {
             // no progress -> good: start hidden, bad: start full
             case ...0: kind == .good ? baseOffset : 0
             // partial progress -> good: fill up, bad: deplete down
-            case 0..<1: baseOffset * (kind == .good ? 1 - progress : progress) + padding
+            case 0..<1: baseOffset * (kind == .good ? 1 - progress : progress)
             // target reached -> good: fully visible, Bad: fully hidden
             case 1...: kind == .good ? 0 : baseOffset
             // edge cases

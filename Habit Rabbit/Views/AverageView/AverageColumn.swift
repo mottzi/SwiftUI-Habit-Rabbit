@@ -5,7 +5,7 @@ extension Habit.AverageView {
     struct AverageColumn: View {
 
         let title: String
-        let currentValue: Int
+        let value: Int
         let target: Int
         let unit: String
         let color: Color
@@ -21,7 +21,7 @@ extension Habit.AverageView {
                     .frame(maxWidth: .infinity)
 
                 Habit.ProgressBar(
-                    currentValue: currentValue,
+                    value: value,
                     target: target,
                     color: color,
                     axis: .vertical,
@@ -33,7 +33,7 @@ extension Habit.AverageView {
                 .frame(maxHeight: .infinity)
 
                 Habit.ProgressLabel(
-                    currentValue: currentValue,
+                    value: value,
                     target: target,
                     unit: unit
                 )                

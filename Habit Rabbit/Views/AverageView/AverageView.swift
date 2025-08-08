@@ -11,7 +11,7 @@ extension Habit {
             HStack(spacing: 16) {
                 AverageColumn(
                     title: "Today",
-                    currentValue: cardManager.currentValue(for: .daily),
+                    value: cardManager.currentValue(for: .daily),
                     target: cardManager.currentTarget(for: .daily),
                     unit: cardManager.unit,
                     color: cardManager.color,
@@ -20,7 +20,7 @@ extension Habit {
                 )
                 AverageColumn(
                     title: "Week",
-                    currentValue: cardManager.currentValue(for: .weekly),
+                    value: cardManager.currentValue(for: .weekly),
                     target: cardManager.currentTarget(for: .weekly),
                     unit: cardManager.unit,
                     color: cardManager.color,
@@ -29,7 +29,7 @@ extension Habit {
                 )
                 AverageColumn(
                     title: "Month",
-                    currentValue: cardManager.currentValue(for: .monthly),
+                    value: cardManager.currentValue(for: .monthly),
                     target: cardManager.currentTarget(for: .monthly),
                     unit: cardManager.unit,
                     color: cardManager.color,
@@ -38,7 +38,7 @@ extension Habit {
                 )
             }
             .frame(maxWidth: .infinity)
-            .frame(height: 332)
+            .frame(height: 232)
             .padding(.horizontal, 20)
             .padding(.vertical, 20)
             .background { Habit.CardSurface() }

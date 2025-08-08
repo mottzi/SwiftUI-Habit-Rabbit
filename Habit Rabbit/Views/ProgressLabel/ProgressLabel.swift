@@ -6,7 +6,7 @@ extension Habit {
 
         @Environment(\.colorScheme) var colorScheme
 
-        let currentValue: Int
+        let value: Int
         let target: Int
         let unit: String
 
@@ -14,7 +14,7 @@ extension Habit {
             VStack(spacing: 2) {
                 VStack {
                     (
-                        Text("\(currentValue)")
+                        Text("\(value)")
                             .foregroundStyle(.primary.opacity(colorScheme == .dark ? 1 : 0.8))
                         +
                         Text(" / ")

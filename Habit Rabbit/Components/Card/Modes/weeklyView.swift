@@ -13,7 +13,7 @@ extension Habit.Card {
                     .frame(width: 10, height: 13)
                     
                     Habit.ProgressBar(
-                        currentValue: value.currentValue,
+                        value: value.currentValue,
                         target: cardManager.habit.target,
                         color: cardManager.color,
                         axis: .horizontal,
