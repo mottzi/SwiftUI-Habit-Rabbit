@@ -42,6 +42,36 @@ extension Habit {
 
 extension Habit.ProgressBar {
     
+    var progress: CGFloat {
+        guard target > 0 else { return 0 }
+        return CGFloat(value) / CGFloat(target)
+    }
+    
+    var offset: CGFloat {
+        let max = axis == .vertical ? height : width
+        let baseOffset: CGFloat = switch (kind, axis) {
+            case (.good, .vertical): max      // fills upward
+            case (.good, .horizontal): -max   // fills rightward
+            case (.bad, .vertical): max       // depletes downward
+            case (.bad, .horizontal): -max    // depletes leftward
+        }
+        
+        return switch progress {
+                // no progress -> good: start hidden, bad: start full
+            case ...0: kind == .good ? baseOffset : 0
+                // partial progress -> good: fill up, bad: deplete down
+            case 0..<1: baseOffset * (kind == .good ? 1 - progress : progress)
+                // target reached -> good: fully visible, Bad: fully hidden
+            case 1...: kind == .good ? 0 : baseOffset
+                // edge cases
+            default: kind == .good ? baseOffset : 0
+        }
+    }
+    
+}
+
+extension Habit.ProgressBar {
+    
     var isDark: Bool { colorScheme == .dark }
     
     var isDaily: Bool { mode == .daily }
@@ -74,36 +104,6 @@ extension Habit.ProgressBar {
             case (.bad, false, true, _)    :  0     // exceeding bad habit in light mode: no stroke
             case (.bad, true, true, true)  :  1.5   // exceeding bad habit in daily dark mode: thick stroke
             case (.bad, true, true, false) :  0.75  // exceeding bad habit in other dark mode: medium stroke
-        }
-    }
-    
-}
-
-extension Habit.ProgressBar {
-    
-    var progress: CGFloat {
-        guard target > 0 else { return 0 }
-        return CGFloat(value) / CGFloat(target)
-    }
-    
-    var offset: CGFloat {
-        let max = axis == .vertical ? height : width
-        let baseOffset: CGFloat = switch (kind, axis) {
-            case (.good, .vertical): max      // fills upward
-            case (.good, .horizontal): -max   // fills rightward
-            case (.bad, .vertical): max       // depletes downward
-            case (.bad, .horizontal): -max    // depletes leftward
-        }
-        
-        return switch progress {
-            // no progress -> good: start hidden, bad: start full
-            case ...0: kind == .good ? baseOffset : 0
-            // partial progress -> good: fill up, bad: deplete down
-            case 0..<1: baseOffset * (kind == .good ? 1 - progress : progress)
-            // target reached -> good: fully visible, Bad: fully hidden
-            case 1...: kind == .good ? 0 : baseOffset
-            // edge cases
-            default: kind == .good ? baseOffset : 0
         }
     }
     
