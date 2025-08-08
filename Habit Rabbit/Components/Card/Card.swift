@@ -5,19 +5,18 @@ extension Habit {
 
     struct Card: View {
         
+        @Namespace var modeTransition
+
+        @Environment(\.colorScheme) var colorScheme
+        @Environment(\.cardMode) var cardMode
+        @Environment(\.cardOffset) var cardOffset
+        
         @Environment(Card.Manager.self) var cardManager
         @Environment(Dashboard.Manager.self) var dashboardManager
         
-        @Environment(\.cardMode) var cardMode
-        @Environment(\.cardOffset) var cardOffset
-        @Environment(\.colorScheme) var colorScheme
+        var mode: Habit.Card.Mode { cardMode ?? cardManager.mode }
         
-        @Namespace var modeTransition
         @State var isDeleting = false
-        
-        var mode: Habit.Card.Mode {
-            cardMode ?? cardManager.mode
-        }
         
         var body: some View {
             let _ = print("Habit.Card: 🔄 \(cardManager.name)")
@@ -62,7 +61,20 @@ extension Habit.Card {
                 .lineLimit(1)
             
             if mode != .daily {
-                progressLabelCompact
+                (
+                    Text("\(cardManager.currentValue(for: mode))")
+                        .foregroundStyle(.primary.opacity(colorScheme == .dark ? 1 : 0.8))
+                    +
+                    Text(" / ")
+                        .foregroundStyle(.primary.opacity(0.6))
+                    +
+                    Text("\(cardManager.currentTarget(for: mode))")
+                        .foregroundStyle(.primary.opacity(0.6))
+                )
+                .font(.subheadline)
+                .fontWeight(.semibold)
+                .monospacedDigit()
+                .contentTransition(.numericText())
             }
         }
         .frame(maxHeight: .infinity, alignment: .bottom)
