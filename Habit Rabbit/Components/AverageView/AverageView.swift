@@ -41,10 +41,8 @@ extension Habit {
             .frame(height: 232)
             .padding(.horizontal, 20)
             .padding(.vertical, 20)
-            .background { background }
+            .background { Habit.CardSurface() }
         }
-
-        private var background: some View { Habit.CardSurface { EmptyView() } }
 
     }
 
