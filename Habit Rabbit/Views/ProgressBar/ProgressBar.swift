@@ -71,7 +71,7 @@ extension Habit.ProgressBar {
         switch (kind, isDark, exceedsTarget, isDaily) {
             case (.good, _, _, _)          :  0     // good habits: no stroke
             case (.bad, _, false, _)       :  0     // non-exceeding bad habit: no stroke
-            case (.bad, false, true, _)    :  0     // exceeding bad habit in light mode: no stroke adjustment
+            case (.bad, false, true, _)    :  0     // exceeding bad habit in light mode: no stroke
             case (.bad, true, true, true)  :  1.5   // exceeding bad habit in daily dark mode: thick stroke
             case (.bad, true, true, false) :  0.75  // exceeding bad habit in other dark mode: medium stroke
         }

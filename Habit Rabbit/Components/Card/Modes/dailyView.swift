@@ -19,9 +19,15 @@ extension Habit.Card {
             Spacer(minLength: 12)
             
             VStack(spacing: 0) {
-                progressLabel
-                    .frame(maxHeight: .infinity)
-                progressButton
+                Habit.ProgressLabel(
+                    currentValue: cardManager.currentValue(for: mode),
+                    target: cardManager.habit.target,
+                    unit: cardManager.unit
+                )
+                .animation(.bouncy, value: cardManager.currentValue(for: mode))
+                .frame(maxHeight: .infinity)
+                
+                Habit.ProgressButton()
                     .frame(width: 70, height: 70)
             }
         }

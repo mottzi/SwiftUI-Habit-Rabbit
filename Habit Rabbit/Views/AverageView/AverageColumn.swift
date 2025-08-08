@@ -36,7 +36,7 @@ extension Habit.AverageView {
                     currentValue: currentValue,
                     target: target,
                     unit: unit
-                )
+                )                
             }
             .frame(maxWidth: .infinity)
         }

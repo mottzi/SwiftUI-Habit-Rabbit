@@ -32,19 +32,12 @@ extension Habit {
                 }
                 .transition(.blurReplace)
                 
-                VStack(spacing: mode == .monthly ? 4 : 2) {
-                    habitLabel
-                    if mode != .daily {
-                        progressLabelCompact
-                    }
-                }
-                .frame(maxHeight: .infinity, alignment: .bottom)
-                .padding(.bottom, cardManager.labelBottomPadding)
+                habitLabel(for: mode)
             }
             .animation(.spring(duration: 0.62), value: mode)
             .frame(maxWidth: .infinity)
             .frame(height: 232)
-            .background { background }
+            .background { Habit.CardSurface { colorEffect } }
             .geometryGroup()
             .scaleEffect(isDeleting ? 0 : 1)
             .contentShape(.contextMenuPreview, .rect(cornerRadius: 24))
@@ -53,6 +46,36 @@ extension Habit {
             .compositingGroup()
         }
         
+    }
+    
+}
+
+extension Habit.Card {
+    
+    @ViewBuilder
+    func habitLabel(for mode: Habit.Card.Mode) -> some View {
+        VStack(spacing: mode == .monthly ? 4 : 2) {
+            Label("\(cardManager.name)", systemImage: cardManager.icon)
+                .font(.headline)
+                .fontWeight(.semibold)
+                .foregroundStyle(.primary)
+                .lineLimit(1)
+            
+            if mode != .daily {
+                progressLabelCompact
+            }
+        }
+        .frame(maxHeight: .infinity, alignment: .bottom)
+        .padding(.bottom, cardManager.labelBottomPadding)
+    }
+    
+    var colorEffect: some View {
+        Rectangle()
+            .fill(cardManager.color.gradient)
+            .opacity(cardManager.isCompleted(for: mode) ? (colorScheme == .dark ? 0.5 : 0.7) : 0)
+            .offset(x: 0, y: 180)
+            .clipShape(.rect(cornerRadius: 24))
+            .animation(.bouncy, value: cardManager.isCompleted(for: mode))
     }
     
 }

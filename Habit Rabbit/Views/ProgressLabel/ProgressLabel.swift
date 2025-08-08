@@ -28,7 +28,7 @@ extension Habit {
                     .monospacedDigit()
                     .contentTransition(.numericText())
                 }
-                Text(unit.pluralized(count: currentValue))
+                Text(unit.pluralized(count: target))
                     .font(.footnote)
                     .fontWeight(.medium)
                     .foregroundStyle(.secondary)
