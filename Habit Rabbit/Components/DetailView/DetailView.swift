@@ -14,7 +14,6 @@ extension Habit.Card {
                         .environment(cardManager)
                         .frame(maxWidth: .infinity)
                         .padding(16)
-                        .padding(.top, 16)
                 }
                 .navigationTitle(cardManager.habit.name)
                 .toolbarTitleDisplayMode(.inline)

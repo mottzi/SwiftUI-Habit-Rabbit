@@ -39,9 +39,8 @@ extension Habit {
             }
             .frame(maxWidth: .infinity)
             .frame(height: 232)
-            .padding(.horizontal, 20)
-            .padding(.vertical, 20)
-            .background { Habit.CardSurface() }
+            .padding(20)
+            .background { Habit.Card.Background() }
         }
 
     }

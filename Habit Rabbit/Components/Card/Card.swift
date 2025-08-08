@@ -37,7 +37,7 @@ extension Habit {
             .animation(.spring(duration: 0.62), value: mode)
             .frame(maxWidth: .infinity)
             .frame(height: 232)
-            .background { Habit.CardSurface { colorEffect } }
+            .background { Habit.Card.Background { colorEffect } }
             .geometryGroup()
             .scaleEffect(isDeleting ? 0 : 1)
             .contentShape(.contextMenuPreview, .rect(cornerRadius: 24))

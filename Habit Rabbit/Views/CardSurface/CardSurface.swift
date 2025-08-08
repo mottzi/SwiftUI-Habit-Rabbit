@@ -1,8 +1,8 @@
 import SwiftUI
 
-extension Habit {
+extension Habit.Card {
     
-    struct CardSurface<Background: View>: View {
+    struct Background<Background: View>: View {
         
         @Environment(\.colorScheme) var colorScheme
         
@@ -45,7 +45,7 @@ extension Habit {
     
 }
 
-extension Habit.CardSurface where Background == EmptyView {
+extension Habit.Card.Background where Background == EmptyView {
     
     init() { self.init { EmptyView() } }
     

@@ -61,7 +61,7 @@ extension Habit {
 extension Habit.Dashboard {
     
     private var modePicker: some ToolbarContent {
-        ToolbarItem(placement: .topBarTrailing) {
+        ToolbarItem(/*placement: .topBarTrailing*/) {
             ModePicker(
                 width: 240,
                 mode: dashboardManager.mode,
