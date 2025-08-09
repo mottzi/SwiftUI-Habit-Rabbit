@@ -45,12 +45,12 @@ extension Habit {
 
 extension Habit.ProgressBar {
     
-    var progress: CGFloat {
+    private var progress: CGFloat {
         guard target > 0 else { return 0 }
         return CGFloat(value) / CGFloat(target)
     }
     
-    var offset: CGFloat {
+    private var offset: CGFloat {
         let dimension = axis == .vertical ? height : width
         
         let base: CGFloat = switch (kind, axis) {
@@ -83,7 +83,7 @@ extension Habit.ProgressBar {
 extension Habit.ProgressBar {
     
     // boosts mid-range values to compensate the visual shortening from rounded capsule caps
-    func compensate(_ progress: CGFloat) -> CGFloat {
+    private func compensate(_ progress: CGFloat) -> CGFloat {
         let clamped = max(0, min(1, progress))
         let lift = min(0.06, 0.04 + 0.6 * curvature)
         let bump = clamped * (1 - clamped)
@@ -95,7 +95,7 @@ extension Habit.ProgressBar {
     }
     
     // bar thickness relative to its usable track length
-    var curvature: CGFloat {
+    private var curvature: CGFloat {
         let isVertical = axis == .vertical
         let thickness = isVertical ? width : height
         let length = isVertical ? height : width
