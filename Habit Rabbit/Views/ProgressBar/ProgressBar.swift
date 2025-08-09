@@ -73,6 +73,14 @@ extension Habit.ProgressBar {
         return max(0, min(1, clamped + adjustment))
     }
     
+    // Mirrored compensation used for bad habits to guarantee symmetric offsets:
+    // For all p in [0,1], 1 - compensate(p) == compensateMirrored(1 - p)
+    // ⇒ base * (1 - compGood(1/3)) == base * compBad(2/3)
+    func compensateMirrored(_ p: CGFloat) -> CGFloat {
+        let clamped = max(0, min(1, p))
+        return 1 - compensate(1 - clamped)
+    }
+    
     var offset: CGFloat {
         let dimension = axis == .vertical ? height : width
         let inset = axis == .vertical ? 3.0 : 0.0
@@ -95,7 +103,7 @@ extension Habit.ProgressBar {
             case .bad:
                 switch progress {
                     case  ...0: 0
-                    case 0..<1: base * compensate(progress)
+                    case 0..<1: base * compensateMirrored(progress)
                     case  1...: base
                     default   : 0
                 }
