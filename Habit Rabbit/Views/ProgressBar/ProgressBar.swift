@@ -15,7 +15,7 @@ extension Habit {
         let width: CGFloat
         let height: CGFloat
         
-        let inset: CGFloat = 3
+        private let inset: CGFloat = 3
         
         var body: some View {
             Capsule()
@@ -71,7 +71,7 @@ extension Habit.ProgressBar {
             case .bad:
                 switch progress {
                     case  ...0: 0
-                    case 0..<1: base * compensateMirrored(progress)
+                    case 0..<1: base * (1 - compensate(1 - progress))
                     case  1...: base
                     default   : 0
                 }
@@ -82,7 +82,19 @@ extension Habit.ProgressBar {
 
 extension Habit.ProgressBar {
     
-    // thickness to length ratio controlling the visual compensation required by rounded capsule caps
+    // boosts mid-range values to compensate the visual shortening from rounded capsule caps
+    func compensate(_ progress: CGFloat) -> CGFloat {
+        let clamped = max(0, min(1, progress))
+        let lift = min(0.06, 0.04 + 0.6 * curvature)
+        let bump = clamped * (1 - clamped)
+        let power: CGFloat = 2
+        let peak = pow(0.25, power)
+        let scale = lift / peak
+        let boost = scale * pow(bump, power)
+        return max(0, min(1, clamped + boost))
+    }
+    
+    // bar thickness relative to its usable track length
     var curvature: CGFloat {
         let isVertical = axis == .vertical
         let thickness = isVertical ? width : height
@@ -92,39 +104,9 @@ extension Habit.ProgressBar {
         return min(1, thickness / track)
     }
     
-    // Perceptual compensation for rounded capsule ends.
-    // - Keeps bounds: f(0) = 0, f(1) = 1
-    // - Monotonic and with unit slope at the ends to avoid "nerfed" motion near 0 or 1
-    // - Symmetric bump centered at 0.5 increases apparent mid-range progress
-    func compensate(_ p: CGFloat) -> CGFloat {
-        let clamped = max(0, min(1, p))
-        // Target a modest mid lift, capped for stability; scales with curvature.
-        let midpointLift = min(0.06, 0.04 + 0.6 * curvature)
-        let bump = clamped * (1 - clamped)          // 0 at edges, max at 0.5 (value 0.25)
-        let power: CGFloat = 2                      // squared bump for stronger mid emphasis
-        let bumpAtMid = pow(0.25, power)            // 0.0625 when power = 2
-        let strength = midpointLift / bumpAtMid     // ensures f(0.5) = 0.5 + midpointLift
-        let adjustment = strength * pow(bump, power)
-        return max(0, min(1, clamped + adjustment))
-    }
-    
-    // Mirrored compensation used for bad habits to guarantee symmetric offsets:
-    // For all p in [0,1], 1 - compensate(p) == compensateMirrored(1 - p)
-    // ⇒ base * (1 - compGood(1/3)) == base * compBad(2/3)
-    func compensateMirrored(_ p: CGFloat) -> CGFloat {
-        let clamped = max(0, min(1, p))
-        return 1 - compensate(1 - clamped)
-    }
-    
 }
 
 extension Habit.ProgressBar {
-    
-    var isDark: Bool { colorScheme == .dark }
-    
-    var isDaily: Bool { mode == .daily }
-    
-    var exceedsTarget: Bool { value > target }
     
     var colorBrightness: Double {
         switch (kind, isDark, exceedsTarget) {
@@ -154,5 +136,11 @@ extension Habit.ProgressBar {
             case (.bad, true, true, false) :  0.75  // exceeding bad habit in other dark mode: medium stroke
         }
     }
+    
+    private var isDark: Bool { colorScheme == .dark }
+    
+    private var isDaily: Bool { mode == .daily }
+    
+    private var exceedsTarget: Bool { value > target }
     
 }
