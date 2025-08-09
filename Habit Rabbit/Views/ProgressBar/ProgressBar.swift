@@ -49,38 +49,32 @@ extension Habit.ProgressBar {
     }
     
     var offset: CGFloat {
-        let max = axis == .vertical ? height : width
+        let dimension = axis == .vertical ? height : width
         let inset = axis == .vertical ? 3.0 : 0.0
         
         let base: CGFloat = switch (kind, axis) {
-            case (.good, .vertical): max - inset * 2  // fills upward
-            case (.good, .horizontal): -max           // fills rightward
-            case (.bad, .vertical): max - inset * 2   // depletes downward
-            case (.bad, .horizontal): -max            // depletes leftward
-        }
-        
-        let capCompensation = switch axis {
-            case .vertical: -(width / 2.0 * 0.5)
-            case .horizontal: height / 2.0 * 0.5
+            case (.good, .vertical): dimension - inset * 2  // fills upward
+            case (.good, .horizontal): -dimension           // fills rightward
+            case (.bad, .vertical): dimension - inset * 2   // depletes downward
+            case (.bad, .horizontal): -dimension            // depletes leftward
         }
         
         return switch kind {
             case .good:
                 switch progress {
                     case  ...0: base
-                    case 0..<1: base * (1 - progress) + capCompensation
+                    case 0..<1: base * (1 - progress)
                     case  1...: 0
                     default   : base
                 }
             case .bad:
                 switch progress {
                     case  ...0: 0
-                    case 0..<1: base * progress + capCompensation
+                    case 0..<1: base * progress
                     case  1...: base
                     default   : 0
                 }
         }
-        
     }
     
 }
