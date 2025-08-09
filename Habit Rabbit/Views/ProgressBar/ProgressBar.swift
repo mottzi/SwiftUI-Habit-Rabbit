@@ -82,7 +82,7 @@ extension Habit.ProgressBar {
 
 extension Habit.ProgressBar {
     
-    // Ratio of the capsule's end-radius to the travel length. Higher ratio ⇒ stronger visual rounding effect.
+    // thickness to length ratio controlling the visual compensation required by rounded capsule caps
     var curvature: CGFloat {
         let isVertical = axis == .vertical
         let thickness = isVertical ? width : height
