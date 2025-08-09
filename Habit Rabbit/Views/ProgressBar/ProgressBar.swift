@@ -48,6 +48,27 @@ extension Habit.ProgressBar {
         return CGFloat(value) / CGFloat(target)
     }
     
+    // Ratio of the capsule's end-radius to the travel length. Higher ratio ⇒ stronger visual rounding effect.
+    var curvature: CGFloat {
+        let dimension = axis == .vertical ? height : width
+        let inset = axis == .vertical ? 3.0 : 0.0
+        let length = max(1, dimension - inset * 2)
+        let thickness = axis == .vertical ? width : height
+        return min(1, thickness / length)
+    }
+    
+    // Perceptual compensation for rounded capsule ends.
+    // - Keeps bounds: f(0) = 0, f(1) = 1
+    // - Monotonic and with unit slope at the ends to avoid "nerfed" motion near 0 or 1
+    // - Symmetric, narrow bump centered at 0.5 increases apparent mid-range progress
+    func compensate(_ p: CGFloat) -> CGFloat {
+        let clamped = max(0, min(1, p))
+        let strength = 0.9 * curvature          // tuned strength, scales with curvature
+        let bump = clamped * (1 - clamped)      // 0 at edges, max at 0.5
+        let adjustment = strength * bump * bump * bump // higher-order bump → zero slope for bump at edges; f'(0)=f'(1)=1
+        return max(0, min(1, clamped + adjustment))
+    }
+    
     var offset: CGFloat {
         let dimension = axis == .vertical ? height : width
         let inset = axis == .vertical ? 3.0 : 0.0
@@ -63,14 +84,14 @@ extension Habit.ProgressBar {
             case .good:
                 switch progress {
                     case  ...0: base
-                    case 0..<1: base * (1 - progress)
+                    case 0..<1: base * (1 - compensate(progress))
                     case  1...: 0
                     default   : base
                 }
             case .bad:
                 switch progress {
                     case  ...0: 0
-                    case 0..<1: base * progress
+                    case 0..<1: base * compensate(progress)
                     case  1...: base
                     default   : 0
                 }
