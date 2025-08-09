@@ -60,12 +60,16 @@ extension Habit.ProgressBar {
     // Perceptual compensation for rounded capsule ends.
     // - Keeps bounds: f(0) = 0, f(1) = 1
     // - Monotonic and with unit slope at the ends to avoid "nerfed" motion near 0 or 1
-    // - Symmetric, narrow bump centered at 0.5 increases apparent mid-range progress
+    // - Symmetric bump centered at 0.5 increases apparent mid-range progress
     func compensate(_ p: CGFloat) -> CGFloat {
         let clamped = max(0, min(1, p))
-        let strength = 0.9 * curvature          // tuned strength, scales with curvature
-        let bump = clamped * (1 - clamped)      // 0 at edges, max at 0.5
-        let adjustment = strength * bump * bump * bump // higher-order bump → zero slope for bump at edges; f'(0)=f'(1)=1
+        // Target a modest mid lift, capped for stability; scales with curvature.
+        let midpointLift = min(0.06, 0.04 + 0.6 * curvature)
+        let bump = clamped * (1 - clamped)          // 0 at edges, max at 0.5 (value 0.25)
+        let power: CGFloat = 2                      // squared bump for stronger mid emphasis
+        let bumpAtMid = pow(0.25, power)            // 0.0625 when power = 2
+        let strength = midpointLift / bumpAtMid     // ensures f(0.5) = 0.5 + midpointLift
+        let adjustment = strength * pow(bump, power)
         return max(0, min(1, clamped + adjustment))
     }
     
