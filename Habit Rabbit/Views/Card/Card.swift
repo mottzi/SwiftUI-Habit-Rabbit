@@ -36,6 +36,7 @@ extension Habit {
             .animation(.spring(duration: 0.62), value: mode)
             .frame(maxWidth: .infinity)
             .frame(height: 232)
+            .clipShape(.rect(cornerRadius: 24))
             .background { Habit.Card.Background { colorEffect } }
             .geometryGroup()
             .scaleEffect(isDeleting ? 0 : 1)
@@ -92,23 +93,9 @@ extension Habit.Card {
     
 }
 
-extension Habit.Card {
+extension EnvironmentValues {
     
-    @ViewBuilder
-    var contextMenuButtons: some View {
-        Button("Randomize", systemImage: "sparkles") {
-            cardManager.randomizeDailyValue()
-        }
-        Button("Randomize Name", systemImage: "characters.uppercase") {
-            cardManager.randomizeName()
-        }
-        Button("Reset", systemImage: "arrow.counterclockwise") {
-            cardManager.dailyValue?.currentValue = 0
-        }
-        Button("Delete", systemImage: "trash", role: .destructive) {
-            deleteWithAnimation()
-        }
-    }
+    @Entry var cardOffset: Int = 0
     
 }
 
@@ -137,25 +124,20 @@ extension Habit.Card {
 
 extension Habit.Card {
     
-    enum Mode: String, CaseIterable {
-        case daily = "Daily"
-        case weekly = "Weekly"
-        case monthly = "Monthly"
-    }
-    
-}
-
-extension EnvironmentValues {
-    
-    @Entry var cardOffset: Int = 0
-    @Entry var cardMode: Habit.Card.Mode? = nil
-    
-}
-
-extension Habit.Card {
-    
-    func cardMode(_ mode: Habit.Card.Mode) -> some View {
-        self.environment(\.cardMode, mode)
+    @ViewBuilder
+    var contextMenuButtons: some View {
+        Button("Randomize", systemImage: "sparkles") {
+            cardManager.randomizeDailyValue()
+        }
+        Button("Randomize Name", systemImage: "characters.uppercase") {
+            cardManager.randomizeName()
+        }
+        Button("Reset", systemImage: "arrow.counterclockwise") {
+            cardManager.dailyValue?.currentValue = 0
+        }
+        Button("Delete", systemImage: "trash", role: .destructive) {
+            deleteWithAnimation()
+        }
     }
     
 }
