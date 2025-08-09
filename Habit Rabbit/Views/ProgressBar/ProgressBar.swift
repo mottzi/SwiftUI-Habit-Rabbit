@@ -15,6 +15,8 @@ extension Habit {
         let width: CGFloat
         let height: CGFloat
         
+        let inset: CGFloat = 3
+        
         var body: some View {
             Capsule()
                 .fill(.quaternary)
@@ -30,7 +32,7 @@ extension Habit {
                         )
                         .shadow(color: .black.opacity(0.07), radius: 2, x: 0, y: -2)
                         .clipShape(.capsule)
-                        .padding(axis == .vertical ? 3 : 0)
+                        .padding(axis == .vertical ? inset : 0)
                 }
                 .geometryGroup()
                 .frame(width: width, height: height)
@@ -48,13 +50,46 @@ extension Habit.ProgressBar {
         return CGFloat(value) / CGFloat(target)
     }
     
+    var offset: CGFloat {
+        let dimension = axis == .vertical ? height : width
+        
+        let base: CGFloat = switch (kind, axis) {
+            case (.good, .vertical)   :  dimension - inset * 2    // fills upward
+            case (.good, .horizontal) : -dimension                // fills rightward
+            case (.bad, .vertical)    :  dimension - inset * 2    // depletes downward
+            case (.bad, .horizontal)  : -dimension                // depletes leftward
+        }
+        
+        return switch kind {
+            case .good:
+                switch progress {
+                    case  ...0: base
+                    case 0..<1: base * (1 - compensate(progress))
+                    case  1...: 0
+                    default   : base
+                }
+            case .bad:
+                switch progress {
+                    case  ...0: 0
+                    case 0..<1: base * compensateMirrored(progress)
+                    case  1...: base
+                    default   : 0
+                }
+        }
+    }
+    
+}
+
+extension Habit.ProgressBar {
+    
     // Ratio of the capsule's end-radius to the travel length. Higher ratio ⇒ stronger visual rounding effect.
     var curvature: CGFloat {
-        let dimension = axis == .vertical ? height : width
-        let inset = axis == .vertical ? 3.0 : 0.0
-        let length = max(1, dimension - inset * 2)
-        let thickness = axis == .vertical ? width : height
-        return min(1, thickness / length)
+        let isVertical = axis == .vertical
+        let thickness = isVertical ? width : height
+        let length = isVertical ? height : width
+        let inset = isVertical ? inset : 0
+        let track = max(1, length - inset * 2)
+        return min(1, thickness / track)
     }
     
     // Perceptual compensation for rounded capsule ends.
@@ -79,35 +114,6 @@ extension Habit.ProgressBar {
     func compensateMirrored(_ p: CGFloat) -> CGFloat {
         let clamped = max(0, min(1, p))
         return 1 - compensate(1 - clamped)
-    }
-    
-    var offset: CGFloat {
-        let dimension = axis == .vertical ? height : width
-        let inset = axis == .vertical ? 3.0 : 0.0
-        
-        let base: CGFloat = switch (kind, axis) {
-            case (.good, .vertical): dimension - inset * 2  // fills upward
-            case (.good, .horizontal): -dimension           // fills rightward
-            case (.bad, .vertical): dimension - inset * 2   // depletes downward
-            case (.bad, .horizontal): -dimension            // depletes leftward
-        }
-        
-        return switch kind {
-            case .good:
-                switch progress {
-                    case  ...0: base
-                    case 0..<1: base * (1 - compensate(progress))
-                    case  1...: 0
-                    default   : base
-                }
-            case .bad:
-                switch progress {
-                    case  ...0: 0
-                    case 0..<1: base * compensateMirrored(progress)
-                    case  1...: base
-                    default   : 0
-                }
-        }
     }
     
 }
