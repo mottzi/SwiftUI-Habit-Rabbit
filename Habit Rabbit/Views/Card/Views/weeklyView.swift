@@ -7,7 +7,7 @@ extension Habit.Card {
             ForEach(cardManager.weeklyValues.enumerated, id: \.element.id) { index, value in
                 HStack(spacing: 12) {
                     Habit.WeekdaySymbol(
-                        date: value.date,
+                        symbol: dashboardManager.weekdaySymbol(for: value.date),
                         color: .primary.opacity(index == 6 ? 0.8 : 0.4)
                     )
                     .frame(width: 10, height: 13)

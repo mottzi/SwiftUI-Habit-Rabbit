@@ -12,11 +12,6 @@ extension Habit {
             self.color = color
         }
         
-        init(date: Date, color: Color) {
-            self.symbol = date.weekdaySymbol
-            self.color = color
-        }
-        
         var body: some View {
             Text(symbol)
                 .font(.caption2)

@@ -2,13 +2,6 @@ import SwiftUI
 
 extension Date {
     
-    var weekdaySymbol: String {
-        let dateFormatter = DateFormatter()
-        dateFormatter.locale = Locale.preferred
-        dateFormatter.dateFormat = "EEEEE"
-        return dateFormatter.string(from: self)
-    }
-    
     var startOfDay: Date {
         Calendar.current.startOfDay(for: self)
     }

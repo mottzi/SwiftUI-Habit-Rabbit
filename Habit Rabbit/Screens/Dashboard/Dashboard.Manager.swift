@@ -87,6 +87,12 @@ extension Habit.Dashboard.Manager {
         cardManagers.forEach { $0.updateMode(to: mode) }
     }
     
+    func weekdaySymbol(for date: Date) -> String {
+        let index = Calendar.current.weekdayIndex(for: date)
+        guard weekdaySymbols.indices.contains(index) else { return "?" }
+        return weekdaySymbols[index]
+    }
+    
 }
 
 extension Habit.Dashboard.Manager {
