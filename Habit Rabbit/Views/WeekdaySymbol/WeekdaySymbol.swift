@@ -7,11 +7,6 @@ extension Habit {
         let symbol: String
         let color: Color
         
-        init(symbol: String, color: Color) {
-            self.symbol = symbol
-            self.color = color
-        }
-        
         var body: some View {
             Text(symbol)
                 .font(.caption2)
