@@ -26,15 +26,21 @@ extension Habit.Dashboard {
                     .padding(.vertical, 6)
                 }
             }
-            .background {
-                Capsule()
-                    .fill(.quaternary)
-                    .frame(width: width / 3)
-                    .frame(maxWidth: .infinity, alignment: .leading)
-                    .offset(x: CGFloat(Habit.Card.Mode.allCases.firstIndex(of: mode) ?? 0) * (width / 3), y: 0)
-                    .animation(.spring(duration: 0.62), value: mode)
-            }
             .frame(width: width)
+            .background {
+                selectedIndicator
+            }
+        }
+        
+        private var selectedIndicator: some View {
+            Habit.Card.Background(in: .capsule)
+                .frame(width: width / 3)
+                .frame(maxWidth: .infinity, alignment: .leading)
+                .offset(
+                    x: CGFloat(Habit.Card.Mode.allCases.firstIndex(of: mode) ?? 0) * (width / 3),
+                    y: 0
+                )
+                .animation(.spring(duration: 0.62), value: mode)
         }
     }
     

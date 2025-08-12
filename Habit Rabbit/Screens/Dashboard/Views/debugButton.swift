@@ -17,7 +17,7 @@ extension Habit.Dashboard {
                 Image(systemName: "hammer.fill")
                     .foregroundStyle(colorScheme == .light ? .black : .white)
                     .frame(width: 64, height: 64)
-                    .background(Circle().fill(.quaternary))
+                    .background(Habit.Card.Background(in: .circle))
                     .padding()
                 
                 Text("Habits: \(dashboardManager.cardManagers.count)")
