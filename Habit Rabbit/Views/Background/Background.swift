@@ -13,7 +13,7 @@ extension Habit.Card {
         }
         
         var body: some View {
-            RoundedRectangle(cornerRadius: 24)
+            RoundedRectangle(cornerRadius: cornerRadius)
                 .fill(.regularMaterial)
                 .stroke(.quaternary, lineWidth: colorScheme == .dark ? 1 : 0.6)
                 .background {
@@ -25,21 +25,23 @@ extension Habit.Card {
         private var shadow: some View {
             ZStack {
                 if colorScheme == .light {
-                    RoundedRectangle(cornerRadius: 24)
+                    RoundedRectangle(cornerRadius: cornerRadius)
                         .fill(.black.opacity(0.09))
                         .blur(radius: 10)
                         .offset(x: 0, y: 4)
                     
-                    RoundedRectangle(cornerRadius: 24)
+                    RoundedRectangle(cornerRadius: cornerRadius)
                         .fill(.black.opacity(0.05))
                         .blur(radius: 4)
                         .offset(x: 0, y: 2)
                     
-                    RoundedRectangle(cornerRadius: 24)
+                    RoundedRectangle(cornerRadius: cornerRadius)
                         .fill(Color(uiColor: .systemBackground))
                 }
             }
         }
+        
+        private var cornerRadius: CGFloat { Habit.Card.Manager.cornerRadius }
         
     }
     

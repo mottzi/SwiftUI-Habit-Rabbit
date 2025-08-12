@@ -31,16 +31,16 @@ extension Habit {
                 }
                 .transition(.blurReplace)
                 
-                habitLabel(for: mode)
+                habitLabel
             }
             .animation(.spring(duration: 0.62), value: mode)
             .frame(maxWidth: .infinity)
-            .frame(height: 232)
-            .clipShape(.rect(cornerRadius: 24))
+            .frame(height: Card.Manager.cardHeight)
+            .clipShape(.rect(cornerRadius: Card.Manager.cornerRadius))
             .background { Habit.Card.Background { colorEffect } }
             .geometryGroup()
             .scaleEffect(isDeleting ? 0 : 1)
-            .contentShape(.contextMenuPreview, .rect(cornerRadius: 24))
+            .contentShape(.contextMenuPreview, .rect(cornerRadius: Manager.cornerRadius))
             .contextMenu { contextMenuButtons }
             .offset(isDeleting ? deleteOffset : .zero)
             .compositingGroup()
@@ -52,8 +52,7 @@ extension Habit {
 
 extension Habit.Card {
     
-    @ViewBuilder
-    func habitLabel(for mode: Habit.Card.Mode) -> some View {
+    var habitLabel: some View {
         VStack(spacing: mode == .monthly ? 4 : 2) {
             Label("\(cardManager.name)", systemImage: cardManager.icon)
                 .font(.headline)
@@ -87,7 +86,7 @@ extension Habit.Card {
             .fill(cardManager.color.gradient)
             .opacity(cardManager.isCompleted(for: mode) ? (colorScheme == .dark ? 0.5 : 0.7) : 0)
             .offset(x: 0, y: 180)
-            .clipShape(.rect(cornerRadius: 24))
+            .clipShape(.rect(cornerRadius: Manager.cornerRadius))
             .animation(.bouncy, value: cardManager.isCompleted(for: mode))
     }
     

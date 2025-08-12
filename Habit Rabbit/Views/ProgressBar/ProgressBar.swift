@@ -43,6 +43,7 @@ extension Habit {
     
 }
 
+// MARK: - Geometry
 extension Habit.ProgressBar {
     
     private var progress: CGFloat {
@@ -53,7 +54,7 @@ extension Habit.ProgressBar {
     private var offset: CGFloat {
         let dimension = axis == .vertical ? height : width
         
-        let base: CGFloat = switch (kind, axis) {
+        let base = switch (kind, axis) {
             case (.good, .vertical)   :  dimension - inset * 2    // fills upward
             case (.good, .horizontal) : -dimension                // fills rightward
             case (.bad, .vertical)    :  dimension - inset * 2    // depletes downward
@@ -106,6 +107,7 @@ extension Habit.ProgressBar {
     
 }
 
+// MARK: - Style
 extension Habit.ProgressBar {
     
     var colorBrightness: Double {

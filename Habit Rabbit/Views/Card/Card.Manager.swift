@@ -166,6 +166,8 @@ extension Habit.Card.Manager {
 
 extension Habit.Card.Manager {
     
+    static let cardHeight: CGFloat = 232
+    static let cornerRadius: CGFloat = 24
     static let contentHeight: CGFloat = 155
     
     var labelBottomPadding: CGFloat {
