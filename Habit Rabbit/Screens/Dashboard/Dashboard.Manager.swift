@@ -6,7 +6,7 @@ extension Habit.Dashboard {
     @Observable
     class Manager {
 
-        private let lastDay: Date
+        private(set) var lastDay: Date
         private let modelContext: ModelContext
         
         private(set) var mode: Habit.Card.Mode
@@ -18,7 +18,7 @@ extension Habit.Dashboard {
         private var cardManagerCache: [Habit.ID: Habit.Card.Manager] = [:]
         
         let weekdaySymbols: [String]
-        let lastDayIndex: Int
+        private(set) var lastDayIndex: Int
                 
         init(
             mode: Habit.Card.Mode = .daily,
@@ -40,6 +40,18 @@ extension Habit.Dashboard {
 }
 
 extension Habit.Dashboard.Manager {
+    
+    func updateDateIfNeeded() {
+        let today = Date.now.startOfDay
+        guard !lastDay.isSameDay(as: today) else { return }
+        print("☀️ Date has changed. Updating state.")
+            
+        lastDay = today
+        lastDayIndex = Calendar.current.weekdayIndex(for: today)
+            
+        cardManagerCache.removeAll()
+        refreshCardManagers()
+    }
     
     func refreshCardManagers() {
         print("* Refreshing view models ...")

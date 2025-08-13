@@ -6,7 +6,10 @@ extension Habit {
     struct Dashboard: View {
         
         @Namespace private var habitTransition
+        
         @Environment(\.colorScheme) var colorScheme
+        @Environment(\.scenePhase) private var scenePhase
+
         @Environment(Habit.Dashboard.Manager.self) var dashboardManager
 
         var cardManagers: [Card.Manager] { dashboardManager.cardManagers }
@@ -47,6 +50,10 @@ extension Habit {
                 .toolbar { modePicker }
             }
             .tint(colorScheme == .dark ? .white : .black)
+            .onChange(of: scenePhase) {
+                guard scenePhase == .active else { return }
+                dashboardManager.updateDateIfNeeded()
+            }
         }
         
         private let columns = [

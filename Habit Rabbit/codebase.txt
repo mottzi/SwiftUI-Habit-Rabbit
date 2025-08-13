@@ -30,6 +30,10 @@ extension Date {
         Calendar.current.startOfDay(for: self)
     }
     
+    func isSameDay(as other: Date) -> Bool {
+        Calendar.current.isDate(self, inSameDayAs: other)
+    }
+    
 }
 
 extension Calendar {
@@ -346,7 +350,7 @@ extension Habit.Dashboard {
     @Observable
     class Manager {
 
-        private let lastDay: Date
+        private(set) var lastDay: Date
         private let modelContext: ModelContext
         
         private(set) var mode: Habit.Card.Mode
@@ -358,7 +362,7 @@ extension Habit.Dashboard {
         private var cardManagerCache: [Habit.ID: Habit.Card.Manager] = [:]
         
         let weekdaySymbols: [String]
-        let lastDayIndex: Int
+        private(set) var lastDayIndex: Int
                 
         init(
             mode: Habit.Card.Mode = .daily,
@@ -380,6 +384,18 @@ extension Habit.Dashboard {
 }
 
 extension Habit.Dashboard.Manager {
+    
+    func updateDateIfNeeded() {
+        let today = Date.now.startOfDay
+        guard !lastDay.isSameDay(as: today) else { return }
+        print("☀️ Date has changed. Updating state.")
+            
+        lastDay = today
+        lastDayIndex = Calendar.current.weekdayIndex(for: today)
+            
+        cardManagerCache.removeAll()
+        refreshCardManagers()
+    }
     
     func refreshCardManagers() {
         print("* Refreshing view models ...")
@@ -493,7 +509,10 @@ extension Habit {
     struct Dashboard: View {
         
         @Namespace private var habitTransition
+        
         @Environment(\.colorScheme) var colorScheme
+        @Environment(\.scenePhase) private var scenePhase
+
         @Environment(Habit.Dashboard.Manager.self) var dashboardManager
 
         var cardManagers: [Card.Manager] { dashboardManager.cardManagers }
@@ -534,6 +553,10 @@ extension Habit {
                 .toolbar { modePicker }
             }
             .tint(colorScheme == .dark ? .white : .black)
+            .onChange(of: scenePhase) {
+                guard scenePhase == .active else { return }
+                dashboardManager.updateDateIfNeeded()
+            }
         }
         
         private let columns = [
@@ -772,11 +795,11 @@ import SwiftUI
 
 extension EnvironmentValues {
     
-    @Entry var showShadows: Bool = true
+    @Entry var showShadows: Bool? = nil
     
 }
 
-extension View {
+extension Habit.Card.Background {
     
     func showShadows(_ show: Bool) -> some View {
         self.environment(\.showShadows, show)
@@ -807,7 +830,7 @@ extension Habit.Card {
                 .fill(.regularMaterial)
                 .stroke(.quaternary, lineWidth: colorScheme == .dark ? 1 : 0.6)
                 .background {
-                    if showShadows {
+                    if showShadows ?? true {
                         shadowView
                     }
                     extraBackground
@@ -828,7 +851,7 @@ extension Habit.Card {
                         .offset(x: 0, y: 2)
                     
                     shape
-                        .fill(Color(uiColor: .systemBackground))
+                        .fill(Color(uiColor: .systemBackground))                    
                 }
             }
         }
@@ -1437,6 +1460,7 @@ extension Habit.Dashboard {
         
         private var selectedIndicator: some View {
             Habit.Card.Background(in: .capsule)
+                .showShadows(false)
                 .frame(width: width / 3)
                 .frame(maxWidth: .infinity, alignment: .leading)
                 .offset(
