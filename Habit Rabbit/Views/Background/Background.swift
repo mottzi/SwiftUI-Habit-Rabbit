@@ -2,7 +2,7 @@ import SwiftUI
 
 extension EnvironmentValues {
     
-    @Entry var showShadows: Bool = true
+    @Entry var showShadows: Bool? = nil
     
 }
 
@@ -37,7 +37,7 @@ extension Habit.Card {
                 .fill(.regularMaterial)
                 .stroke(.quaternary, lineWidth: colorScheme == .dark ? 1 : 0.6)
                 .background {
-                    if showShadows {
+                    if showShadows ?? true {
                         shadowView
                     }
                     extraBackground
@@ -58,7 +58,7 @@ extension Habit.Card {
                         .offset(x: 0, y: 2)
                     
                     shape
-                        .fill(Color(uiColor: .systemBackground))
+                        .fill(Color(uiColor: .systemBackground))                    
                 }
             }
         }

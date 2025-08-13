@@ -34,6 +34,7 @@ extension Habit.Dashboard {
         
         private var selectedIndicator: some View {
             Habit.Card.Background(in: .capsule)
+                .showShadows(false)
                 .frame(width: width / 3)
                 .frame(maxWidth: .infinity, alignment: .leading)
                 .offset(
