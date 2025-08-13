@@ -6,7 +6,7 @@ extension EnvironmentValues {
     
 }
 
-extension View {
+extension Habit.Card.Background {
     
     func showShadows(_ show: Bool) -> some View {
         self.environment(\.showShadows, show)
