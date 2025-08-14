@@ -42,7 +42,7 @@ extension Habit.Dashboard {
 extension Habit.Dashboard.Manager {
     
     // jump to yesterday or tomorrow with optimized single-day fetch
-    func shiftDay(to direction: Habit.Card.Manager.DayDirection) {
+    func shiftLastDay(to direction: Habit.Card.Manager.RelativeDay) {
         print("* Optimized refresh with direction: \(direction)")
         
         // Update lastDay and lastDayIndex
@@ -52,12 +52,12 @@ extension Habit.Dashboard.Manager {
         
         // Update existing card managers with the new lastDay
         for cardManager in cardManagers {
-            cardManager.refreshLastDay(direction: direction)
+            cardManager.shiftLastDay(to: direction)
         }
     }
     
     // jump to arbitrary date with full refresh
-    func setDay(to date: Date) {
+    func setLastDay(to date: Date) {
         // abort if date is the same as last day
         guard !date.isSameDay(as: lastDay) else { return }
         print("📅 Setting day to: \(date.formatted(date: .abbreviated, time: .omitted))")
@@ -108,6 +108,10 @@ extension Habit.Dashboard.Manager {
         
     }
     
+}
+
+extension Habit.Dashboard.Manager {
+    
     func toggleZoomTransition() {
         useZoomTransition.toggle()
     }
@@ -115,10 +119,10 @@ extension Habit.Dashboard.Manager {
     func updateMode(to newMode: Habit.Card.Mode) {
         if newMode == mode { return }
         mode = newMode
-        synchronizeModes()
+        synchronizeCardModes()
     }
     
-    private func synchronizeModes() {
+    private func synchronizeCardModes() {
         cardManagers.forEach { $0.updateMode(to: mode) }
     }
     
