@@ -41,16 +41,39 @@ extension Habit.Dashboard {
 
 extension Habit.Dashboard.Manager {
     
-    func updateDateIfNeeded() {
-        let today = Date.now.startOfDay
-        guard !lastDay.isSameDay(as: today) else { return }
-        print("☀️ Date has changed. Updating state.")
-            
-        lastDay = today
-        lastDayIndex = Calendar.current.weekdayIndex(for: today)
-            
-        cardManagerCache.removeAll()
+    func backDay() {
+        lastDay = Calendar.current.date(byAdding: .day, value: -1, to: lastDay)!
+        lastDayIndex = Calendar.current.weekdayIndex(for: lastDay)
+        
+        deleteCardManagers()
         refreshCardManagers()
+    }
+    
+    func forwardDay() {
+        lastDay = Calendar.current.date(byAdding: .day, value: 1, to: lastDay)!
+        lastDayIndex = Calendar.current.weekdayIndex(for: lastDay)
+        
+        deleteCardManagers()
+        refreshCardManagers()
+    }
+    
+    func refreshLastDay() {
+        // capture current day
+        let now = Date.now.startOfDay
+        // abort if current day is the same as last day
+        guard !now.isSameDay(as: lastDay)  else { return }
+        print("☀️ lastDay != .now: Updating state.")
+        // update last day and its index
+        lastDay = now
+        lastDayIndex = Calendar.current.weekdayIndex(for: now)
+        // re-create view models to update last day
+        deleteCardManagers()
+        refreshCardManagers()
+    }
+    
+    func deleteCardManagers() {
+        print("* Deleting view models ...")
+        cardManagerCache.removeAll()
     }
     
     func refreshCardManagers() {

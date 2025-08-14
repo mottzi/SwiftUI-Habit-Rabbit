@@ -44,15 +44,33 @@ extension Habit {
                         debugButton
                             .padding(.vertical, 16)
                     }
+                    .safeAreaInset(edge: .top) {
+                        HStack {
+                            Button("Back") {
+                                dashboardManager.backDay()
+                            }
+                            
+                            Spacer()
+                            
+                            Text("\(dashboardManager.lastDay.formatted(date: .abbreviated, time: .omitted))")
+                            
+                            Spacer()
+                            
+                            Button("Forward") {
+                                dashboardManager.forwardDay()
+                            }
+                        }
+                        .padding(16)
+                        .sensoryFeedback(.selection, trigger: dashboardManager.lastDay)
+                    }
                 }
                 .navigationTitle("Habit Rabbit")
                 .animation(.default, value: cardManagers.count)
                 .toolbar { modePicker }
             }
             .tint(colorScheme == .dark ? .white : .black)
-            .onChange(of: scenePhase) {
-                guard scenePhase == .active else { return }
-                dashboardManager.updateDateIfNeeded()
+            .onCalendarDayChanged {
+                dashboardManager.refreshLastDay()
             }
         }
         

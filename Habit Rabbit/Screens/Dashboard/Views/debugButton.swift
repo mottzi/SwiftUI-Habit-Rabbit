@@ -4,6 +4,8 @@ extension Habit.Dashboard {
     
     var debugButton: some View {
         Menu {
+            adjustLastDayButton
+            Divider()
             addExampleButton
             randomizeButton
             resetAllButton
@@ -32,6 +34,15 @@ extension Habit.Dashboard {
 }
 
 extension Habit.Dashboard {
+    
+    private var adjustLastDayButton: some View {
+        Menu {
+            Button("Back") { dashboardManager.backDay() }
+            Button("Forward") { dashboardManager.forwardDay() }
+        } label: {
+            Label("Last Day", systemImage: "calendar")
+        }
+    }
     
     private var addExampleButton: some View {
         Menu {

@@ -4,23 +4,24 @@ import SwiftData
 extension Habit.Card {
     
     @Observable
-    class Manager: Hashable {
+    class Manager/*: Hashable*/ {
 
-        static func == (lhs: Manager, rhs: Manager) -> Bool {
-            lhs.habit.id == rhs.habit.id
-        }
-        
-        func hash(into hasher: inout Hasher) {
-            hasher.combine(habit.id)
-        }
-
-        private var values: [Habit.Value] = []
-        private(set) var mode: Habit.Card.Mode
+//        static func == (lhs: Manager, rhs: Manager) -> Bool {
+//            lhs.habit.id == rhs.habit.id
+//        }
+//        
+//        func hash(into hasher: inout Hasher) {
+//            hasher.combine(habit.id)
+//        }
         
         let habit: Habit
-        let lastDay: Date
         let modelContext: ModelContext
-                
+        
+        private(set) var lastDay: Date
+        private(set) var mode: Habit.Card.Mode
+        
+        private var values: [Habit.Value] = []
+
         init(
             for habit: Habit,
             until lastDay: Date,
@@ -48,14 +49,45 @@ extension Habit.Card {
 
 extension Habit.Card.Manager {
         
+//    private func fetchValues() {
+//        let description = Habit.Value.filterByDays(30, for: habit, endingOn: lastDay)
+//        guard let newValues = try? modelContext.fetch(description) else { return }
+//        values = newValues
+//    }
+    
     private func fetchValues() {
         let description = Habit.Value.filterByDays(30, for: habit, endingOn: lastDay)
         guard let newValues = try? modelContext.fetch(description) else { return }
         values = newValues
+        
+        // ⬇️ ADD THIS ENTIRE BLOCK ⬇️
+        
+        // After fetching, ensure a value object exists for the current 'lastDay'.
+        // This handles the case where the app is opened on a new day for the first time.
+        let todayExists = values.contains { value in
+            Calendar.current.isDate(value.date, inSameDayAs: self.lastDay)
+        }
+        
+        if !todayExists {
+            print("📝 Creating missing Habit.Value for \(habit.name) on \(self.lastDay.formatted(date: .abbreviated, time: .omitted))")
+            
+            // 1. Create the new value object for today.
+            let todayValue = Habit.Value(habit: self.habit, date: self.lastDay)
+            
+            // 2. Insert it into the database context.
+            modelContext.insert(todayValue)
+            
+            // 3. Append it to our local array so the UI updates immediately.
+            values.append(todayValue)
+        }
     }
     
     func updateMode(to newMode: Habit.Card.Mode) {
         if mode != newMode { mode = newMode }
+    }
+    
+    func updateLastDay(to newLastDay: Date) {
+        if !lastDay.isSameDay(as: newLastDay) { lastDay = newLastDay }
     }
     
     func resetDailyValue() {
