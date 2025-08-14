@@ -86,8 +86,50 @@ extension Habit.Card.Manager {
         if mode != newMode { mode = newMode }
     }
     
+    enum DayDirection {
+        case yesterday
+        case tomorrow
+    }
+    
     func updateLastDay(to newLastDay: Date) {
         if !lastDay.isSameDay(as: newLastDay) { lastDay = newLastDay }
+    }
+    
+    /// Optimized function for day-by-day navigation
+    /// - Parameter direction: Either .yesterday or .tomorrow
+    func refreshLastDay(direction: DayDirection) {
+        let offset = direction == .tomorrow ? 1 : -1
+        let newLastDay = Calendar.current.date(byAdding: .day, value: offset, to: lastDay)!
+        
+        // Update lastDay
+        lastDay = newLastDay
+        
+        // Fetch the new day value
+        let descriptor = Habit.Value.filterByDay(for: habit, on: newLastDay)
+        let newValues = (try? modelContext.fetch(descriptor)) ?? []
+        
+        // Get or create the value for the new day
+        let newValue = newValues.first ?? {
+            let value = Habit.Value(habit: habit, date: newLastDay)
+            modelContext.insert(value)
+            return value
+        }()
+        
+        // Simply append or prepend based on direction
+        if direction == .tomorrow {
+            values.append(newValue)
+        } else {
+            values.insert(newValue, at: 0)
+        }
+        
+        // Remove the oldest value to maintain 30-day window
+        if values.count > 30 {
+            if direction == .tomorrow {
+                values.removeFirst()
+            } else {
+                values.removeLast()
+            }
+        }
     }
     
     func resetDailyValue() {

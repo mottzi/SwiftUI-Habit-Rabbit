@@ -89,6 +89,32 @@ extension RandomAccessCollection {
     }
     
 }
+// ./Habit Rabbit/App/Extensions/NotificationCenter.swift
+import SwiftUI
+import Combine
+
+
+extension NotificationCenter {
+    
+    static var calendarDayChanged: AnyPublisher<Void, Never> {
+        NotificationCenter.default
+            .publisher(for: .NSCalendarDayChanged)
+            .map { _ in () }
+            .receive(on: DispatchQueue.main)
+            .eraseToAnyPublisher()
+    }
+    
+}
+
+extension View {
+    
+    func onCalendarDayChanged(perform action: @escaping () -> Void) -> some View {
+        self.onReceive(NotificationCenter.calendarDayChanged) { _ in
+            action()
+        }
+    }
+    
+}
 // ./Habit Rabbit/App/Extensions/String.swift
 import SwiftUI
 
@@ -389,7 +415,7 @@ extension Habit.Dashboard.Manager {
         lastDay = Calendar.current.date(byAdding: .day, value: -1, to: lastDay)!
         lastDayIndex = Calendar.current.weekdayIndex(for: lastDay)
         
-        cardManagerCache.removeAll()
+        deleteCardManagers()
         refreshCardManagers()
     }
     
@@ -397,20 +423,27 @@ extension Habit.Dashboard.Manager {
         lastDay = Calendar.current.date(byAdding: .day, value: 1, to: lastDay)!
         lastDayIndex = Calendar.current.weekdayIndex(for: lastDay)
         
-        cardManagerCache.removeAll()
+        deleteCardManagers()
         refreshCardManagers()
     }
     
-    func updateDateIfNeeded() {
-        let today = Date.now.startOfDay
-        guard !lastDay.isSameDay(as: today) else { return }
-        print("☀️ Date has changed. Updating state.")
-            
-        lastDay = today
-        lastDayIndex = Calendar.current.weekdayIndex(for: today)
-            
-        cardManagerCache.removeAll()
+    func refreshLastDay() {
+        // capture current day
+        let now = Date.now.startOfDay
+        // abort if current day is the same as last day
+        guard !now.isSameDay(as: lastDay)  else { return }
+        print("☀️ lastDay != .now: Updating state.")
+        // update last day and its index
+        lastDay = now
+        lastDayIndex = Calendar.current.weekdayIndex(for: now)
+        // re-create view models to update last day
+        deleteCardManagers()
         refreshCardManagers()
+    }
+    
+    func deleteCardManagers() {
+        print("* Deleting view models ...")
+        cardManagerCache.removeAll()
     }
     
     func refreshCardManagers() {
@@ -588,9 +621,8 @@ extension Habit {
                 .toolbar { modePicker }
             }
             .tint(colorScheme == .dark ? .white : .black)
-            .onChange(of: scenePhase) {
-                guard scenePhase == .active else { return }
-                dashboardManager.updateDateIfNeeded()
+            .onCalendarDayChanged {
+                dashboardManager.refreshLastDay()
             }
         }
         

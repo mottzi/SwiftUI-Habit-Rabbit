@@ -47,7 +47,7 @@ extension Habit {
                     .safeAreaInset(edge: .top) {
                         HStack {
                             Button("Back") {
-                                dashboardManager.backDay()
+                                dashboardManager.shiftDay(to: .yesterday)
                             }
                             
                             Spacer()
@@ -57,7 +57,7 @@ extension Habit {
                             Spacer()
                             
                             Button("Forward") {
-                                dashboardManager.forwardDay()
+                                dashboardManager.shiftDay(to: .tomorrow)
                             }
                         }
                         .padding(16)
@@ -70,7 +70,7 @@ extension Habit {
             }
             .tint(colorScheme == .dark ? .white : .black)
             .onCalendarDayChanged {
-                dashboardManager.refreshLastDay()
+                dashboardManager.setDay(to: Date.now.startOfDay)
             }
         }
         

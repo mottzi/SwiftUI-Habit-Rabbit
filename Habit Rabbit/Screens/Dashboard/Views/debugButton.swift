@@ -37,8 +37,8 @@ extension Habit.Dashboard {
     
     private var adjustLastDayButton: some View {
         Menu {
-            Button("Back") { dashboardManager.backDay() }
-            Button("Forward") { dashboardManager.forwardDay() }
+            Button("Back") { dashboardManager.shiftDay(to: .yesterday) }
+            Button("Forward") { dashboardManager.shiftDay(to: .tomorrow) }
         } label: {
             Label("Last Day", systemImage: "calendar")
         }

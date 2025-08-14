@@ -41,41 +41,41 @@ extension Habit.Dashboard {
 
 extension Habit.Dashboard.Manager {
     
-    func backDay() {
-        lastDay = Calendar.current.date(byAdding: .day, value: -1, to: lastDay)!
+    // jump to yesterday or tomorrow with optimized single-day fetch
+    func shiftDay(to direction: Habit.Card.Manager.DayDirection) {
+        print("* Optimized refresh with direction: \(direction)")
+        
+        // Update lastDay and lastDayIndex
+        let offset = direction == .tomorrow ? 1 : -1
+        lastDay = Calendar.current.date(byAdding: .day, value: offset, to: lastDay)!
         lastDayIndex = Calendar.current.weekdayIndex(for: lastDay)
         
-        deleteCardManagers()
-        refreshCardManagers()
+        // Update existing card managers with the new lastDay
+        for cardManager in cardManagers {
+            cardManager.refreshLastDay(direction: direction)
+        }
     }
     
-    func forwardDay() {
-        lastDay = Calendar.current.date(byAdding: .day, value: 1, to: lastDay)!
-        lastDayIndex = Calendar.current.weekdayIndex(for: lastDay)
-        
-        deleteCardManagers()
-        refreshCardManagers()
-    }
-    
-    func refreshLastDay() {
-        // capture current day
-        let now = Date.now.startOfDay
-        // abort if current day is the same as last day
-        guard !now.isSameDay(as: lastDay)  else { return }
-        print("☀️ lastDay != .now: Updating state.")
+    // jump to arbitrary date with full refresh
+    func setDay(to date: Date) {
+        // abort if date is the same as last day
+        guard !date.isSameDay(as: lastDay) else { return }
+        print("📅 Setting day to: \(date.formatted(date: .abbreviated, time: .omitted))")
         // update last day and its index
-        lastDay = now
-        lastDayIndex = Calendar.current.weekdayIndex(for: now)
+        lastDay = date
+        lastDayIndex = Calendar.current.weekdayIndex(for: date)
         // re-create view models to update last day
         deleteCardManagers()
         refreshCardManagers()
     }
     
+    // clear all card managers from cache
     func deleteCardManagers() {
         print("* Deleting view models ...")
         cardManagerCache.removeAll()
     }
     
+    // rebuild all card managers from scratch
     func refreshCardManagers() {
         print("* Refreshing view models ...")
         var newCache: [Habit.ID: Habit.Card.Manager] = [:]
