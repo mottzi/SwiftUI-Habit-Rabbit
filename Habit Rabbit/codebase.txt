@@ -367,6 +367,100 @@ extension Habit.Value {
     }
     
 }
+// ./Habit Rabbit/Screens/Dashboard/Dashboard.Debug.swift
+import SwiftUI
+
+extension Habit.Dashboard {
+    
+    var debugButton: some View {
+        Menu {
+            adjustLastDayButton
+            Divider()
+            addExampleButton
+            randomizeButton
+            resetAllButton
+            Divider()
+            zoomTransitionButton
+            Divider()
+            removeDBButton
+            removeHabitsButton
+        } label: {
+            HStack(spacing: 16) {
+                Image(systemName: "hammer.fill")
+                    .foregroundStyle(colorScheme == .light ? .black : .white)
+                    .frame(width: 64, height: 64)
+                    .background { Habit.Card.Background(in: .circle) }
+                    .padding()
+                
+                Text("Habits: \(dashboardManager.cardManagers.count)")
+                    .font(.footnote)
+                    .fontWeight(.semibold)
+                    .foregroundStyle(.primary.opacity(0.7))
+            }
+        }
+        .buttonStyle(.plain)
+    }
+    
+}
+
+extension Habit.Dashboard {
+    
+    private var adjustLastDayButton: some View {
+        Menu {
+            Button("Back") { dashboardManager.shiftLastDay(to: .yesterday) }
+            Button("Forward") { dashboardManager.shiftLastDay(to: .tomorrow) }
+        } label: {
+            Label("Last Day", systemImage: "calendar")
+        }
+    }
+    
+    private var addExampleButton: some View {
+        Menu {
+            ForEach([1, 2, 4, 8, 20, 50, 100], id: \.self) { count in
+                Button("\(count)") {
+                    dashboardManager.addExampleHabits(count: count)
+                }
+            }
+        } label: {
+            Label("Add Examples", systemImage: "plus")
+        }
+    }
+    
+    private var randomizeButton: some View {
+        Button("Randomize All", systemImage: "sparkles") {
+            dashboardManager.randomizeAllHabits()
+        }
+    }
+    
+    private var resetAllButton: some View {
+        Button("Reset All", systemImage: "0.circle") {
+            dashboardManager.resetAllHabits()
+        }
+    }
+    
+    private var removeDBButton: some View {
+        Button("Kill Database", systemImage: "xmark", role: .destructive) {
+            dashboardManager.deleteAllData()
+        }
+    }
+    
+    private var removeHabitsButton: some View {
+        Button("Delete All", systemImage: "trash", role: .destructive) {
+            try? dashboardManager.deleteAllHabits()
+        }
+    }
+    
+    private var zoomTransitionButton: some View {
+        Button(action: dashboardManager.toggleZoomTransition) {
+            Label("Zoom Transition", systemImage: zoomTransitionSymbol)
+        }
+    }
+    
+    private var zoomTransitionSymbol: String {
+        dashboardManager.useZoomTransition ? "checkmark.circle.fill" : "circle"
+    }
+    
+}
 // ./Habit Rabbit/Screens/Dashboard/Dashboard.Manager.swift
 import SwiftUI
 import SwiftData
@@ -411,41 +505,48 @@ extension Habit.Dashboard {
 
 extension Habit.Dashboard.Manager {
     
-    func backDay() {
-        lastDay = Calendar.current.date(byAdding: .day, value: -1, to: lastDay)!
+    // jump to yesterday or tomorrow with optimized single-day fetch
+    func shiftLastDay(to direction: Habit.Card.Manager.RelativeDay) {
+        print("* Optimized refresh with direction: \(direction)")
+        
+        // Update lastDay and lastDayIndex
+        let offset = direction == .tomorrow ? 1 : -1
+        lastDay = Calendar.current.date(byAdding: .day, value: offset, to: lastDay)!
         lastDayIndex = Calendar.current.weekdayIndex(for: lastDay)
         
-        deleteCardManagers()
-        refreshCardManagers()
+        // Update existing card managers with the new lastDay
+        for cardManager in cardManagers {
+            cardManager.shiftLastDay(to: direction)
+        }
     }
     
-    func forwardDay() {
-        lastDay = Calendar.current.date(byAdding: .day, value: 1, to: lastDay)!
-        lastDayIndex = Calendar.current.weekdayIndex(for: lastDay)
+    // jump to arbitrary date with full refresh or to yesterday / tommorow with single-day-fetch
+    func setLastDay(to date: Date) {
+        guard !date.isSameDay(as: lastDay) else { return }
         
-        deleteCardManagers()
-        refreshCardManagers()
+        let dayDifference = Calendar.current.dateComponents([.day], from: lastDay, to: date).day ?? 0
+        
+        // Use optimized path for single-day shifts (common case: midnight)
+        if abs(dayDifference) == 1 {
+            let direction: Habit.Card.Manager.RelativeDay = dayDifference > 0 ? .tomorrow : .yesterday
+            shiftLastDay(to: direction)
+        } else {
+            // Fall back to full rebuild for larger jumps
+            print("📅 Large date jump: \(dayDifference) days - full rebuild")
+            lastDay = date
+            lastDayIndex = Calendar.current.weekdayIndex(for: date)
+            deleteCardManagers()
+            refreshCardManagers()
+        }
     }
     
-    func refreshLastDay() {
-        // capture current day
-        let now = Date.now.startOfDay
-        // abort if current day is the same as last day
-        guard !now.isSameDay(as: lastDay)  else { return }
-        print("☀️ lastDay != .now: Updating state.")
-        // update last day and its index
-        lastDay = now
-        lastDayIndex = Calendar.current.weekdayIndex(for: now)
-        // re-create view models to update last day
-        deleteCardManagers()
-        refreshCardManagers()
-    }
-    
+    // clear all card managers from cache
     func deleteCardManagers() {
         print("* Deleting view models ...")
         cardManagerCache.removeAll()
     }
     
+    // rebuild all card managers from scratch
     func refreshCardManagers() {
         print("* Refreshing view models ...")
         var newCache: [Habit.ID: Habit.Card.Manager] = [:]
@@ -478,6 +579,10 @@ extension Habit.Dashboard.Manager {
         
     }
     
+}
+
+extension Habit.Dashboard.Manager {
+    
     func toggleZoomTransition() {
         useZoomTransition.toggle()
     }
@@ -485,10 +590,10 @@ extension Habit.Dashboard.Manager {
     func updateMode(to newMode: Habit.Card.Mode) {
         if newMode == mode { return }
         mode = newMode
-        synchronizeModes()
+        synchronizeCardModes()
     }
     
-    private func synchronizeModes() {
+    private func synchronizeCardModes() {
         cardManagers.forEach { $0.updateMode(to: mode) }
     }
     
@@ -599,7 +704,7 @@ extension Habit {
                     .safeAreaInset(edge: .top) {
                         HStack {
                             Button("Back") {
-                                dashboardManager.backDay()
+                                dashboardManager.shiftLastDay(to: .yesterday)
                             }
                             
                             Spacer()
@@ -609,7 +714,7 @@ extension Habit {
                             Spacer()
                             
                             Button("Forward") {
-                                dashboardManager.forwardDay()
+                                dashboardManager.shiftLastDay(to: .tomorrow)
                             }
                         }
                         .padding(16)
@@ -622,7 +727,7 @@ extension Habit {
             }
             .tint(colorScheme == .dark ? .white : .black)
             .onCalendarDayChanged {
-                dashboardManager.refreshLastDay()
+                dashboardManager.setLastDay(to: Date.now.startOfDay)
             }
         }
         
@@ -649,100 +754,6 @@ extension Habit.Dashboard {
             .padding(.leading, 8)
             .sensoryFeedback(.selection, trigger: dashboardManager.mode)
         }
-    }
-    
-}
-// ./Habit Rabbit/Screens/Dashboard/Views/debugButton.swift
-import SwiftUI
-
-extension Habit.Dashboard {
-    
-    var debugButton: some View {
-        Menu {
-            adjustLastDayButton
-            Divider()
-            addExampleButton
-            randomizeButton
-            resetAllButton
-            Divider()
-            zoomTransitionButton
-            Divider()
-            removeDBButton
-            removeHabitsButton
-        } label: {
-            HStack(spacing: 16) {
-                Image(systemName: "hammer.fill")
-                    .foregroundStyle(colorScheme == .light ? .black : .white)
-                    .frame(width: 64, height: 64)
-                    .background { Habit.Card.Background(in: .circle) }
-                    .padding()
-                
-                Text("Habits: \(dashboardManager.cardManagers.count)")
-                    .font(.footnote)
-                    .fontWeight(.semibold)
-                    .foregroundStyle(.primary.opacity(0.7))
-            }
-        }
-        .buttonStyle(.plain)
-    }
-    
-}
-
-extension Habit.Dashboard {
-    
-    private var adjustLastDayButton: some View {
-        Menu {
-            Button("Back") { dashboardManager.backDay() }
-            Button("Forward") { dashboardManager.forwardDay() }
-        } label: {
-            Label("Last Day", systemImage: "calendar")
-        }
-    }
-    
-    private var addExampleButton: some View {
-        Menu {
-            ForEach([1, 2, 4, 8, 20, 50, 100], id: \.self) { count in
-                Button("\(count)") {
-                    dashboardManager.addExampleHabits(count: count)
-                }
-            }
-        } label: {
-            Label("Add Examples", systemImage: "plus")
-        }
-    }
-    
-    private var randomizeButton: some View {
-        Button("Randomize All", systemImage: "sparkles") {
-            dashboardManager.randomizeAllHabits()
-        }
-    }
-    
-    private var resetAllButton: some View {
-        Button("Reset All", systemImage: "0.circle") {
-            dashboardManager.resetAllHabits()
-        }
-    }
-    
-    private var removeDBButton: some View {
-        Button("Kill Database", systemImage: "xmark", role: .destructive) {
-            dashboardManager.deleteAllData()
-        }
-    }
-    
-    private var removeHabitsButton: some View {
-        Button("Delete All", systemImage: "trash", role: .destructive) {
-            try? dashboardManager.deleteAllHabits()
-        }
-    }
-    
-    private var zoomTransitionButton: some View {
-        Button(action: dashboardManager.toggleZoomTransition) {
-            Label("Zoom Transition", systemImage: zoomTransitionSymbol)
-        }
-    }
-    
-    private var zoomTransitionSymbol: String {
-        dashboardManager.useZoomTransition ? "checkmark.circle.fill" : "circle"
     }
     
 }
@@ -973,15 +984,7 @@ import SwiftData
 extension Habit.Card {
     
     @Observable
-    class Manager/*: Hashable*/ {
-
-//        static func == (lhs: Manager, rhs: Manager) -> Bool {
-//            lhs.habit.id == rhs.habit.id
-//        }
-//        
-//        func hash(into hasher: inout Hasher) {
-//            hasher.combine(habit.id)
-//        }
+    class Manager {
         
         let habit: Habit
         let modelContext: ModelContext
@@ -1017,47 +1020,70 @@ extension Habit.Card {
 }
 
 extension Habit.Card.Manager {
-        
-//    private func fetchValues() {
-//        let description = Habit.Value.filterByDays(30, for: habit, endingOn: lastDay)
-//        guard let newValues = try? modelContext.fetch(description) else { return }
-//        values = newValues
-//    }
     
-    private func fetchValues() {
-        let description = Habit.Value.filterByDays(30, for: habit, endingOn: lastDay)
-        guard let newValues = try? modelContext.fetch(description) else { return }
-        values = newValues
+    enum RelativeDay {
+        case yesterday
+        case tomorrow
+    }
+    
+    func shiftLastDay(to direction: RelativeDay) {
+        let offset = direction == .tomorrow ? 1 : -1
+        let newLastDay = Calendar.current.date(byAdding: .day, value: offset, to: lastDay)!
+        lastDay = newLastDay
         
-        // ⬇️ ADD THIS ENTIRE BLOCK ⬇️
+        let descriptor = Habit.Value.filterByDay(for: habit, on: newLastDay)
+        let newValues = (try? modelContext.fetch(descriptor)) ?? []
         
-        // After fetching, ensure a value object exists for the current 'lastDay'.
-        // This handles the case where the app is opened on a new day for the first time.
-        let todayExists = values.contains { value in
-            Calendar.current.isDate(value.date, inSameDayAs: self.lastDay)
+        // Get or create the value for the new day
+        let newValue = newValues.first ?? {
+            let value = Habit.Value(habit: habit, date: newLastDay)
+            modelContext.insert(value)
+            return value
+        }()
+        
+        // Simply append or prepend based on direction
+        switch direction {
+            case .yesterday: values.insert(newValue, at: 0)
+            case .tomorrow: values.append(newValue)
         }
         
-        if !todayExists {
-            print("📝 Creating missing Habit.Value for \(habit.name) on \(self.lastDay.formatted(date: .abbreviated, time: .omitted))")
-            
-            // 1. Create the new value object for today.
-            let todayValue = Habit.Value(habit: self.habit, date: self.lastDay)
-            
-            // 2. Insert it into the database context.
-            modelContext.insert(todayValue)
-            
-            // 3. Append it to our local array so the UI updates immediately.
-            values.append(todayValue)
+        guard values.count > 30 else { return }
+        
+        // Remove the oldest value to maintain 30-day window
+        switch direction {
+            case .yesterday: values.removeLast()
+            case .tomorrow: values.removeFirst()
         }
+    }
+    
+    func updateLastDay(to newLastDay: Date) {
+        if !lastDay.isSameDay(as: newLastDay) { lastDay = newLastDay }
     }
     
     func updateMode(to newMode: Habit.Card.Mode) {
         if mode != newMode { mode = newMode }
     }
     
-    func updateLastDay(to newLastDay: Date) {
-        if !lastDay.isSameDay(as: newLastDay) { lastDay = newLastDay }
+    private func fetchValues() {
+        let description = Habit.Value.filterByDays(30, for: habit, endingOn: lastDay)
+        guard let newValues = try? modelContext.fetch(description) else { return }
+        values = newValues
+        
+        let todayExists = values.contains {
+            $0.date.isSameDay(as: self.lastDay)
+        }
+        
+        guard todayExists == false else { return }
+        print("📝 Creating missing Habit.Value for \(habit.name) on \(self.lastDay.formatted(date: .abbreviated, time: .omitted))")
+        
+        let todayValue = Habit.Value(habit: self.habit, date: self.lastDay)
+        modelContext.insert(todayValue)
+        values.append(todayValue)
     }
+        
+}
+
+extension Habit.Card.Manager {
     
     func resetDailyValue() {
         dailyValue?.currentValue = 0

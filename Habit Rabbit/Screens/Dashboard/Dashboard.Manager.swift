@@ -56,17 +56,24 @@ extension Habit.Dashboard.Manager {
         }
     }
     
-    // jump to arbitrary date with full refresh
+    // jump to arbitrary date with full refresh or to yesterday / tommorow with single-day-fetch
     func setLastDay(to date: Date) {
-        // abort if date is the same as last day
         guard !date.isSameDay(as: lastDay) else { return }
-        print("📅 Setting day to: \(date.formatted(date: .abbreviated, time: .omitted))")
-        // update last day and its index
-        lastDay = date
-        lastDayIndex = Calendar.current.weekdayIndex(for: date)
-        // re-create view models to update last day
-        deleteCardManagers()
-        refreshCardManagers()
+        
+        let dayDifference = Calendar.current.dateComponents([.day], from: lastDay, to: date).day ?? 0
+        
+        // Use optimized path for single-day shifts (common case: midnight)
+        if abs(dayDifference) == 1 {
+            let direction: Habit.Card.Manager.RelativeDay = dayDifference > 0 ? .tomorrow : .yesterday
+            shiftLastDay(to: direction)
+        } else {
+            // Fall back to full rebuild for larger jumps
+            print("📅 Large date jump: \(dayDifference) days - full rebuild")
+            lastDay = date
+            lastDayIndex = Calendar.current.weekdayIndex(for: date)
+            deleteCardManagers()
+            refreshCardManagers()
+        }
     }
     
     // clear all card managers from cache
