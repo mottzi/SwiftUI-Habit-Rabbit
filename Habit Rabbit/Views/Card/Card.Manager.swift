@@ -51,28 +51,35 @@ extension Habit.Card.Manager {
         let newLastDay = Calendar.current.date(byAdding: .day, value: offset, to: lastDay)!
         lastDay = newLastDay
         
-        let descriptor = Habit.Value.filterByDay(for: habit, on: newLastDay)
+        // For both directions, we need the value for the new current day (newLastDay)
+        let dayToFetch = newLastDay
+        
+        let descriptor = Habit.Value.filterByDay(for: habit, on: dayToFetch)
         let newValues = (try? modelContext.fetch(descriptor)) ?? []
         
-        // Get or create the value for the new day
+        // Get or create the value for the day to add
         let newValue = newValues.first ?? {
-            let value = Habit.Value(habit: habit, date: newLastDay)
+            let value = Habit.Value(habit: habit, date: dayToFetch)
             modelContext.insert(value)
             return value
         }()
         
-        // Simply append or prepend based on direction
+        // Update values array to ensure values.last equals newLastDay
         switch direction {
-            case .yesterday: values.insert(newValue, at: 0)
-            case .tomorrow: values.append(newValue)
-        }
-        
-        guard values.count > 30 else { return }
-        
-        // Remove the oldest value to maintain 30-day window
-        switch direction {
-            case .yesterday: values.removeLast()
-            case .tomorrow: values.removeFirst()
+            case .yesterday:
+                // Remove any values newer than newLastDay
+                values.removeAll { $0.date > newLastDay }
+                // Ensure newLastDay value is at the end
+                if values.last?.date != newLastDay {
+                    values.append(newValue)
+                }
+                // Trim from beginning if we have too many values
+                while values.count > 30 { values.removeFirst() }
+            case .tomorrow:
+                // Add new newest day at end
+                values.append(newValue)
+                // Remove oldest days if window gets too large
+                while values.count > 30 { values.removeFirst() }
         }
     }
     
