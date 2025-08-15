@@ -34,6 +34,7 @@ extension Habit {
                 habitLabel
             }
             .animation(.spring(duration: 0.62), value: mode)
+            .animation(.spring(duration: 0.62), value: cardManager.lastDay)
             .frame(maxWidth: .infinity)
             .frame(height: Card.Manager.cardHeight)
             .clipShape(.rect(cornerRadius: Card.Manager.cornerRadius))

@@ -1056,9 +1056,9 @@ extension Habit.Card.Manager {
         }
     }
     
-    func updateLastDay(to newLastDay: Date) {
-        if !lastDay.isSameDay(as: newLastDay) { lastDay = newLastDay }
-    }
+//    func updateLastDay(to newLastDay: Date) {
+//        if !lastDay.isSameDay(as: newLastDay) { lastDay = newLastDay }
+//    }
     
     func updateMode(to newMode: Habit.Card.Mode) {
         if mode != newMode { mode = newMode }
@@ -1265,6 +1265,7 @@ extension Habit {
                 habitLabel
             }
             .animation(.spring(duration: 0.62), value: mode)
+            .animation(.spring(duration: 0.62), value: cardManager.lastDay)
             .frame(maxWidth: .infinity)
             .frame(height: Card.Manager.cardHeight)
             .clipShape(.rect(cornerRadius: Card.Manager.cornerRadius))
@@ -1442,12 +1443,15 @@ extension Habit.Card {
                             .brightness(cubeBrightness(for: dayValue))
                             .frame(width: 16, height: 16)
                             .opacity(isBlankCell ? 0 : 1)
-                            .if(matchedId != nil) { 
+                            .transition(AnyTransition.scale)
+                            .if(matchedId != nil) {
                                 $0.matchedGeometryEffect(id: matchedId!, in: modeTransition) 
                             }
                             .animation(.bouncy, value: dayValue?.currentValue)
+                            
                     }
                 }
+                .compositingGroup()
                 
             }
         }

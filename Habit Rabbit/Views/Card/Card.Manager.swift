@@ -76,9 +76,9 @@ extension Habit.Card.Manager {
         }
     }
     
-    func updateLastDay(to newLastDay: Date) {
-        if !lastDay.isSameDay(as: newLastDay) { lastDay = newLastDay }
-    }
+//    func updateLastDay(to newLastDay: Date) {
+//        if !lastDay.isSameDay(as: newLastDay) { lastDay = newLastDay }
+//    }
     
     func updateMode(to newMode: Habit.Card.Mode) {
         if mode != newMode { mode = newMode }
@@ -154,28 +154,40 @@ extension Habit.Card.Manager {
         }
     }
     
-    var monthlyValues: [[Habit.Value?]] {
+    struct DayCell {
+        let date: Date
+        let value: Habit.Value?
+    }
+    
+    var monthlyValues: [[DayCell]] {
         let startDate = Calendar.current.date(byAdding: .day, value: -29, to: lastDay)!
-
+        
         // determine the grid range: align last row to the week containing endDate (locale-aware)
         let lastGridWeekStart = Calendar.current.dateInterval(of: .weekOfYear, for: lastDay)!.start
         let lastGridDate = Calendar.current.date(byAdding: .day, value: 6, to: lastGridWeekStart)!
         let firstGridDate = Calendar.current.date(byAdding: .day, value: -34, to: lastGridDate)!
-
+        
         // build a lookup for quick value resolution
         let valueByDate: [Date: Habit.Value] = Dictionary(values.map { ($0.date, $0) }, uniquingKeysWith: { _, latest in latest })
-
+        
         // create 35 cells (5 weeks x 7 days), padding with nil outside the [startDate, endDate] range
         let normalizedStart = startDate.startOfDay
-        let flatCells: [Habit.Value?] = (0..<35).map { dayOffset in
+        
+        // Now, flatCells will be an array of DayCell structs
+        let flatCells: [DayCell] = (0..<35).map { dayOffset in
             let date = Calendar.current.date(byAdding: .day, value: dayOffset, to: firstGridDate)!.startOfDay
+            
+            let value: Habit.Value?
             if date < normalizedStart || date > lastDay {
-                return nil
+                value = nil // This is a blank cell
             } else {
-                return valueByDate[date] ?? Habit.Value(habit: habit, date: date, currentValue: 0)
+                value = valueByDate[date] ?? Habit.Value(habit: habit, date: date, currentValue: 0)
             }
+            
+            // Create and return the DayCell
+            return DayCell(date: date, value: value)
         }
-
+        
         // chunk into weeks
         return stride(from: 0, to: flatCells.count, by: 7).map { startIndex in
             Array(flatCells[startIndex..<min(startIndex + 7, flatCells.count)])

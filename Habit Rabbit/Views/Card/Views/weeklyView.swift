@@ -22,8 +22,9 @@ extension Habit.Card {
                         width: 118,
                         height: 13,
                     )
-                    .matchedGeometryEffect(id: "bar\(index)", in: modeTransition, anchor: .leading)
+                    .matchedGeometryEffect(id: "progress\(value.date)", in: modeTransition, anchor: .leading)
                 }
+                .compositingGroup()
                 .geometryGroup()
                 .frame(maxWidth: .infinity)
             }

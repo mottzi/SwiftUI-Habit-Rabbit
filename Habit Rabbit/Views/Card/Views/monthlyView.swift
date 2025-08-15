@@ -17,22 +17,19 @@ extension Habit.Card {
             
             ForEach(cardManager.monthlyValues.enumerated, id: \.offset) { rowIndex, weekValues in
                 HStack(spacing: 6) {
-                    ForEach(weekValues.enumerated, id: \.offset) { colIndex, dayValue in
-                        let isBlankCell = dayValue == nil
-                        let matchedId = matchedBarId(for: dayValue?.date)
+                    ForEach(weekValues.enumerated, id: \.offset) { colIndex, cell in                        
                         RoundedRectangle(cornerRadius: 4)
-                            .fill(cubeColor(for: dayValue))
-                            .strokeBorder(.tertiary, lineWidth: cubeStrokeWidth(for: dayValue))
-                            .brightness(cubeBrightness(for: dayValue))
+                            .fill(cubeColor(for: cell.value))
+                            .strokeBorder(.tertiary, lineWidth: cubeStrokeWidth(for: cell.value))
+                            .brightness(cubeBrightness(for: cell.value))
                             .frame(width: 16, height: 16)
-                            .opacity(isBlankCell ? 0 : 1)
-                            .if(matchedId != nil) { 
-                                $0.matchedGeometryEffect(id: matchedId!, in: modeTransition) 
-                            }
-                            .animation(.bouncy, value: dayValue?.currentValue)
+                            .opacity(cell.value == nil ? 0 : 1)
+                            .matchedGeometryEffect(id: "progress\(cell.date)", in: modeTransition)
+                            .animation(.bouncy, value: cell.value?.currentValue)
                     }
                 }
-                
+                .compositingGroup()
+                .geometryGroup()
             }
         }
         .geometryGroup()
@@ -46,13 +43,6 @@ extension Habit.Card {
     
     private func weekdaySymbolStyle(for index: Int) -> Color {
         .primary.opacity(index == dashboardManager.lastDayIndex ? 0.8 : 0.4)
-    }
-    
-    func matchedBarId(for date: Date?) -> String? {
-        guard let date else { return nil }
-        let days = Calendar.current.dateComponents([.day], from: date, to: cardManager.lastDay).day!
-        guard (0...6).contains(days) else { return nil }
-        return "bar\(6 - days)"
     }
 
 }

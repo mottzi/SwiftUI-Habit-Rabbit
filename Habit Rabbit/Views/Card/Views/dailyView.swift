@@ -14,7 +14,7 @@ extension Habit.Card {
                 width: 50,
                 height: Habit.Card.Manager.contentHeight
             )
-            .matchedGeometryEffect(id: "bar6", in: modeTransition, anchor: .topLeading)
+            .matchedGeometryEffect(id: "progress\(cardManager.dailyValue?.date ?? cardManager.lastDay)", in: modeTransition, anchor: .topLeading)
             
             Spacer(minLength: 12)
             
