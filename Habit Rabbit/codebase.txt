@@ -1031,28 +1031,35 @@ extension Habit.Card.Manager {
         let newLastDay = Calendar.current.date(byAdding: .day, value: offset, to: lastDay)!
         lastDay = newLastDay
         
-        let descriptor = Habit.Value.filterByDay(for: habit, on: newLastDay)
+        // For both directions, we need the value for the new current day (newLastDay)
+        let dayToFetch = newLastDay
+        
+        let descriptor = Habit.Value.filterByDay(for: habit, on: dayToFetch)
         let newValues = (try? modelContext.fetch(descriptor)) ?? []
         
-        // Get or create the value for the new day
+        // Get or create the value for the day to add
         let newValue = newValues.first ?? {
-            let value = Habit.Value(habit: habit, date: newLastDay)
+            let value = Habit.Value(habit: habit, date: dayToFetch)
             modelContext.insert(value)
             return value
         }()
         
-        // Simply append or prepend based on direction
+        // Update values array to ensure values.last equals newLastDay
         switch direction {
-            case .yesterday: values.insert(newValue, at: 0)
-            case .tomorrow: values.append(newValue)
-        }
-        
-        guard values.count > 30 else { return }
-        
-        // Remove the oldest value to maintain 30-day window
-        switch direction {
-            case .yesterday: values.removeLast()
-            case .tomorrow: values.removeFirst()
+            case .yesterday:
+                // Remove any values newer than newLastDay
+                values.removeAll { $0.date > newLastDay }
+                // Ensure newLastDay value is at the end
+                if values.last?.date != newLastDay {
+                    values.append(newValue)
+                }
+                // Trim from beginning if we have too many values
+                while values.count > 30 { values.removeFirst() }
+            case .tomorrow:
+                // Add new newest day at end
+                values.append(newValue)
+                // Remove oldest days if window gets too large
+                while values.count > 30 { values.removeFirst() }
         }
     }
     
@@ -1134,28 +1141,40 @@ extension Habit.Card.Manager {
         }
     }
     
-    var monthlyValues: [[Habit.Value?]] {
+    struct DayCell {
+        let date: Date
+        let value: Habit.Value?
+    }
+    
+    var monthlyValues: [[DayCell]] {
         let startDate = Calendar.current.date(byAdding: .day, value: -29, to: lastDay)!
-
+        
         // determine the grid range: align last row to the week containing endDate (locale-aware)
         let lastGridWeekStart = Calendar.current.dateInterval(of: .weekOfYear, for: lastDay)!.start
         let lastGridDate = Calendar.current.date(byAdding: .day, value: 6, to: lastGridWeekStart)!
         let firstGridDate = Calendar.current.date(byAdding: .day, value: -34, to: lastGridDate)!
-
+        
         // build a lookup for quick value resolution
         let valueByDate: [Date: Habit.Value] = Dictionary(values.map { ($0.date, $0) }, uniquingKeysWith: { _, latest in latest })
-
+        
         // create 35 cells (5 weeks x 7 days), padding with nil outside the [startDate, endDate] range
         let normalizedStart = startDate.startOfDay
-        let flatCells: [Habit.Value?] = (0..<35).map { dayOffset in
+        
+        // Now, flatCells will be an array of DayCell structs
+        let flatCells: [DayCell] = (0..<35).map { dayOffset in
             let date = Calendar.current.date(byAdding: .day, value: dayOffset, to: firstGridDate)!.startOfDay
+            
+            let value: Habit.Value?
             if date < normalizedStart || date > lastDay {
-                return nil
+                value = nil // This is a blank cell
             } else {
-                return valueByDate[date] ?? Habit.Value(habit: habit, date: date, currentValue: 0)
+                value = valueByDate[date] ?? Habit.Value(habit: habit, date: date, currentValue: 0)
             }
+            
+            // Create and return the DayCell
+            return DayCell(date: date, value: value)
         }
-
+        
         // chunk into weeks
         return stride(from: 0, to: flatCells.count, by: 7).map { startIndex in
             Array(flatCells[startIndex..<min(startIndex + 7, flatCells.count)])
@@ -1389,7 +1408,7 @@ extension Habit.Card {
                 width: 50,
                 height: Habit.Card.Manager.contentHeight
             )
-            .matchedGeometryEffect(id: "bar6", in: modeTransition, anchor: .topLeading)
+            .matchedGeometryEffect(id: "progress\(cardManager.dailyValue?.date ?? cardManager.lastDay)", in: modeTransition, anchor: .topLeading)
             
             Spacer(minLength: 12)
             
@@ -1434,25 +1453,19 @@ extension Habit.Card {
             
             ForEach(cardManager.monthlyValues.enumerated, id: \.offset) { rowIndex, weekValues in
                 HStack(spacing: 6) {
-                    ForEach(weekValues.enumerated, id: \.offset) { colIndex, dayValue in
-                        let isBlankCell = dayValue == nil
-                        let matchedId = matchedBarId(for: dayValue?.date)
+                    ForEach(weekValues.enumerated, id: \.offset) { colIndex, cell in                        
                         RoundedRectangle(cornerRadius: 4)
-                            .fill(cubeColor(for: dayValue))
-                            .strokeBorder(.tertiary, lineWidth: cubeStrokeWidth(for: dayValue))
-                            .brightness(cubeBrightness(for: dayValue))
+                            .fill(cubeColor(for: cell.value))
+                            .strokeBorder(.tertiary, lineWidth: cubeStrokeWidth(for: cell.value))
+                            .brightness(cubeBrightness(for: cell.value))
                             .frame(width: 16, height: 16)
-                            .opacity(isBlankCell ? 0 : 1)
-                            .transition(AnyTransition.scale)
-                            .if(matchedId != nil) {
-                                $0.matchedGeometryEffect(id: matchedId!, in: modeTransition) 
-                            }
-                            .animation(.bouncy, value: dayValue?.currentValue)
-                            
+                            .opacity(cell.value == nil ? 0 : 1)
+                            .matchedGeometryEffect(id: "progress\(cell.date)", in: modeTransition)
+                            .animation(.bouncy, value: cell.value?.currentValue)
                     }
                 }
                 .compositingGroup()
-                
+                .geometryGroup()
             }
         }
         .geometryGroup()
@@ -1466,13 +1479,6 @@ extension Habit.Card {
     
     private func weekdaySymbolStyle(for index: Int) -> Color {
         .primary.opacity(index == dashboardManager.lastDayIndex ? 0.8 : 0.4)
-    }
-    
-    func matchedBarId(for date: Date?) -> String? {
-        guard let date else { return nil }
-        let days = Calendar.current.dateComponents([.day], from: date, to: cardManager.lastDay).day!
-        guard (0...6).contains(days) else { return nil }
-        return "bar\(6 - days)"
     }
 
 }
@@ -1550,8 +1556,9 @@ extension Habit.Card {
                         width: 118,
                         height: 13,
                     )
-                    .matchedGeometryEffect(id: "bar\(index)", in: modeTransition, anchor: .leading)
+                    .matchedGeometryEffect(id: "progress\(value.date)", in: modeTransition, anchor: .leading)
                 }
+                .compositingGroup()
                 .geometryGroup()
                 .frame(maxWidth: .infinity)
             }
