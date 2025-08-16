@@ -41,88 +41,75 @@ extension Habit.Card {
 
 extension Habit.Card.Manager {
     
-    enum RelativeDay {
+    enum DayShift {
         case yesterday
         case tomorrow
     }
     
-    func shiftLastDay(to direction: RelativeDay) {
-        print("🔄 shiftLastDay(to: \(direction)) START for \(habit.name)")
-        print("   OLD lastDay: \(lastDay.formatted(date: .abbreviated, time: .omitted))")
-        print("   BEFORE values: \(values.map { $0.date.formatted(date: .abbreviated, time: .omitted) })")
-        
-        let offset = direction == .tomorrow ? 1 : -1
-        let newLastDay = Calendar.current.date(byAdding: .day, value: offset, to: lastDay)!
-        lastDay = newLastDay
-        
-        print("   NEW lastDay: \(lastDay.formatted(date: .abbreviated, time: .omitted))")
-        
-        // Update values array to maintain chronological order and 30-day window
+    func shiftLastDay(to direction: DayShift) {
+        // add new value
         switch direction {
-            case .yesterday:
-                // Going backwards: remove newest day, add older day at the beginning
-                if !values.isEmpty {
-                    values.removeLast()
-                    print("   Removed newest day")
-                }
-                
-                // Find the oldest day we need (29 days before newLastDay)
-                let oldestNeededDate = Calendar.current.date(byAdding: .day, value: -29, to: newLastDay)!
-                
-                // Check if we already have this date
-                if !values.contains(where: { $0.date.isSameDay(as: oldestNeededDate) }) {
-                    let descriptor = Habit.Value.filterByDay(for: habit, on: oldestNeededDate)
-                    let newValues = (try? modelContext.fetch(descriptor)) ?? []
-                    print("   Fetched \(newValues.count) values for \(oldestNeededDate.formatted(date: .abbreviated, time: .omitted))")
-                    
-                    let newValue = newValues.first ?? {
-                        print("   Creating new value for \(oldestNeededDate.formatted(date: .abbreviated, time: .omitted))")
-                        let value = Habit.Value(habit: habit, date: oldestNeededDate)
-                        modelContext.insert(value)
-                        return value
-                    }()
-                    
-                    print("   Using value: \(newValue.date.formatted(date: .abbreviated, time: .omitted))=\(newValue.currentValue)")
-                    values.insert(newValue, at: 0)
-                } else {
-                    print("   Oldest needed date already exists in array")
-                }
-                
-            case .tomorrow:
-                // Going forwards: remove oldest day if at capacity, add newer day at the end
-                if values.count >= 30 {
-                    print("   Trimming old value: \(values.first?.date.formatted(date: .abbreviated, time: .omitted) ?? "nil")")
-                    values.removeFirst()
-                }
-                
-                let descriptor = Habit.Value.filterByDay(for: habit, on: newLastDay)
-                let newValues = (try? modelContext.fetch(descriptor)) ?? []
-                print("   Fetched \(newValues.count) values for \(newLastDay.formatted(date: .abbreviated, time: .omitted))")
-                
-                let newValue = newValues.first ?? {
-                    print("   Creating new value for \(newLastDay.formatted(date: .abbreviated, time: .omitted))")
-                    let value = Habit.Value(habit: habit, date: newLastDay)
-                    modelContext.insert(value)
-                    return value
-                }()
-                
-                print("   Using value: \(newValue.date.formatted(date: .abbreviated, time: .omitted))=\(newValue.currentValue)")
-                values.append(newValue)
+            case .yesterday: shiftToYesterday()
+            case .tomorrow: shiftToTomorrow()
         }
         
-        // Ensure we maintain exactly 30 days
-        while values.count > 30 {
-            print("   Trimming excess value: \(values.first?.date.formatted(date: .abbreviated, time: .omitted) ?? "nil")")
-            values.removeFirst()
-        }
-        
-        print("   AFTER values: \(values.map { $0.date.formatted(date: .abbreviated, time: .omitted) })")
-        print("🔄 shiftLastDay(to: \(direction)) END\n")
+        // trim to 30 values
+        while values.count > 30 { values.removeFirst() }
     }
     
-//    func updateLastDay(to newLastDay: Date) {
-//        if !lastDay.isSameDay(as: newLastDay) { lastDay = newLastDay }
-//    }
+    private func shiftToYesterday() {
+        // set lastDay to yesterday
+        lastDay = lastDay.yesterday
+        
+        // remove newest day
+        if !values.isEmpty { values.removeLast() }
+        
+        // find oldest day of new 30 day window
+        let newOldestDay = Calendar.current.date(byAdding: .day, value: -29, to: lastDay)!
+        
+        // abort if we already have new oldest day value
+        guard !values.contains(where: { $0.date.isSameDay(as: newOldestDay) }) else { return }
+        
+        // fetch new oldest day value
+        let descriptor = Habit.Value.filterByDay(for: habit, on: newOldestDay)
+        let newValues = (try? modelContext.fetch(descriptor)) ?? []
+                
+        // create and save new oldest day value if not found
+        let newValue = newValues.first ?? {
+            let value = Habit.Value(habit: habit, date: newOldestDay)
+            modelContext.insert(value)
+            return value
+        }()
+        
+        // insert new oldest day value at start of array
+        values.insert(newValue, at: 0)
+    }
+    
+    private func shiftToTomorrow() {
+        // set lastDay to tomorrow
+        lastDay = lastDay.tomorrow
+        
+        // remove oldest day
+        if values.count >= 30 { values.removeFirst() }
+        
+        // fetch new latest day value
+        let descriptor = Habit.Value.filterByDay(for: habit, on: lastDay)
+        let newValues = (try? modelContext.fetch(descriptor)) ?? []
+        
+        // create and save new latest day value if not found
+        let newValue = newValues.first ?? {
+            let value = Habit.Value(habit: habit, date: lastDay)
+            modelContext.insert(value)
+            return value
+        }()
+        
+        // insert new latest day value at start of array
+        values.append(newValue)
+    }
+    
+}
+
+extension Habit.Card.Manager {
     
     func updateMode(to newMode: Habit.Card.Mode) {
         if mode != newMode { mode = newMode }

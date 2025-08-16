@@ -2,6 +2,14 @@ import SwiftUI
 
 extension Date {
     
+    var tomorrow: Date {
+        Calendar.current.date(byAdding: .day, value: 1, to: self)!
+    }
+    
+    var yesterday: Date {
+        Calendar.current.date(byAdding: .day, value: -1, to: self)!
+    }
+    
     var startOfDay: Date {
         Calendar.current.startOfDay(for: self)
     }
