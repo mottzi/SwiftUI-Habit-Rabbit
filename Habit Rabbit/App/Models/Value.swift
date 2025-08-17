@@ -24,11 +24,11 @@ extension Habit {
 
 extension Habit.Value {
 
-    static func filterByDay(for habit: Habit, on date: Date) -> FetchDescriptor<Habit.Value> {
-        filterByDays(1, for: habit, endingOn: date)
+    static func filterBy(day date: Date, for habit: Habit) -> FetchDescriptor<Habit.Value> {
+        filterBy(days: 1, endingOn: date, for: habit)
     }
     
-    static func filterByDays(_ days: Int, for habit: Habit, endingOn date: Date) -> FetchDescriptor<Habit.Value> {
+    static func filterBy(days: Int, endingOn date: Date, for habit: Habit) -> FetchDescriptor<Habit.Value> {
         let habitID = habit.id
         
         let today = Calendar.current.startOfDay(for: date)

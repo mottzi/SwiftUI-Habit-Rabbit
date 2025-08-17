@@ -13,6 +13,10 @@ extension Date {
     var startOfDay: Date {
         Calendar.current.startOfDay(for: self)
     }
+
+    func shift(days dayOffset: Int) -> Date {
+        Calendar.current.date(byAdding: .day, value: dayOffset, to: self)!
+    }
     
     func isSameDay(as other: Date) -> Bool {
         Calendar.current.isDate(self, inSameDayAs: other)

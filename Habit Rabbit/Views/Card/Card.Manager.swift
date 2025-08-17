@@ -54,6 +54,29 @@ extension Habit.Card.Manager {
         }
     }
     
+    func updateMode(to newMode: Habit.Card.Mode) {
+        if mode != newMode { mode = newMode }
+    }
+    
+}
+
+extension Habit.Card.Manager {
+    
+    private func fetchValues() {
+        // fetch 30 day window of values ending on lastDay
+        let description = Habit.Value.filterBy(days: 30, endingOn: lastDay, for: habit)
+        guard let newValues = try? modelContext.fetch(description) else { return }
+        values = newValues
+        
+        // abort if lastDay already exists
+        guard !values.contains(where: { $0.date.isSameDay(as: lastDay) }) else { return }
+        
+        // create and save lastDay value
+        let lastDayValue = Habit.Value(habit: self.habit, date: lastDay)
+        modelContext.insert(lastDayValue)
+        values.append(lastDayValue)
+    }
+    
     private func shiftToYesterday() {
         // set lastDay to yesterday
         lastDay = lastDay.yesterday
@@ -65,7 +88,7 @@ extension Habit.Card.Manager {
         let newOldestDay = Calendar.current.date(byAdding: .day, value: -29, to: lastDay)!
         
         // fetch new oldest day value
-        let descriptor = Habit.Value.filterByDay(for: habit, on: newOldestDay)
+        let descriptor = Habit.Value.filterBy(day: newOldestDay, for: habit)
         let newValues = (try? modelContext.fetch(descriptor)) ?? []
                 
         // create and save new oldest day value if not found
@@ -87,7 +110,7 @@ extension Habit.Card.Manager {
         if !values.isEmpty { values.removeFirst() }
         
         // fetch new latest day value
-        let descriptor = Habit.Value.filterByDay(for: habit, on: lastDay)
+        let descriptor = Habit.Value.filterBy(day: lastDay, for: habit)
         let newValues = (try? modelContext.fetch(descriptor)) ?? []
         
         // create and save new latest day value if not found
@@ -105,48 +128,6 @@ extension Habit.Card.Manager {
 
 extension Habit.Card.Manager {
     
-    func updateMode(to newMode: Habit.Card.Mode) {
-        if mode != newMode { mode = newMode }
-    }
-    
-    private func fetchValues() {
-        print("🔍 fetchValues() START for \(habit.name)")
-        print("   lastDay: \(lastDay.formatted(date: .abbreviated, time: .omitted))")
-        
-        let description = Habit.Value.filterByDays(30, for: habit, endingOn: lastDay)
-        guard let newValues = try? modelContext.fetch(description) else { 
-            print("   ❌ Failed to fetch values")
-            return 
-        }
-        
-        print("   Fetched \(newValues.count) values from database")
-        print("   Fetched dates: \(newValues.map { $0.date.formatted(date: .abbreviated, time: .omitted) })")
-        print("   Fetched values: \(newValues.map { "\($0.date.formatted(date: .abbreviated, time: .omitted))=\($0.currentValue)" })")
-        
-        values = newValues
-        
-        let todayExists = values.contains {
-            $0.date.isSameDay(as: self.lastDay)
-        }
-        
-        print("   todayExists (\(lastDay.formatted(date: .abbreviated, time: .omitted))): \(todayExists)")
-        
-        guard todayExists == false else { 
-            print("🔍 fetchValues() END - today exists\n")
-            return 
-        }
-        print("📝 Creating missing Habit.Value for \(habit.name) on \(self.lastDay.formatted(date: .abbreviated, time: .omitted))")
-        
-        let todayValue = Habit.Value(habit: self.habit, date: self.lastDay)
-        modelContext.insert(todayValue)
-        values.append(todayValue)
-        print("🔍 fetchValues() END - created today\n")
-    }
-        
-}
-
-extension Habit.Card.Manager {
-    
     func resetDailyValue() {
         dailyValue?.currentValue = 0
     }
@@ -160,41 +141,29 @@ extension Habit.Card.Manager {
     }
     
     func randomizeMonthlyValues() {
-        print("🎲 randomizeMonthlyValues() START for \(habit.name)")
-        print("   lastDay: \(lastDay.formatted(date: .abbreviated, time: .omitted))")
-        print("   values array count: \(values.count)")
-        print("   values array dates: \(values.map { $0.date.formatted(date: .abbreviated, time: .omitted) })")
-        
+        // create new values array
+        var newValues: [Habit.Value] = []
+        // create lookup of existing values
         let existingValues = Dictionary(values.map { ($0.date, $0) }, uniquingKeysWith: { first, _ in first })
-        print("   existingValues from in-memory array: \(existingValues.keys.map { $0.formatted(date: .abbreviated, time: .omitted) }.sorted())")
         
-        var updatedCount = 0
-        var createdCount = 0
-        
+        // randomize values for the last 30 days
         for dayOffset in 0..<30 {
-            let date = Calendar.current.date(byAdding: .day, value: -dayOffset, to: lastDay)!.startOfDay
+            let day = lastDay.shift(days: -dayOffset)
             let randomValue = Int.random(in: 0...habit.target * 2)
-            
-            // Check what's actually in the database for this date
-            let dbDescriptor = Habit.Value.filterByDay(for: habit, on: date)
-            let dbValues = (try? modelContext.fetch(dbDescriptor)) ?? []
-            print("   Date \(date.formatted(date: .abbreviated, time: .omitted)): DB has \(dbValues.count) entries")
-            
-            if let existingValue = existingValues[date] {
+                        
+            if let existingValue = existingValues[day] {
+                // update existing value
                 existingValue.currentValue = randomValue
-                updatedCount += 1
-                print("     → Updated in-memory value to \(randomValue)")
+                newValues.append(existingValue)
             } else {
-                let value = Habit.Value(habit: habit, date: date, currentValue: randomValue)
+                // create missing value
+                let value = Habit.Value(habit: habit, date: day, currentValue: randomValue)
                 modelContext.insert(value)
-                createdCount += 1
-                print("     → Created NEW database entry with value \(randomValue) (⚠️ potential duplicate!)")
+                newValues.append(value)
             }
         }
         
-        print("   Summary: Updated \(updatedCount), Created \(createdCount)")
-        fetchValues()
-        print("🎲 randomizeMonthlyValues() END\n")
+        values = newValues.reversed()
     }
     
 }
@@ -222,22 +191,15 @@ extension Habit.Card.Manager {
     }
     
     var monthlyValues: [[DayCell]] {
-        print("📅 monthlyValues getter for \(habit.name)")
-        print("   lastDay: \(lastDay.formatted(date: .abbreviated, time: .omitted))")
-        print("   values array: \(values.map { "\($0.date.formatted(date: .abbreviated, time: .omitted))=\($0.currentValue)" })")
-        
         let startDate = Calendar.current.date(byAdding: .day, value: -29, to: lastDay)!
-        print("   startDate: \(startDate.formatted(date: .abbreviated, time: .omitted))")
         
         // determine the grid range: align last row to the week containing endDate (locale-aware)
         let lastGridWeekStart = Calendar.current.dateInterval(of: .weekOfYear, for: lastDay)!.start
         let lastGridDate = Calendar.current.date(byAdding: .day, value: 6, to: lastGridWeekStart)!
         let firstGridDate = Calendar.current.date(byAdding: .day, value: -34, to: lastGridDate)!
-        print("   Grid range: \(firstGridDate.formatted(date: .abbreviated, time: .omitted)) to \(lastGridDate.formatted(date: .abbreviated, time: .omitted))")
         
         // build a lookup for quick value resolution
         let valueByDate: [Date: Habit.Value] = Dictionary(values.map { ($0.date, $0) }, uniquingKeysWith: { _, latest in latest })
-        print("   valueByDate lookup keys: \(valueByDate.keys.map { $0.formatted(date: .abbreviated, time: .omitted) }.sorted())")
         
         // create 35 cells (5 weeks x 7 days), padding with nil outside the [startDate, endDate] range
         let normalizedStart = startDate.startOfDay
@@ -247,7 +209,7 @@ extension Habit.Card.Manager {
         
         // Now, flatCells will be an array of DayCell structs
         let flatCells: [DayCell] = (0..<35).map { dayOffset in
-            let date = Calendar.current.date(byAdding: .day, value: dayOffset, to: firstGridDate)!.startOfDay
+            let date = Calendar.current.date(byAdding: .day, value: dayOffset, to: firstGridDate)!
             
             let value: Habit.Value?
             if date < normalizedStart || date > lastDay {
@@ -264,9 +226,6 @@ extension Habit.Card.Manager {
             // Create and return the DayCell
             return DayCell(date: date, value: value)
         }
-        
-        print("   Result: \(cellsWithValues) cells with real data, \(cellsWithoutValues) cells with default values")
-        print("📅 monthlyValues getter END\n")
         
         // chunk into weeks
         return stride(from: 0, to: flatCells.count, by: 7).map { startIndex in
