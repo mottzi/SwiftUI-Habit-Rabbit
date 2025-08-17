@@ -1138,9 +1138,9 @@ extension Habit.Card.Manager {
         var newValues: [Habit.Value] = []
         // create lookup of existing values
         let existingValues = Dictionary(values.map { ($0.date, $0) }, uniquingKeysWith: { first, _ in first })
-        
+
         // randomize values for the last 30 days
-        for dayOffset in 0..<30 {
+        for dayOffset in (0..<30).reversed() {
             let day = lastDay.shift(days: -dayOffset)
             let randomValue = Int.random(in: 0...habit.target * 2)
                         
@@ -1156,7 +1156,8 @@ extension Habit.Card.Manager {
             }
         }
         
-        values = newValues.reversed()
+        // update with randomized values
+        values = newValues
     }
     
 }
@@ -1184,45 +1185,25 @@ extension Habit.Card.Manager {
     }
     
     var monthlyValues: [[DayCell]] {
-        let startDate = Calendar.current.date(byAdding: .day, value: -29, to: lastDay)!
+        let firstDay = lastDay.shift(days: -29)
+        let existingValues = Dictionary(values.map { ($0.date, $0) }, uniquingKeysWith: { _, latest in latest })
         
-        // determine the grid range: align last row to the week containing endDate (locale-aware)
-        let lastGridWeekStart = Calendar.current.dateInterval(of: .weekOfYear, for: lastDay)!.start
-        let lastGridDate = Calendar.current.date(byAdding: .day, value: 6, to: lastGridWeekStart)!
-        let firstGridDate = Calendar.current.date(byAdding: .day, value: -34, to: lastGridDate)!
+        let gridLastWeekFirstDay = Calendar.current.dateInterval(of: .weekOfYear, for: lastDay)!.start
+        let gridLastDay = gridLastWeekFirstDay.shift(days: 6)
+        let gridFirstDay = gridLastDay.shift(days: -34)
         
-        // build a lookup for quick value resolution
-        let valueByDate: [Date: Habit.Value] = Dictionary(values.map { ($0.date, $0) }, uniquingKeysWith: { _, latest in latest })
-        
-        // create 35 cells (5 weeks x 7 days), padding with nil outside the [startDate, endDate] range
-        let normalizedStart = startDate.startOfDay
-        
-        var cellsWithValues = 0
-        var cellsWithoutValues = 0
-        
-        // Now, flatCells will be an array of DayCell structs
-        let flatCells: [DayCell] = (0..<35).map { dayOffset in
-            let date = Calendar.current.date(byAdding: .day, value: dayOffset, to: firstGridDate)!
-            
-            let value: Habit.Value?
-            if date < normalizedStart || date > lastDay {
-                value = nil // This is a blank cell
-            } else {
-                value = valueByDate[date] ?? Habit.Value(habit: habit, date: date, currentValue: 0)
-                if valueByDate[date] != nil {
-                    cellsWithValues += 1
-                } else {
-                    cellsWithoutValues += 1
-                }
-            }
-            
-            // Create and return the DayCell
-            return DayCell(date: date, value: value)
+        let cells = (0..<35).map { offset in
+            let day = gridFirstDay.shift(days: offset)
+
+            let value = (firstDay...lastDay).contains(day)
+                ? existingValues[day] ?? Habit.Value(habit: habit, date: day, currentValue: 0)
+                : nil
+
+            return DayCell(date: day, value: value)
         }
-        
-        // chunk into weeks
-        return stride(from: 0, to: flatCells.count, by: 7).map { startIndex in
-            Array(flatCells[startIndex..<min(startIndex + 7, flatCells.count)])
+    
+        return stride(from: 0, to: cells.count, by: 7).map { startIndex in
+            Array(cells[startIndex..<min(startIndex + 7, cells.count)])
         }
     }
     
