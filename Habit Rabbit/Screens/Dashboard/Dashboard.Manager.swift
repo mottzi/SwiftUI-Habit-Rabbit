@@ -43,7 +43,7 @@ extension Habit.Dashboard.Manager {
     
     // jump to yesterday or tomorrow with optimized single-day fetch
     func shiftLastDay(to direction: Habit.Card.Manager.DayShift) {
-        print("* Optimized refresh with direction: \(direction)")
+        print("* Optimized shift to: \(direction) - single fetch")
         
         // Update lastDay and lastDayIndex
         let offset = direction == .tomorrow ? 1 : -1
@@ -59,8 +59,9 @@ extension Habit.Dashboard.Manager {
     // jump to arbitrary date with full refresh or to yesterday / tommorow with single-day-fetch
     func setLastDay(to date: Date) {
         guard !date.isSameDay(as: lastDay) else { return }
+        let date = date.startOfDay
         
-        let dayDifference = Calendar.current.dateComponents([.day], from: lastDay, to: date).day ?? 0
+        let dayDifference = Calendar.current.dateComponents([.day], from: lastDay, to: date).day!
         
         // Use optimized path for single-day shifts (common case: midnight)
         if abs(dayDifference) == 1 {
@@ -68,7 +69,7 @@ extension Habit.Dashboard.Manager {
             shiftLastDay(to: direction)
         } else {
             // Fall back to full rebuild for larger jumps
-            print("📅 Large date jump: \(dayDifference) days - full rebuild")
+            print("* Unoptimized shift to: \(date) - full rebuild")
             lastDay = date
             lastDayIndex = Calendar.current.weekdayIndex(for: date)
             deleteCardManagers()

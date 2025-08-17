@@ -70,7 +70,7 @@ extension Habit {
             }
             .tint(colorScheme == .dark ? .white : .black)
             .onCalendarDayChanged {
-                dashboardManager.setLastDay(to: Date.now.startOfDay)
+                dashboardManager.setLastDay(to: .now)
             }
         }
         

@@ -52,23 +52,17 @@ extension Habit.Card.Manager {
             case .yesterday: shiftToYesterday()
             case .tomorrow: shiftToTomorrow()
         }
-        
-        // trim to 30 values
-        while values.count > 30 { values.removeFirst() }
     }
     
     private func shiftToYesterday() {
         // set lastDay to yesterday
         lastDay = lastDay.yesterday
         
-        // remove newest day
+        // remove newest day (no longer in window)
         if !values.isEmpty { values.removeLast() }
         
         // find oldest day of new 30 day window
         let newOldestDay = Calendar.current.date(byAdding: .day, value: -29, to: lastDay)!
-        
-        // abort if we already have new oldest day value
-        guard !values.contains(where: { $0.date.isSameDay(as: newOldestDay) }) else { return }
         
         // fetch new oldest day value
         let descriptor = Habit.Value.filterByDay(for: habit, on: newOldestDay)
@@ -89,8 +83,8 @@ extension Habit.Card.Manager {
         // set lastDay to tomorrow
         lastDay = lastDay.tomorrow
         
-        // remove oldest day
-        if values.count >= 30 { values.removeFirst() }
+        // remove oldest day (no longer in window)
+        if !values.isEmpty { values.removeFirst() }
         
         // fetch new latest day value
         let descriptor = Habit.Value.filterByDay(for: habit, on: lastDay)
