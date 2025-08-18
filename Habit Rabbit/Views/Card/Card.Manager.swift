@@ -62,6 +62,21 @@ extension Habit.Card.Manager {
 
 extension Habit.Card.Manager {
     
+    fileprivate func extractedFunc(_ date: Date) -> Habit.Value {
+        let descriptor = Habit.Value.filterBy(day: date, for: habit)
+        if let existing = (try? modelContext.fetch(descriptor))?.first {
+            return existing
+        } else {
+            let newValue = Habit.Value(habit: habit, date: date)
+            modelContext.insert(newValue)
+            return newValue
+        }
+    }
+    
+    private func fetchOrCreateValue(for date: Date) -> Habit.Value {
+        return extractedFunc(date)
+    }
+    
     private func fetchValues() {
         // fetch 30 day window of values ending on lastDay
         let description = Habit.Value.filterBy(days: 30, endingOn: lastDay, for: habit)
@@ -78,28 +93,27 @@ extension Habit.Card.Manager {
     }
     
     private func shiftToYesterday() {
-        // set lastDay to yesterday
-        lastDay = lastDay.yesterday
+        // 1. Get the value for the new lastDay (yesterday)
+        let newLastDay = lastDay.yesterday
+        let newLastDayValue = fetchOrCreateValue(for: newLastDay)
+
+        // 2. Remove the OLD lastDay's value from the array
+        let oldLastDay = self.lastDay
+        values.removeAll(where: { $0.date.isSameDay(as: oldLastDay) })
+
+        // 3. Insert the new oldest day's value (only if not already present)
+        let newOldestDay = Calendar.current.date(byAdding: .day, value: -29, to: newLastDay)!
+        if !values.contains(where: { $0.date.isSameDay(as: newOldestDay) }) {
+            let newOldestValue = fetchOrCreateValue(for: newOldestDay)
+            values.insert(newOldestValue, at: 0)
+        }
+
+        // 4. Update lastDay and ensure its value is at the end
+        lastDay = newLastDay
         
-        // remove newest day (no longer in window)
-        if !values.isEmpty { values.removeLast() }
-        
-        // find oldest day of new 30 day window
-        let newOldestDay = Calendar.current.date(byAdding: .day, value: -29, to: lastDay)!
-        
-        // fetch new oldest day value
-        let descriptor = Habit.Value.filterBy(day: newOldestDay, for: habit)
-        let newValues = (try? modelContext.fetch(descriptor)) ?? []
-                
-        // create and save new oldest day value if not found
-        let newValue = newValues.first ?? {
-            let value = Habit.Value(habit: habit, date: newOldestDay)
-            modelContext.insert(value)
-            return value
-        }()
-        
-        // insert new oldest day value at start of array
-        values.insert(newValue, at: 0)
+        // Remove any existing entry for newLastDay and append it at the end
+        values.removeAll(where: { $0.date.isSameDay(as: newLastDay) })
+        values.append(newLastDayValue)
     }
     
     private func shiftToTomorrow() {
@@ -109,18 +123,10 @@ extension Habit.Card.Manager {
         // remove oldest day (no longer in window)
         if !values.isEmpty { values.removeFirst() }
         
-        // fetch new latest day value
-        let descriptor = Habit.Value.filterBy(day: lastDay, for: habit)
-        let newValues = (try? modelContext.fetch(descriptor)) ?? []
+        // fetch or create new latest day value
+        let newValue = fetchOrCreateValue(for: lastDay)
         
-        // create and save new latest day value if not found
-        let newValue = newValues.first ?? {
-            let value = Habit.Value(habit: habit, date: lastDay)
-            modelContext.insert(value)
-            return value
-        }()
-        
-        // insert new latest day value at start of array
+        // append new latest day value at end of array
         values.append(newValue)
     }
     
