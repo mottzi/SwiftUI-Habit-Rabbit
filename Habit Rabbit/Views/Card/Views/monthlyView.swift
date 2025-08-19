@@ -2,13 +2,6 @@ import SwiftUI
 
 extension Habit.Card {
 
-    private var cubesGridHeight: CGFloat {
-        // Always reserve space for 6 rows (max possible) to prevent weekday symbols from moving
-        // Row height: 16 (cube) + 6 (spacing) = 22 points per row
-        // 6 rows: 6 * 16 + 5 * 6 = 96 + 30 = 126 points
-        return 6 * 16 + 5 * 6
-    }
-    
     var monthlyView: some View {
         VStack(spacing: 6) {
             HStack(spacing: 6) {
@@ -24,9 +17,9 @@ extension Habit.Card {
             .padding(.bottom, 2)
             
             VStack(spacing: 6) {
-                ForEach(cardManager.monthlyValues.enumerated, id: \.offset) { rowIndex, weekValues in
+                ForEach(cardManager.monthlyValues, id: \.first?.date) { weekValues in
                     HStack(spacing: 6) {
-                        ForEach(weekValues.enumerated, id: \.offset) { colIndex, cell in                        
+                        ForEach(weekValues, id: \.date) { cell in                        
                             RoundedRectangle(cornerRadius: 4)
                                 .fill(cubeColor(for: cell.value))
                                 .strokeBorder(.tertiary, lineWidth: cubeStrokeWidth(for: cell.value))
@@ -41,7 +34,7 @@ extension Habit.Card {
                     .geometryGroup()
                 }
             }
-            .frame(height: cubesGridHeight)
+            .frame(height: Habit.Card.Manager.cubesGridHeight)
             .frame(maxWidth: .infinity)
             .clipped()
         }
