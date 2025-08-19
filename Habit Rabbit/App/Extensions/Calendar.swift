@@ -22,6 +22,15 @@ extension Date {
         Calendar.current.isDate(self, inSameDayAs: other)
     }
     
+    var debug: String {
+        let formatter = DateFormatter()
+        formatter.locale = .current
+        formatter.timeZone = .current
+        formatter.dateFormat = "EEEE, dd.MM.yyyy, HH:mm:ss"
+        // → Montag, 18.08.2025, 00:00:00
+        return formatter.string(from: self)
+    }
+    
 }
 
 extension Calendar {

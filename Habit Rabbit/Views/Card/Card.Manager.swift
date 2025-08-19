@@ -199,22 +199,22 @@ extension Habit.Card.Manager {
         
         let gridLastWeekFirstDay = Calendar.current.dateInterval(of: .weekOfYear, for: lastDay)!.start
         let gridLastDay = gridLastWeekFirstDay.shift(days: 6)
-        let gridFirstDay = gridLastDay.shift(days: -34)
+        let gridFirstDay = gridLastDay.shift(days: -41)
         
-        let formatter = DateFormatter()
-        formatter.dateStyle = .full      // Sonntag, 17. August 2025
-        formatter.timeStyle = .medium    // 00:00:00
-        formatter.timeZone = .current    // deine lokale Zeitzone
-        formatter.locale = .current      // deine Spracheinstellungen
-        print(formatter.string(from: gridLastWeekFirstDay), "gridLastWeekFirstDay")
-        print(formatter.string(from: gridLastDay), "gridLastDay")
-        print(formatter.string(from: gridFirstDay), "gridFirstDay")
-        print("--------------------------------------")
-        print(formatter.string(from: firstDay), "firstDay")
-        print(formatter.string(from: lastDay), "lastDay")
+//        print("-------------------------------------------")
+//        let formatter = DateFormatter()
+//        formatter.dateStyle = .full      // Sonntag, 17. August 2025
+//        formatter.timeStyle = .medium    // 00:00:00
+//        formatter.timeZone = .current    // deine lokale Zeitzone
+//        formatter.locale = .current      // deine Spracheinstellungen
+//        print(gridLastWeekFirstDay.debug, "gridLastWeekFirstDay")
+//        print(gridLastDay.debug, "gridLastDay")
+//        print(gridFirstDay.debug, "gridFirstDay")
+//        print("-------------------------------------------")
+//        print(firstDay.debug, "firstDay")
+//        print(lastDay.debug, "lastDay")
 
-        
-        let cells = (0..<35).map { offset in
+        let cells = (0..<42).map { offset in
             let day = gridFirstDay.shift(days: offset)
 
             let value = (firstDay...lastDay).contains(day)
@@ -224,9 +224,15 @@ extension Habit.Card.Manager {
             return DayCell(date: day, value: value)
         }
     
-        return stride(from: 0, to: cells.count, by: 7).map { startIndex in
+        let allRows = stride(from: 0, to: cells.count, by: 7).map { startIndex in
             Array(cells[startIndex..<min(startIndex + 7, cells.count)])
         }
+        
+        // Only show first row when lastDay is at the start of the week (Monday)
+        let lastDayWeekdayIndex = Calendar.current.weekdayIndex(for: lastDay)
+        let shouldShowFirstRow = lastDayWeekdayIndex == 0
+        
+        return shouldShowFirstRow ? allRows : Array(allRows.dropFirst())
     }
     
 }
