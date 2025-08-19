@@ -1201,23 +1201,22 @@ extension Habit.Card.Manager {
         
         let gridLastWeekFirstDay = Calendar.current.dateInterval(of: .weekOfYear, for: lastDay)!.start
         let gridLastDay = gridLastWeekFirstDay.shift(days: 6)
-        let gridFirstDay = gridLastDay.shift(days: -34)
+        let gridFirstDay = gridLastDay.shift(days: -41)
         
-        print("-------------------------------------------")
-        let formatter = DateFormatter()
-        formatter.dateStyle = .full      // Sonntag, 17. August 2025
-        formatter.timeStyle = .medium    // 00:00:00
-        formatter.timeZone = .current    // deine lokale Zeitzone
-        formatter.locale = .current      // deine Spracheinstellungen
-        print(gridLastWeekFirstDay.debug, "gridLastWeekFirstDay")
-        print(gridLastDay.debug, "gridLastDay")
-        print(gridFirstDay.debug, "gridFirstDay")
-        print("-------------------------------------------")
-        print(firstDay.debug, "firstDay")
-        print(lastDay.debug, "lastDay")
+//        print("-------------------------------------------")
+//        let formatter = DateFormatter()
+//        formatter.dateStyle = .full      // Sonntag, 17. August 2025
+//        formatter.timeStyle = .medium    // 00:00:00
+//        formatter.timeZone = .current    // deine lokale Zeitzone
+//        formatter.locale = .current      // deine Spracheinstellungen
+//        print(gridLastWeekFirstDay.debug, "gridLastWeekFirstDay")
+//        print(gridLastDay.debug, "gridLastDay")
+//        print(gridFirstDay.debug, "gridFirstDay")
+//        print("-------------------------------------------")
+//        print(firstDay.debug, "firstDay")
+//        print(lastDay.debug, "lastDay")
 
-        
-        let cells = (0..<35).map { offset in
+        let cells = (0..<42).map { offset in
             let day = gridFirstDay.shift(days: offset)
 
             let value = (firstDay...lastDay).contains(day)
@@ -1227,9 +1226,15 @@ extension Habit.Card.Manager {
             return DayCell(date: day, value: value)
         }
     
-        return stride(from: 0, to: cells.count, by: 7).map { startIndex in
+        let allRows = stride(from: 0, to: cells.count, by: 7).map { startIndex in
             Array(cells[startIndex..<min(startIndex + 7, cells.count)])
         }
+        
+        // Only show first row when lastDay is at the start of the week (Monday)
+        let lastDayWeekdayIndex = Calendar.current.weekdayIndex(for: lastDay)
+        let shouldShowFirstRow = lastDayWeekdayIndex == 0
+        
+        return shouldShowFirstRow ? allRows : Array(allRows.dropFirst())
     }
     
 }
@@ -1266,6 +1271,7 @@ extension Habit.Card.Manager {
     static let cardHeight: CGFloat = 232
     static let cornerRadius: CGFloat = 24
     static let contentHeight: CGFloat = 155
+    static let cubesGridHeight: CGFloat = 126 // 6 rows: 6 * 16 (cube) + 5 * 6 (spacing) = 126
     
     var labelBottomPadding: CGFloat {
         switch mode {
@@ -1488,7 +1494,7 @@ extension Habit.Card {
 import SwiftUI
 
 extension Habit.Card {
-    
+
     var monthlyView: some View {
         VStack(spacing: 6) {
             HStack(spacing: 6) {
@@ -1500,24 +1506,30 @@ extension Habit.Card {
                     .frame(width: 16, height: 16)
                 }
             }
+            .padding(.top, 4)
             .padding(.bottom, 2)
             
-            ForEach(cardManager.monthlyValues.enumerated, id: \.offset) { rowIndex, weekValues in
-                HStack(spacing: 6) {
-                    ForEach(weekValues.enumerated, id: \.offset) { colIndex, cell in                        
-                        RoundedRectangle(cornerRadius: 4)
-                            .fill(cubeColor(for: cell.value))
-                            .strokeBorder(.tertiary, lineWidth: cubeStrokeWidth(for: cell.value))
-                            .brightness(cubeBrightness(for: cell.value))
-                            .frame(width: 16, height: 16)
-                            .opacity(cell.value == nil ? 0 : 1)
-                            .matchedGeometryEffect(id: "progress\(cell.date)", in: modeTransition)
-                            .animation(.bouncy, value: cell.value?.currentValue)
+            VStack(spacing: 6) {
+                ForEach(cardManager.monthlyValues, id: \.first?.date) { weekValues in
+                    HStack(spacing: 6) {
+                        ForEach(weekValues, id: \.date) { cell in                        
+                            RoundedRectangle(cornerRadius: 4)
+                                .fill(cubeColor(for: cell.value))
+                                .strokeBorder(.tertiary, lineWidth: cubeStrokeWidth(for: cell.value))
+                                .brightness(cubeBrightness(for: cell.value))
+                                .frame(width: 16, height: 16)
+                                .opacity(cell.value == nil ? 0 : 1)
+                                .matchedGeometryEffect(id: "progress\(cell.date)", in: modeTransition)
+                                .animation(.bouncy, value: cell.value?.currentValue)
+                        }
                     }
+                    .compositingGroup()
+                    .geometryGroup()
                 }
-                .compositingGroup()
-                .geometryGroup()
             }
+            .frame(height: Habit.Card.Manager.cubesGridHeight)
+            .frame(maxWidth: .infinity)
+            .clipped()
         }
         .geometryGroup()
         .frame(height: Habit.Card.Manager.contentHeight)

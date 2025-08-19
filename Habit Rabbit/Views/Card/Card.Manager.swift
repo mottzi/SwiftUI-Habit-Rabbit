@@ -113,17 +113,20 @@ extension Habit.Card.Manager {
     }
     
     private func shiftToTomorrow() {
-        // set lastDay to tomorrow
-        lastDay = lastDay.tomorrow
+        // 1. Get the value for the new lastDay (tomorrow)
+        let newLastDay = lastDay.tomorrow
+        let newLastDayValue = fetchOrCreateValue(for: newLastDay)
         
-        // remove oldest day (no longer in window)
-        if !values.isEmpty { values.removeFirst() }
+        // 2. Calculate which day is no longer in the 30-day window
+        let oldestDayToRemove = Calendar.current.date(byAdding: .day, value: -30, to: newLastDay)!
+        values.removeAll(where: { $0.date.isSameDay(as: oldestDayToRemove) })
         
-        // fetch or create new latest day value
-        let newValue = fetchOrCreateValue(for: lastDay)
+        // 3. Update lastDay
+        lastDay = newLastDay
         
-        // append new latest day value at end of array
-        values.append(newValue)
+        // 4. Remove any existing entry for newLastDay and append it at the end
+        values.removeAll(where: { $0.date.isSameDay(as: newLastDay) })
+        values.append(newLastDayValue)
     }
     
 }
