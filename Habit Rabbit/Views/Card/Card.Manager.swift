@@ -64,13 +64,13 @@ extension Habit.Card.Manager {
     
     private func fetchOrCreateValue(for date: Date) -> Habit.Value {
         let descriptor = Habit.Value.filterBy(day: date, for: habit)
-        if let existing = (try? modelContext.fetch(descriptor))?.first {
-            return existing
-        } else {
+
+        return (try? modelContext.fetch(descriptor))?.first
+        ?? {
             let newValue = Habit.Value(habit: habit, date: date)
             modelContext.insert(newValue)
             return newValue
-        }
+        }()
     }
     
     private func fetchValues() {
@@ -203,19 +203,6 @@ extension Habit.Card.Manager {
         let gridLastWeekFirstDay = Calendar.current.dateInterval(of: .weekOfYear, for: lastDay)!.start
         let gridLastDay = gridLastWeekFirstDay.shift(days: 6)
         let gridFirstDay = gridLastDay.shift(days: -41)
-        
-//        print("-------------------------------------------")
-//        let formatter = DateFormatter()
-//        formatter.dateStyle = .full      // Sonntag, 17. August 2025
-//        formatter.timeStyle = .medium    // 00:00:00
-//        formatter.timeZone = .current    // deine lokale Zeitzone
-//        formatter.locale = .current      // deine Spracheinstellungen
-//        print(gridLastWeekFirstDay.debug, "gridLastWeekFirstDay")
-//        print(gridLastDay.debug, "gridLastDay")
-//        print(gridFirstDay.debug, "gridFirstDay")
-//        print("-------------------------------------------")
-//        print(firstDay.debug, "firstDay")
-//        print(lastDay.debug, "lastDay")
 
         let cells = (0..<42).map { offset in
             let day = gridFirstDay.shift(days: offset)
