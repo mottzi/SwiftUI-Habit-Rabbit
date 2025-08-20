@@ -1066,13 +1066,13 @@ extension Habit.Card.Manager {
     
     private func fetchOrCreateValue(for date: Date) -> Habit.Value {
         let descriptor = Habit.Value.filterBy(day: date, for: habit)
-        if let existing = (try? modelContext.fetch(descriptor))?.first {
-            return existing
-        } else {
+
+        return (try? modelContext.fetch(descriptor))?.first
+        ?? {
             let newValue = Habit.Value(habit: habit, date: date)
             modelContext.insert(newValue)
             return newValue
-        }
+        }()
     }
     
     private func fetchValues() {
@@ -1115,17 +1115,20 @@ extension Habit.Card.Manager {
     }
     
     private func shiftToTomorrow() {
-        // set lastDay to tomorrow
-        lastDay = lastDay.tomorrow
+        // 1. Get the value for the new lastDay (tomorrow)
+        let newLastDay = lastDay.tomorrow
+        let newLastDayValue = fetchOrCreateValue(for: newLastDay)
         
-        // remove oldest day (no longer in window)
-        if !values.isEmpty { values.removeFirst() }
+        // 2. Calculate which day is no longer in the 30-day window
+        let oldestDayToRemove = Calendar.current.date(byAdding: .day, value: -30, to: newLastDay)!
+        values.removeAll(where: { $0.date.isSameDay(as: oldestDayToRemove) })
         
-        // fetch or create new latest day value
-        let newValue = fetchOrCreateValue(for: lastDay)
+        // 3. Update lastDay
+        lastDay = newLastDay
         
-        // append new latest day value at end of array
-        values.append(newValue)
+        // 4. Remove any existing entry for newLastDay and append it at the end
+        values.removeAll(where: { $0.date.isSameDay(as: newLastDay) })
+        values.append(newLastDayValue)
     }
     
 }
@@ -1202,19 +1205,6 @@ extension Habit.Card.Manager {
         let gridLastWeekFirstDay = Calendar.current.dateInterval(of: .weekOfYear, for: lastDay)!.start
         let gridLastDay = gridLastWeekFirstDay.shift(days: 6)
         let gridFirstDay = gridLastDay.shift(days: -41)
-        
-//        print("-------------------------------------------")
-//        let formatter = DateFormatter()
-//        formatter.dateStyle = .full      // Sonntag, 17. August 2025
-//        formatter.timeStyle = .medium    // 00:00:00
-//        formatter.timeZone = .current    // deine lokale Zeitzone
-//        formatter.locale = .current      // deine Spracheinstellungen
-//        print(gridLastWeekFirstDay.debug, "gridLastWeekFirstDay")
-//        print(gridLastDay.debug, "gridLastDay")
-//        print(gridFirstDay.debug, "gridFirstDay")
-//        print("-------------------------------------------")
-//        print(firstDay.debug, "firstDay")
-//        print(lastDay.debug, "lastDay")
 
         let cells = (0..<42).map { offset in
             let day = gridFirstDay.shift(days: offset)

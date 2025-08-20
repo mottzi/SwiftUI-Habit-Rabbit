@@ -29,6 +29,7 @@ extension Habit.Dashboard {
             }
         }
         .buttonStyle(.plain)
+        .padding(.vertical, 16)
     }
     
 }

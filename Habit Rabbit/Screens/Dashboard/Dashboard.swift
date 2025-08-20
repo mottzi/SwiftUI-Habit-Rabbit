@@ -40,38 +40,16 @@ extension Habit {
                         }
                     }
                     .padding(16)
-                    .safeAreaInset(edge: .bottom) {
-                        debugButton
-                            .padding(.vertical, 16)
-                    }
-                    .safeAreaInset(edge: .top) {
-                        HStack {
-                            Button("Back") {
-                                dashboardManager.shiftLastDay(to: .yesterday)
-                            }
-                            
-                            Spacer()
-                            
-                            Text("\(dashboardManager.lastDay.formatted(date: .abbreviated, time: .omitted))")
-                            
-                            Spacer()
-                            
-                            Button("Forward") {
-                                dashboardManager.shiftLastDay(to: .tomorrow)
-                            }
-                        }
-                        .padding(16)
-                        .sensoryFeedback(.selection, trigger: dashboardManager.lastDay)
-                    }
+                    .safeAreaInset(edge: .bottom) { debugButton }
+                    // .safeAreaInset(edge: .top) { shiftLastDayControls }
                 }
                 .navigationTitle("Habit Rabbit")
                 .animation(.default, value: cardManagers.count)
+                .overlay(alignment: .bottomTrailing) { addHabitButton }
                 .toolbar { modePicker }
             }
             .tint(colorScheme == .dark ? .white : .black)
-            .onCalendarDayChanged {
-                dashboardManager.setLastDay(to: .now)
-            }
+            .onCalendarDayChanged { dashboardManager.setLastDay(to: .now) }
         }
         
         private let columns = [
@@ -97,6 +75,42 @@ extension Habit.Dashboard {
             .padding(.leading, 8)
             .sensoryFeedback(.selection, trigger: dashboardManager.mode)
         }
+    }
+    
+    private var addHabitButton: some View {
+        Button {
+            
+        } label: {
+            Image(systemName: "plus")
+                .font(.title)
+                .fontWeight(.medium)
+                .foregroundStyle(colorScheme == .light ? .black : .white)
+                .frame(width: 70, height: 70)
+                .background { Habit.Card.Background(in: .circle, material: .ultraThinMaterial) }
+                .padding()
+                .padding(.trailing, -6)
+        }
+        .buttonStyle(.plain)
+    }
+    
+    private var shiftLastDayControls: some View {
+        HStack {
+            Button("Back") {
+                dashboardManager.shiftLastDay(to: .yesterday)
+            }
+            
+            Spacer()
+            
+            Text("\(dashboardManager.lastDay.formatted(date: .abbreviated, time: .omitted))")
+            
+            Spacer()
+            
+            Button("Forward") {
+                dashboardManager.shiftLastDay(to: .tomorrow)
+            }
+        }
+        .padding(16)
+        .sensoryFeedback(.selection, trigger: dashboardManager.lastDay)
     }
     
 }

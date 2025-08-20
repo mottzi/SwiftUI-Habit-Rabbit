@@ -13,6 +13,9 @@ extension Habit.Card {
         private(set) var mode: Habit.Card.Mode
         
         private var values: [Habit.Value] = []
+        
+        @ObservationIgnored 
+        private var valueCache: [Date: Habit.Value] = [:]
 
         init(
             for habit: Habit,
@@ -63,29 +66,56 @@ extension Habit.Card.Manager {
 extension Habit.Card.Manager {
     
     private func fetchOrCreateValue(for date: Date) -> Habit.Value {
+        // Check cache first
+        if let cachedValue = valueCache[date] {
+            return cachedValue
+        }
+        
         let descriptor = Habit.Value.filterBy(day: date, for: habit)
-
-        return (try? modelContext.fetch(descriptor))?.first
+        let value = (try? modelContext.fetch(descriptor))?.first
         ?? {
             let newValue = Habit.Value(habit: habit, date: date)
             modelContext.insert(newValue)
             return newValue
         }()
+        
+        // Cache the value for future use
+        valueCache[date] = value
+        return value
     }
     
     private func fetchValues() {
-        // fetch 30 day window of values ending on lastDay
-        let description = Habit.Value.filterBy(days: 30, endingOn: lastDay, for: habit)
-        guard let newValues = try? modelContext.fetch(description) else { return }
-        values = newValues
+        // fetch core 30 day window for active values
+        let coreDescription = Habit.Value.filterBy(days: 30, endingOn: lastDay, for: habit)
+        guard let coreValues = try? modelContext.fetch(coreDescription) else { return }
+        values = coreValues
+        
+        // fetch extended window: additional 14 days in past and future for cache pre-loading
+        let pastEnd = lastDay.shift(days: -30) // day before the 30-day window starts
+        let pastDescription = Habit.Value.filterBy(days: 14, endingOn: pastEnd, for: habit)
+        let pastValues = (try? modelContext.fetch(pastDescription)) ?? []
+        
+        let futureStart = lastDay.tomorrow
+        let futureEnd = futureStart.shift(days: 14)
+        let futureDescription = Habit.Value.filterBy(days: 14, endingOn: futureEnd, for: habit)
+        let futureValues = (try? modelContext.fetch(futureDescription)) ?? []
+        
+        // populate cache with all fetched values (core + extended)
+        for value in coreValues + pastValues + futureValues {
+            valueCache[value.date] = value
+        }
+        
+        // create lookup dictionary for efficient date checking
+        let existingValues = Dictionary(values.map { ($0.date, $0) }, uniquingKeysWith: { _, latest in latest })
         
         // abort if lastDay already exists
-        guard !values.contains(where: { $0.date.isSameDay(as: lastDay) }) else { return }
+        guard existingValues[lastDay] == nil else { return }
         
         // create and save lastDay value
         let lastDayValue = Habit.Value(habit: self.habit, date: lastDay)
         modelContext.insert(lastDayValue)
         values.append(lastDayValue)
+        valueCache[lastDay] = lastDayValue
     }
     
     private func shiftToYesterday() {
@@ -93,23 +123,32 @@ extension Habit.Card.Manager {
         let newLastDay = lastDay.yesterday
         let newLastDayValue = fetchOrCreateValue(for: newLastDay)
 
-        // 2. Remove the OLD lastDay's value from the array
+        // 2. Create lookup dictionary for efficient operations
+        let existingValues = Dictionary(values.map { ($0.date, $0) }, uniquingKeysWith: { _, latest in latest })
+        
+        // 3. Cache values that are being removed from active window but keep them in cache
         let oldLastDay = self.lastDay
-        values.removeAll(where: { $0.date.isSameDay(as: oldLastDay) })
+        if let removedValue = existingValues[oldLastDay] {
+            valueCache[oldLastDay] = removedValue
+        }
+        
+        // 4. Remove the OLD lastDay's value and build new values array
+        var newValues = values.filter { !$0.date.isSameDay(as: oldLastDay) && !$0.date.isSameDay(as: newLastDay) }
 
-        // 3. Insert the new oldest day's value (only if not already present)
-        let newOldestDay = Calendar.current.date(byAdding: .day, value: -29, to: newLastDay)!
-        if !values.contains(where: { $0.date.isSameDay(as: newOldestDay) }) {
+        // 5. Insert the new oldest day's value (only if not already present)
+        let newOldestDay = newLastDay.shift(days: -29)
+        if existingValues[newOldestDay] == nil {
             let newOldestValue = fetchOrCreateValue(for: newOldestDay)
-            values.insert(newOldestValue, at: 0)
+            newValues.insert(newOldestValue, at: 0)
         }
 
-        // 4. Update lastDay and ensure its value is at the end
+        // 6. Update lastDay and ensure its value is at the end
         lastDay = newLastDay
+        newValues.append(newLastDayValue)
+        values = newValues
         
-        // Remove any existing entry for newLastDay and append it at the end
-        values.removeAll(where: { $0.date.isSameDay(as: newLastDay) })
-        values.append(newLastDayValue)
+        // 7. Cleanup cache periodically
+        cleanupCache()
     }
     
     private func shiftToTomorrow() {
@@ -118,15 +157,33 @@ extension Habit.Card.Manager {
         let newLastDayValue = fetchOrCreateValue(for: newLastDay)
         
         // 2. Calculate which day is no longer in the 30-day window
-        let oldestDayToRemove = Calendar.current.date(byAdding: .day, value: -30, to: newLastDay)!
-        values.removeAll(where: { $0.date.isSameDay(as: oldestDayToRemove) })
+        let oldestDayToRemove = newLastDay.shift(days: -30)
         
-        // 3. Update lastDay
+        // 3. Cache values that are being removed from active window
+        let existingValues = Dictionary(values.map { ($0.date, $0) }, uniquingKeysWith: { _, latest in latest })
+        if let removedValue = existingValues[oldestDayToRemove] {
+            valueCache[oldestDayToRemove] = removedValue
+        }
+        
+        // 4. Filter out the oldest day and any existing entry for newLastDay
+        values = values.filter { !$0.date.isSameDay(as: oldestDayToRemove) && !$0.date.isSameDay(as: newLastDay) }
+        
+        // 5. Update lastDay and append new value
         lastDay = newLastDay
-        
-        // 4. Remove any existing entry for newLastDay and append it at the end
-        values.removeAll(where: { $0.date.isSameDay(as: newLastDay) })
         values.append(newLastDayValue)
+        
+        // 6. Cleanup cache periodically
+        cleanupCache()
+    }
+    
+    private func cleanupCache() {
+        // Keep cache size reasonable by maintaining a window around lastDay (30 days in each direction)
+        let pastCutoff = lastDay.shift(days: -30)
+        let futureCutoff = lastDay.shift(days: 30)
+        
+        valueCache = valueCache.filter { date, _ in
+            (pastCutoff...futureCutoff).contains(date)
+        }
     }
     
 }
@@ -170,6 +227,11 @@ extension Habit.Card.Manager {
         
         // update with randomized values
         values = newValues
+        
+        // update cache with all randomized values
+        for value in newValues {
+            valueCache[value.date] = value
+        }
     }
     
 }
@@ -179,9 +241,9 @@ extension Habit.Card.Manager {
     var dailyValue: Habit.Value? { values.last }
     
     var weeklyValues: [Habit.Value] {
-        let firstDay = Calendar.current.date(byAdding: .day, value: -6, to: lastDay)!
+        let firstDay = lastDay.shift(days: -6)
         let allDays = (0..<7).map {
-            Calendar.current.date(byAdding: .day, value: $0, to: firstDay)!
+            firstDay.shift(days: $0)
         }
         
         let lookup = Dictionary(values.suffix(7).map { ($0.date, $0) }, uniquingKeysWith: { _, latest in latest })

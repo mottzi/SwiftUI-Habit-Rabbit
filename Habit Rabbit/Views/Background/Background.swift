@@ -23,19 +23,30 @@ extension Habit.Card {
         
         private let extraBackground: B
         private let shape: S
+        private let material: Material
         
         init(
             shape: S,
+            material: Material = .regularMaterial,
             @ViewBuilder background: () -> B
         ) {
             self.shape = shape
+            self.material = material
             self.extraBackground = background()
         }
         
+//        var strokeColor: Color {
+//            if colorScheme == .dark {
+//                Color(red: <#T##Double#>, green: <#T##Double#>, blue: <#T##Double#>)
+//            } else {
+//                
+//            }
+//        }
+        
         var body: some View {
             shape
-                .fill(.regularMaterial)
-                .stroke(.quaternary, lineWidth: colorScheme == .dark ? 1 : 0.6)
+                .fill(material)
+                .strokeBorder(.quaternary, lineWidth: colorScheme == .dark ? 1 : 0.6)
                 .background {
                     if showShadows ?? true {
                         shadowView
@@ -57,8 +68,8 @@ extension Habit.Card {
                         .blur(radius: 4)
                         .offset(x: 0, y: 2)
                     
-                    shape
-                        .fill(Color(uiColor: .systemBackground))                    
+//                    shape
+//                        .fill(Color(uiColor: .systemBackground)) 
                 }
             }
         }
@@ -90,8 +101,8 @@ extension Habit.Card.Background where B == EmptyView, S == RoundedRectangle {
 
 extension Habit.Card.Background where B == EmptyView {
     
-    init(in shape: S) {
-        self.init(shape: shape) { EmptyView() }
+    init(in shape: S, material: Material = .regularMaterial) {
+        self.init(shape: shape, material: material) { EmptyView() }
     }
     
 }
