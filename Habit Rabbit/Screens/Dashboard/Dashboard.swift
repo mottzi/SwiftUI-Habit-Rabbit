@@ -6,14 +6,14 @@ extension Habit {
     struct Dashboard: View {
         
         @Namespace private var habitTransition
-        
         @Environment(\.colorScheme) var colorScheme
         @Environment(\.scenePhase) private var scenePhase
 
         @Environment(Habit.Dashboard.Manager.self) var dashboardManager
-
         var cardManagers: [Card.Manager] { dashboardManager.cardManagers }
-        
+
+        @State private var presentAddSheet = false
+
         var body: some View {
             let _ = print("Habit.Dashboard: 🔄 \(cardManagers.count) Habit.Cards")
             // let _ = Self._printChanges()
@@ -47,6 +47,7 @@ extension Habit {
                 .animation(.default, value: cardManagers.count)
                 .overlay(alignment: .bottomTrailing) { addHabitButton }
                 .toolbar { modePicker }
+                .sheet(isPresented: $presentAddSheet) { AddHabitSheet() }
             }
             .tint(colorScheme == .dark ? .white : .black)
             .onCalendarDayChanged { dashboardManager.setLastDay(to: .now) }
@@ -79,7 +80,7 @@ extension Habit.Dashboard {
     
     private var addHabitButton: some View {
         Button {
-            
+            presentAddSheet = true
         } label: {
             Image(systemName: "plus")
                 .font(.title)

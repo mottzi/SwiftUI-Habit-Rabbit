@@ -66,22 +66,20 @@ extension Habit.Card.Manager {
 extension Habit.Card.Manager {
     
     private func fetchOrCreateValue(for date: Date) -> Habit.Value {
-        // Check cache first
         if let cachedValue = valueCache[date] {
             return cachedValue
         }
         
         let descriptor = Habit.Value.filterBy(day: date, for: habit)
-        let value = (try? modelContext.fetch(descriptor))?.first
+        let fetchedValue = (try? modelContext.fetch(descriptor))?.first
         ?? {
             let newValue = Habit.Value(habit: habit, date: date)
             modelContext.insert(newValue)
             return newValue
         }()
         
-        // Cache the value for future use
-        valueCache[date] = value
-        return value
+        valueCache[date] = fetchedValue
+        return fetchedValue
     }
     
     private func fetchValues() {
