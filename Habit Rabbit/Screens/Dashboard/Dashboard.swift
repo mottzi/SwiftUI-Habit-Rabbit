@@ -41,7 +41,6 @@ extension Habit {
                     }
                     .padding(16)
                     .safeAreaInset(edge: .bottom) { debugButton }
-                    // .safeAreaInset(edge: .top) { shiftLastDayControls }
                 }
                 .navigationTitle("Habit Rabbit")
                 .animation(.default, value: cardManagers.count)

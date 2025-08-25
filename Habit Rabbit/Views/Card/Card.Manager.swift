@@ -9,6 +9,8 @@ extension Habit.Card {
         let habit: Habit
         let modelContext: ModelContext
         
+        private let isMocked: Bool
+
         private(set) var lastDay: Date
         private(set) var mode: Habit.Card.Mode
         
@@ -27,8 +29,28 @@ extension Habit.Card {
             self.mode = mode
             self.lastDay = lastDay
             self.modelContext = modelContext
+            self.isMocked = false
             
             fetchValues()
+        }
+
+        init(mockFor habit: Habit) {
+            let now = Date.now
+
+            self.habit = habit
+            self.mode = .daily
+            self.lastDay = now
+            self.modelContext = ModelContext(try! ModelContainer(for: Habit.self, Habit.Value.self, configurations: ModelConfiguration(isStoredInMemoryOnly: true)))
+            self.isMocked = true
+            
+            // Create a single mock value with half the target
+            let mockValue = Habit.Value(
+                habit: habit, 
+                date: now, 
+                currentValue: habit.target
+            )
+            self.values = [mockValue]
+            self.valueCache = [Date(): mockValue]
         }
         
         var name: String { habit.name }
@@ -66,6 +88,10 @@ extension Habit.Card.Manager {
 extension Habit.Card.Manager {
     
     private func fetchOrCreateValue(for date: Date) -> Habit.Value {
+        if isMocked {
+            return values.first ?? Habit.Value(habit: habit, date: date, currentValue: habit.target)
+        }
+        
         if let cachedValue = valueCache[date] {
             return cachedValue
         }
@@ -83,6 +109,7 @@ extension Habit.Card.Manager {
     }
     
     private func fetchValues() {
+        guard !isMocked else { return }
         // fetch core 30 day window for active values
         let coreDescription = Habit.Value.filterBy(days: 30, endingOn: lastDay, for: habit)
         guard let coreValues = try? modelContext.fetch(coreDescription) else { return }

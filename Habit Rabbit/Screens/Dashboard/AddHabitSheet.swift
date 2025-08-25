@@ -4,53 +4,77 @@ extension Habit.Dashboard {
 
     struct AddHabitSheet: View {
 
-        @Environment(\.colorScheme) var colorScheme
-        @Environment(\.dismiss) var dismiss
+        @Environment(\.colorScheme) private var colorScheme
+        @Environment(\.dismiss) private var dismiss
+        
+        @State private var habitName = ""
+        @State private var habitUnit = ""
 
         var body: some View {
-            NavigationView {
-                VStack {
-                    Text("Content")
-                        .font(.title2)
-                        .fontWeight(.medium)
+            NavigationStack {
+                VStack(spacing: 14) {
+                    VStack(alignment: .leading, spacing: 8) {
+                        Text("Habit Name")
+                            .font(.headline)
+                            .fontWeight(.semibold)
+                            .foregroundStyle(.secondary)
+                        TextField("Stretching", text: $habitName)
+                            .textFieldStyle(.plain)
+                            .font(.title)
+                            .fontWeight(.semibold)
+                    }
+                    
+                    Divider()
+                    
+                    VStack(alignment: .leading, spacing: 8) {
+                        Text("Unit")
+                            .font(.headline)
+                            .fontWeight(.semibold)
+                            .foregroundStyle(.secondary)
+                        TextField("Sessions", text: $habitUnit)
+                            .textFieldStyle(.plain)
+                            .font(.title)
+                            .fontWeight(.semibold)
+                    }
                     
                     Spacer()
                 }
-                .navigationTitle("Add Habit")
-                .navigationBarTitleDisplayMode(.inline)
                 .padding()
+                .padding(.horizontal)
                 .toolbar {
                     ToolbarItem(placement: .topBarLeading) { closeButton }
                     ToolbarItem(placement: .topBarTrailing) { addButton }
                 }
             }
-            .presentationBackground(.regularMaterial)
+            .presentationBackground {
+                Rectangle()
+                    .fill(.thickMaterial)
+                    .padding(.bottom, -100)
+            }
+            .presentationDetents([.medium])
+            .presentationDragIndicator(.visible)
         }
 
         private var closeButton: some View {
-            Button(role: .destructive) {
+            Button(role: .cancel) {
                 dismiss()
             } label: {
-                Image(systemName: "xmark")
+                Text("Cancel")
                     .fontWeight(.semibold)
-                    .frame(width: 44, height: 44)
-                    .background { Habit.Card.Background(in: .circle, material: .ultraThinMaterial) }
             }
-            .padding(.top, 4)
             .tint(.red)
         }
 
         private var addButton: some View {
-            Button() {
+            Button(role: .none) {
                 dismiss()
             } label: {
-                Image(systemName: "plus")
+                Text("Add Habit")
                     .fontWeight(.semibold)
-                    .frame(width: 44, height: 44)
-                    .background { Habit.Card.Background(in: .circle, material: .ultraThinMaterial) }
             }
-            .padding(.top, 4)
-            .tint(.green)
+            .buttonStyle(.borderedProminent)
+            .buttonBorderShape(.capsule)
+            .tint(.blue)
         }
 
     }
