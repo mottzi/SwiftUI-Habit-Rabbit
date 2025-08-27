@@ -40,9 +40,10 @@ extension Habit {
                         }
                     }
                     .padding(16)
+                    .padding(.top, -4)
                     .safeAreaInset(edge: .bottom) { debugButton }
                 }
-                .navigationTitle("Habit Rabbit")
+                .navigationBarTitleDisplayMode(.inline)
                 .animation(.default, value: cardManagers.count)
                 .overlay(alignment: .bottomTrailing) { addHabitButton }
                 .toolbar { modePicker }
@@ -64,7 +65,7 @@ extension Habit {
 extension Habit.Dashboard {
     
     private var modePicker: some ToolbarContent {
-        ToolbarItem(/*placement: .topBarTrailing*/) {
+        ToolbarItem(placement: .principal) {
             ModePicker(
                 width: 240,
                 mode: dashboardManager.mode,
