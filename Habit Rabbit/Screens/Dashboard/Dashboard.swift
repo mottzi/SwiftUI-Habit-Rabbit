@@ -66,10 +66,6 @@ extension Habit.Dashboard {
     
     private var modePicker: some View {
         VStack(spacing: 16) {
-            Text(formattedDate(dashboardManager.lastDay))
-                .font(.system(size: 14, weight: .medium))
-                .foregroundStyle(.secondary)
-
             ModePicker(
                 width: 240,
                 mode: dashboardManager.mode,
@@ -79,6 +75,9 @@ extension Habit.Dashboard {
             )
             .sensoryFeedback(.selection, trigger: dashboardManager.mode)
             
+            Text(formattedDate(dashboardManager.lastDay))
+                .font(.system(size: 14, weight: .medium))
+                .foregroundStyle(.secondary)
         }
         .padding(.top, 4)
     }

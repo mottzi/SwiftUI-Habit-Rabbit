@@ -23,7 +23,6 @@ extension Habit.Dashboard {
                 .padding()
         }
         .buttonStyle(.plain)
-        .padding(.vertical, 16)
     }
     
 }
