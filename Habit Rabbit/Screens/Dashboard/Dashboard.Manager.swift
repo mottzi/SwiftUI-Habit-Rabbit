@@ -11,6 +11,7 @@ extension Habit.Dashboard {
         
         private(set) var mode: Habit.Card.Mode
         private(set) var useZoomTransition: Bool = false
+        private(set) var useInlineNavTitle: Bool = false
         
         private(set) var cardManagers: [Habit.Card.Manager] = []
         
@@ -122,6 +123,10 @@ extension Habit.Dashboard.Manager {
     
     func toggleZoomTransition() {
         useZoomTransition.toggle()
+    }
+    
+    func toggleInlineNavTitle() {
+        useInlineNavTitle.toggle()
     }
         
     func updateMode(to newMode: Habit.Card.Mode) {

@@ -11,6 +11,7 @@ extension Habit.Dashboard {
             resetAllButton
             Divider()
             zoomTransitionButton
+            inlineNavTitleButton
             Divider()
             removeDBButton
             removeHabitsButton
@@ -80,8 +81,18 @@ extension Habit.Dashboard {
         }
     }
     
+    private var inlineNavTitleButton: some View {
+        Button(action: dashboardManager.toggleInlineNavTitle) {
+            Label("Inline Title", systemImage: inlineNavTitleSymbol)
+        }
+    }
+    
     private var zoomTransitionSymbol: String {
         dashboardManager.useZoomTransition ? "checkmark.circle.fill" : "circle"
+    }
+    
+    private var inlineNavTitleSymbol: String {
+        dashboardManager.useInlineNavTitle ? "checkmark.circle.fill" : "circle"
     }
     
 }

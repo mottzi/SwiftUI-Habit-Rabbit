@@ -46,6 +46,7 @@ extension Habit {
                 .sheet(isPresented: $presentAddSheet) { AddHabitSheet() }
                 .overlay(alignment: .bottomTrailing) { debugButton }
                 .navigationTitle("Habit Rabbit")
+                .navigationBarTitleDisplayMode(dashboardManager.useInlineNavTitle ? .inline : .automatic)
                 .toolbar { addHabitButton }
             }
             .tint(colorScheme == .dark ? .white : .black)
@@ -64,15 +65,30 @@ extension Habit {
 extension Habit.Dashboard {
     
     private var modePicker: some View {
-        ModePicker(
-            width: 240,
-            mode: dashboardManager.mode,
-            onSelection: { mode in
-                dashboardManager.updateMode(to: mode)
-            }
-        )
-        .padding(.top, 8)
-        .sensoryFeedback(.selection, trigger: dashboardManager.mode)
+        VStack(spacing: 16) {
+            Text(formattedDate(dashboardManager.lastDay))
+                .font(.system(size: 14, weight: .medium))
+                .foregroundStyle(.secondary)
+
+            ModePicker(
+                width: 240,
+                mode: dashboardManager.mode,
+                onSelection: { mode in
+                    dashboardManager.updateMode(to: mode)
+                }
+            )
+            .sensoryFeedback(.selection, trigger: dashboardManager.mode)
+            
+        }
+        .padding(.top, 4)
+    }
+    
+    private func formattedDate(_ date: Date) -> String {
+        let formatter = DateFormatter()
+        formatter.locale = Locale.preferred
+        formatter.dateStyle = .full
+        formatter.timeStyle = .none
+        return formatter.string(from: date)
     }
     
     private var addHabitButton: some ToolbarContent {
@@ -82,6 +98,7 @@ extension Habit.Dashboard {
             }
             .buttonBorderShape(.circle)
             .buttonStyle(.bordered)
+            .fontWeight(.semibold)
         }
     }
     
