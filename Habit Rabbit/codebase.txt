@@ -92,13 +92,28 @@ extension Locale {
 // ./Habit Rabbit/App/Extensions/Collections.swift
 import SwiftUI
 
-extension CaseIterable where Self: Equatable {
-
+extension CaseIterable where Self: Equatable, AllCases: BidirectionalCollection {
+    
     var next: Self {
         let all = Self.allCases
         let current = all.firstIndex(of: self)!
-        let next = all.index(current, offsetBy: 1)
+        let next = all.index(after: current)
         return all[next == all.endIndex ? all.startIndex : next]
+    }
+    
+    var previous: Self {
+        let all = Self.allCases
+        let current = all.firstIndex(of: self)!
+        let previous = current == all.startIndex ? all.index(before: all.endIndex) : all.index(before: current)
+        return all[previous]
+    }
+    
+    var isFirst: Bool {
+        Self.allCases.first == self
+    }
+    
+    var isLast: Bool {
+        Self.allCases.last == self
     }
     
 }
@@ -423,10 +438,6 @@ extension Habit.Dashboard {
                         Divider()
                         colorSection
                         Divider()
-                        addButton
-                            .padding(.top, 32)
-                            .padding(.bottom, 32)
-                            .ignoresSafeArea(.keyboard)
                     }
                     .padding(horizontalPadding)
                     .padding(.horizontal, horizontalPadding)
@@ -438,18 +449,28 @@ extension Habit.Dashboard {
                     }
                 }
                 .scrollBounceBehavior(.basedOnSize)
+                .overlay(alignment: .bottom) {
+                    addButton
+                        .padding(.vertical, 32)
+                        
+                }
+                .ignoresSafeArea(.keyboard)
+                .toolbar {
+                    ToolbarItemGroup(placement: .keyboard) {
+                        keyboardToolbar
+                    }
+                }
+                .presentationBackground {
+                    Rectangle()
+                        .fill(.thickMaterial)
+                        .padding(.bottom, -100)
+                }
+                .presentationDetents([.large])
+                .interactiveDismissDisabled()
+                .sheet(isPresented: $showIconPicker) { iconPickerSheet }
             }
-
-            .presentationBackground {
-                Rectangle()
-                    .fill(.thickMaterial)
-                    .padding(.bottom, -100)
-            }
-            .presentationDetents([.large])
-            .interactiveDismissDisabled()
-            .sheet(isPresented: $showIconPicker) { iconPickerSheet }
         }
-
+        
     }
     
 }
@@ -460,11 +481,43 @@ extension Habit.Dashboard.AddHabitSheet {
         case habitName
         case habitUnit
         case target
+        case icon
     }
     
-    private func advanceToNextField() {
+    private func advanceToNextField(from currentField: FocusedField? = nil) {
+        let currentField = currentField ?? focusedField
+        guard let currentField else { return }
+        let nextField = currentField.next
+        
+        if nextField == .icon {
+            focusedField = .icon
+            showIconPicker = true
+            focusedField = nil
+        } else {
+            focusedField = nextField
+        }
+    }
+    
+    private func advanceToPreviousField() {
         guard let currentField = focusedField else { return }
-        focusedField = currentField.next
+        focusedField = currentField.previous
+    }
+    
+    private var keyboardToolbar: some View {
+        HStack {
+            Button("Previous") { advanceToPreviousField() }
+            .disabled(focusedField?.isFirst == true)
+            .fontWeight(.semibold)
+            
+            Button("Next") { advanceToNextField() }
+            .disabled(focusedField?.isLast == true)
+            .fontWeight(.semibold)
+            
+            Spacer()
+            
+            Button("Done") { focusedField = nil }
+            .fontWeight(.semibold)
+        }
     }
     
 }
@@ -513,8 +566,13 @@ extension Habit.Dashboard.AddHabitSheet {
                 .fontWeight(.semibold)
                 .focused($focusedField, equals: .habitName)
                 .onSubmit {
-                    advanceToNextField()
+                    Task {
+                        try? await Task.sleep(for: .milliseconds(300))
+                        advanceToNextField(from: .habitName)
+                    }
                 }
+                .submitLabel(.next)
+                .autocorrectionDisabled()
         }
         .frame(maxWidth: .infinity, alignment: .leading)
     }
@@ -531,8 +589,13 @@ extension Habit.Dashboard.AddHabitSheet {
                 .fontWeight(.semibold)
                 .focused($focusedField, equals: .habitUnit)
                 .onSubmit {
-                    advanceToNextField()
+                    Task {
+                        try? await Task.sleep(for: .milliseconds(300))
+                        advanceToNextField(from: .habitUnit)
+                    }
                 }
+                .submitLabel(.next)
+                .autocorrectionDisabled()
         }
         .frame(maxWidth: .infinity, alignment: .leading)
     }
@@ -584,6 +647,7 @@ extension Habit.Dashboard.AddHabitSheet {
                                 selectedIcon = icon
                                 try? await Task.sleep(for: .milliseconds(100))
                                 showIconPicker = false
+                                focusedField = nil
                             }
                         } label: {
                             Image(systemName: icon)
@@ -609,6 +673,7 @@ extension Habit.Dashboard.AddHabitSheet {
                 .safeAreaInset(edge: .top, alignment: .trailing) {
                     Button(role: .cancel) {
                         showIconPicker = false
+                        focusedField = nil
                     } label: {
                         Image(systemName: "xmark")
                             .font(.headline)
@@ -691,20 +756,7 @@ extension Habit.Dashboard.AddHabitSheet {
                 .onSubmit {
                     advanceToNextField()
                 }
-                .toolbar {
-                    ToolbarItemGroup(placement: .keyboard) {
-                        if focusedField == .target {
-                            Spacer()
-                            Button("Done") {
-                                focusedField = nil
-                            }
-                            .fontWeight(.semibold)
-                        }
-                        else {
-                            EmptyView()
-                        }
-                    }
-                }
+
         }
         .frame(maxWidth: .infinity, alignment: .leading)
     }

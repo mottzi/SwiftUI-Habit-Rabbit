@@ -79,13 +79,11 @@ extension Habit.Dashboard.AddHabitSheet {
     }
     
     private func advanceToNextField(from currentField: FocusedField? = nil) {
-        let field = currentField ?? focusedField
-        guard let field = field else { return }
-        
-        let nextField = field.next
+        let currentField = currentField ?? focusedField
+        guard let currentField else { return }
+        let nextField = currentField.next
         
         if nextField == .icon {
-            // When advancing to icon field, open the icon picker
             focusedField = .icon
             showIconPicker = true
             focusedField = nil
@@ -99,31 +97,20 @@ extension Habit.Dashboard.AddHabitSheet {
         focusedField = currentField.previous
     }
     
-    @ViewBuilder
     private var keyboardToolbar: some View {
-        if focusedField != nil {
-            HStack {
-                Button("Previous") {
-                    advanceToPreviousField()
-                }
-                .disabled(focusedField?.isFirst == true)
-                .fontWeight(.semibold)
-                
-                Button("Next") {
-                    advanceToNextField()
-                }
-                .disabled(focusedField?.isLast == true)
-                .fontWeight(.semibold)
-                
-                Spacer()
-                
-                Button("Done") {
-                    focusedField = nil
-                }
-                .fontWeight(.semibold)
-            }
-        } else {
-            EmptyView()
+        HStack {
+            Button("Previous") { advanceToPreviousField() }
+            .disabled(focusedField?.isFirst == true)
+            .fontWeight(.semibold)
+            
+            Button("Next") { advanceToNextField() }
+            .disabled(focusedField?.isLast == true)
+            .fontWeight(.semibold)
+            
+            Spacer()
+            
+            Button("Done") { focusedField = nil }
+            .fontWeight(.semibold)
         }
     }
     
