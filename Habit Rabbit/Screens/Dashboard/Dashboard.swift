@@ -71,9 +71,8 @@ extension Habit.Dashboard {
                 presentAddSheet = true
             }
             .buttonBorderShape(.circle)
-            .buttonStyle(.borderedProminent)
+            .buttonStyle(.bordered)
             .fontWeight(.semibold)
-            .tint(.blue)
         }
     }
     
