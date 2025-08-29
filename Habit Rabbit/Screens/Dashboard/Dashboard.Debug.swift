@@ -4,17 +4,15 @@ extension Habit.Dashboard {
     
     var debugButton: some View {
         Menu {
-            adjustLastDayButton
-            Divider()
             addExampleButton
             randomizeButton
-            resetAllButton
+            resetLatestButton
             Divider()
-            zoomTransitionButton
-            inlineNavTitleButton
+            zoomButton
+            inlineButton
             Divider()
-            removeDBButton
-            removeHabitsButton
+            killDatabaseButton
+            deleteHabitsButton
         } label: {
             Image(systemName: "hammer.fill")
                 .foregroundStyle(colorScheme == .light ? .black : .white)
@@ -29,15 +27,6 @@ extension Habit.Dashboard {
 }
 
 extension Habit.Dashboard {
-    
-    private var adjustLastDayButton: some View {
-        Menu {
-            Button("Back") { dashboardManager.shiftLastDay(to: .yesterday) }
-            Button("Forward") { dashboardManager.shiftLastDay(to: .tomorrow) }
-        } label: {
-            Label("Last Day", systemImage: "calendar")
-        }
-    }
     
     private var addExampleButton: some View {
         Menu {
@@ -57,42 +46,50 @@ extension Habit.Dashboard {
         }
     }
     
-    private var resetAllButton: some View {
-        Button("Reset All", systemImage: "0.circle") {
-            dashboardManager.resetAllHabits()
+    private var resetLatestButton: some View {
+        Button("Reset Latest", systemImage: "0.circle") {
+            dashboardManager.resetLatestHabits()
         }
     }
     
-    private var removeDBButton: some View {
+}
+
+extension Habit.Dashboard {
+    
+    private var zoomButton: some View {
+        Button(action: dashboardManager.toggleUseZoom) {
+            Label("Zoom Transition", systemImage: useZoomSymbol)
+        }
+    }
+    
+    private var inlineButton: some View {
+        Button(action: dashboardManager.toggleUseInline) {
+            Label("Inline Title", systemImage: useInlineSymbol)
+        }
+    }
+    
+    private var useZoomSymbol: String {
+        dashboardManager.useZoom ? "checkmark.circle.fill" : "circle"
+    }
+    
+    private var useInlineSymbol: String {
+        dashboardManager.useInline ? "checkmark.circle.fill" : "circle"
+    }
+    
+}
+
+extension Habit.Dashboard {
+    
+    private var killDatabaseButton: some View {
         Button("Kill Database", systemImage: "xmark", role: .destructive) {
             dashboardManager.deleteAllData()
         }
     }
     
-    private var removeHabitsButton: some View {
+    private var deleteHabitsButton: some View {
         Button("Delete All", systemImage: "trash", role: .destructive) {
             try? dashboardManager.deleteAllHabits()
         }
-    }
-    
-    private var zoomTransitionButton: some View {
-        Button(action: dashboardManager.toggleZoomTransition) {
-            Label("Zoom Transition", systemImage: zoomTransitionSymbol)
-        }
-    }
-    
-    private var inlineNavTitleButton: some View {
-        Button(action: dashboardManager.toggleInlineNavTitle) {
-            Label("Inline Title", systemImage: inlineNavTitleSymbol)
-        }
-    }
-    
-    private var zoomTransitionSymbol: String {
-        dashboardManager.useZoom ? "checkmark.circle.fill" : "circle"
-    }
-    
-    private var inlineNavTitleSymbol: String {
-        dashboardManager.useInline ? "checkmark.circle.fill" : "circle"
     }
     
 }

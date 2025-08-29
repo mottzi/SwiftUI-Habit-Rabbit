@@ -121,11 +121,11 @@ extension Habit.Dashboard.Manager {
 
 extension Habit.Dashboard.Manager {
     
-    func toggleZoomTransition() {
+    func toggleUseZoom() {
         useZoom.toggle()
     }
     
-    func toggleInlineNavTitle() {
+    func toggleUseInline() {
         useInline.toggle()
     }
         
@@ -153,7 +153,7 @@ extension Habit.Dashboard.Manager {
         cardManagers.forEach { $0.randomizeMonthlyValues() }
     }
     
-    func resetAllHabits() {
+    func resetLatestHabits() {
         cardManagers.forEach { $0.resetDailyValue() }
     }
     
