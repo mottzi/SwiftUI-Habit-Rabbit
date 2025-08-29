@@ -87,11 +87,11 @@ extension Habit.Dashboard {
     }
     
     private var zoomTransitionSymbol: String {
-        dashboardManager.useZoomTransition ? "checkmark.circle.fill" : "circle"
+        dashboardManager.useZoom ? "checkmark.circle.fill" : "circle"
     }
     
     private var inlineNavTitleSymbol: String {
-        dashboardManager.useInlineNavTitle ? "checkmark.circle.fill" : "circle"
+        dashboardManager.useInline ? "checkmark.circle.fill" : "circle"
     }
     
 }

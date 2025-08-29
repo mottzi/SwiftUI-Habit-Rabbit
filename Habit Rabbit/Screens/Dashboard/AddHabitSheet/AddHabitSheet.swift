@@ -36,24 +36,17 @@ extension Habit.Dashboard {
                     }
                     .padding(horizontalPadding)
                     .padding(.horizontal, horizontalPadding)
-                    .padding(.top, 32)
-                    .overlay(alignment: .topTrailing) {
-                        closeButton
-                            .padding(.trailing)
-                            .padding(.top)
-                    }
+//                    .padding(.top, 32)
                 }
                 .scrollBounceBehavior(.basedOnSize)
                 .overlay(alignment: .bottom) {
                     addButton
                         .padding(.vertical, 32)
-                        
                 }
                 .ignoresSafeArea(.keyboard)
                 .toolbar {
-                    ToolbarItemGroup(placement: .keyboard) {
-                        keyboardToolbar
-                    }
+                    keyboardToolbar
+                    closeButtonToolbar
                 }
                 .presentationBackground {
                     Rectangle()
@@ -72,18 +65,20 @@ extension Habit.Dashboard {
 
 extension Habit.Dashboard.AddHabitSheet {
 
-    private var closeButton: some View {
-        Button(role: .cancel) {
-            dismiss()
-        } label: {
-            Image(systemName: "xmark")
-                .font(.headline)
-                .fontWeight(.semibold)
-                .frame(width: 32, height: 32)
+    private var closeButtonToolbar: some ToolbarContent {
+        ToolbarItem(placement: .topBarTrailing) {
+            Button(role: .cancel) {
+                dismiss()
+            } label: {
+                Image(systemName: "xmark")
+                    .font(.headline)
+                    .fontWeight(.semibold)
+            }
+            .buttonStyle(.bordered)
+            .buttonBorderShape(.circle)
+            .tint(.red)
+            .padding(.trailing, -8)
         }
-        .buttonStyle(.bordered)
-        .buttonBorderShape(.circle)
-        .tint(.red)
     }
 
     private var addButton: some View {

@@ -25,14 +25,14 @@ extension Habit {
                                 Habit.Card.DetailView()
                                     .environment(cardManager)
                                     .environment(dashboardManager)
-                                    .if(dashboardManager.useZoomTransition) { view in
+                                    .if(dashboardManager.useZoom) { view in
                                         view.navigationTransition(.zoom(sourceID: cardManager.habit.id, in: habitTransition))
                                     }
                             } label: {
                                 Habit.Card()
                                     .environment(cardManager)
                                     .environment(\.cardOffset, index)
-                                    .if(dashboardManager.useZoomTransition) { view in
+                                    .if(dashboardManager.useZoom) { view in
                                         view.matchedTransitionSource(id: cardManager.habit.id, in: habitTransition)
                                     }
                             }
@@ -40,13 +40,14 @@ extension Habit {
                         }
                     }
                     .padding(16)
-                    .safeAreaInset(edge: .top) { modePicker }
+                    .padding(.top, -4)
                 }
+                .safeAreaInset(edge: .top) { gridHeader }
                 .animation(.default, value: cardManagers.count)
                 .sheet(isPresented: $presentAddSheet) { AddHabitSheet() }
                 .overlay(alignment: .bottomTrailing) { debugButton }
                 .navigationTitle("Habit Rabbit")
-                .navigationBarTitleDisplayMode(dashboardManager.useInlineNavTitle ? .inline : .automatic)
+                .navigationBarTitleDisplayMode(dashboardManager.useInline ? .inline : .automatic)
                 .toolbar { addHabitButton }
             }
             .tint(colorScheme == .dark ? .white : .black)
@@ -64,61 +65,16 @@ extension Habit {
 
 extension Habit.Dashboard {
     
-    private var modePicker: some View {
-        VStack(spacing: 16) {
-            ModePicker(
-                width: 240,
-                mode: dashboardManager.mode,
-                onSelection: { mode in
-                    dashboardManager.updateMode(to: mode)
-                }
-            )
-            .sensoryFeedback(.selection, trigger: dashboardManager.mode)
-            
-            Text(formattedDate(dashboardManager.lastDay))
-                .font(.system(size: 14, weight: .medium))
-                .foregroundStyle(.secondary)
-        }
-        .padding(.top, 4)
-    }
-    
-    private func formattedDate(_ date: Date) -> String {
-        let formatter = DateFormatter()
-        formatter.locale = Locale.preferred
-        formatter.dateStyle = .full
-        formatter.timeStyle = .none
-        return formatter.string(from: date)
-    }
-    
     private var addHabitButton: some ToolbarContent {
         ToolbarItem {
             Button("Add Habit", systemImage: "plus") {
                 presentAddSheet = true
             }
             .buttonBorderShape(.circle)
-            .buttonStyle(.bordered)
+            .buttonStyle(.borderedProminent)
             .fontWeight(.semibold)
+            .tint(.blue)
         }
     }
-    
-//    private var shiftLastDayControls: some View {
-//        HStack {
-//            Button("Back") {
-//                dashboardManager.shiftLastDay(to: .yesterday)
-//            }
-//            
-//            Spacer()
-//            
-//            Text("\(dashboardManager.lastDay.formatted(date: .abbreviated, time: .omitted))")
-//            
-//            Spacer()
-//            
-//            Button("Forward") {
-//                dashboardManager.shiftLastDay(to: .tomorrow)
-//            }
-//        }
-//        .padding(16)
-//        .sensoryFeedback(.selection, trigger: dashboardManager.lastDay)
-//    }
     
 }

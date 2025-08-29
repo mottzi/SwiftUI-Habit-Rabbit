@@ -28,20 +28,22 @@ extension Habit.Dashboard.AddHabitSheet {
         focusedField = currentField.previous
     }
     
-    var keyboardToolbar: some View {
-        HStack {
-            Button("Previous") { advanceToPreviousField() }
-            .disabled(focusedField?.isFirst == true)
-            .fontWeight(.semibold)
-            
-            Button("Next") { advanceToNextField() }
-            .disabled(focusedField?.isLast == true)
-            .fontWeight(.semibold)
-            
-            Spacer()
-            
-            Button("Done") { focusedField = nil }
-            .fontWeight(.semibold)
+    var keyboardToolbar: some ToolbarContent {
+        ToolbarItem(placement: .keyboard){
+            HStack {
+                Button("Previous") { advanceToPreviousField() }
+                .disabled(focusedField?.isFirst == true)
+                .fontWeight(.semibold)
+                
+                Button("Next") { advanceToNextField() }
+                .disabled(focusedField?.isLast == true)
+                .fontWeight(.semibold)
+                
+                Spacer()
+                
+                Button("Done") { focusedField = nil }
+                .fontWeight(.semibold)
+            }
         }
     }
     

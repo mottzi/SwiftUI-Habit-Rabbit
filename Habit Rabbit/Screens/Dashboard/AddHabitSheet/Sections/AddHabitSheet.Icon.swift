@@ -63,32 +63,34 @@ extension Habit.Dashboard.AddHabitSheet {
                         .buttonStyle(.plain)
                     }
                 }
-                .padding(.horizontal, 16)
-                .padding(.bottom, 32)
-                .safeAreaInset(edge: .top, alignment: .trailing) {
-                    Button(role: .cancel) {
-                        showIconPicker = false
-                        focusedField = nil
-                    } label: {
-                        Image(systemName: "xmark")
-                            .font(.headline)
-                            .fontWeight(.semibold)
-                            .frame(width: 36, height: 36)
-                    }
-                    .buttonStyle(.bordered)
-                    .buttonBorderShape(.circle)
-                    .tint(.red)
-                    .padding(.vertical)
-                    .padding(.trailing, 10)
-                }
+//                .padding(.horizontal, 16)
+                .padding(.vertical, 32)
                 
             }
+            .toolbar { closeButton }
         }
         .presentationDetents([.large])
         .presentationBackground {
             Rectangle()
                 .fill(.thickMaterial)
                 .padding(.bottom, -100)
+        }
+    }
+    
+    private var closeButton: some ToolbarContent {
+        ToolbarItem(placement: .topBarTrailing) {
+            Button(role: .cancel) {
+                showIconPicker = false
+                focusedField = nil
+            } label: {
+                Image(systemName: "xmark")
+                    .font(.headline)
+                    .fontWeight(.semibold)
+            }
+            .buttonStyle(.bordered)
+            .buttonBorderShape(.circle)
+            .tint(.red)
+            .padding(.trailing, -8)
         }
     }
     
