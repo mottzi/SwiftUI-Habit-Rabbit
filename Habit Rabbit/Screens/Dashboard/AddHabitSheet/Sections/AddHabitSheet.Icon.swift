@@ -32,13 +32,12 @@ extension Habit.Dashboard.AddHabitSheet {
             }
         }
         .buttonStyle(.plain)
-        //            .offset(x: -4)
     }
-    
+        
     var iconPickerSheet: some View {
         NavigationStack {
             ScrollView {
-                LazyVGrid(columns: Array(repeating: GridItem(.flexible(), spacing: 16), count: 6), spacing: 10) {
+                LazyVGrid(columns: columns, spacing: 10) {
                     ForEach(Self.commonIcons, id: \.self) { icon in
                         Button {
                             Task {
@@ -54,11 +53,9 @@ extension Habit.Dashboard.AddHabitSheet {
                                 .frame(width: 44, height: 44)
                                 .padding(4)
                                 .background {
-                                    if selectedIcon == icon {
-                                        Circle()
-                                            .fill(.blue)
-                                    } else {
-                                        Habit.Card.Background(in: .circle)
+                                    switch selectedIcon == icon {
+                                        case true:  Circle().fill(.blue)
+                                        case false: Habit.Card.Background(in: .circle)
                                     }
                                 }
                             

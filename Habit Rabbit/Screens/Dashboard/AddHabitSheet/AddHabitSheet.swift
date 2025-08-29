@@ -17,7 +17,8 @@ extension Habit.Dashboard {
         @State var targetValue: Int?
         
         let horizontalPadding: CGFloat = 16
-        
+        let columns = Array(repeating: GridItem(.flexible(), spacing: 16), count: 6)
+
         var body: some View {
             NavigationStack {
                 ScrollView {
