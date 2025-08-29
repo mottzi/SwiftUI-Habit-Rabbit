@@ -36,7 +36,6 @@ extension Habit.Dashboard {
                     }
                     .padding(horizontalPadding)
                     .padding(.horizontal, horizontalPadding)
-//                    .padding(.top, 32)
                 }
                 .scrollBounceBehavior(.basedOnSize)
                 .overlay(alignment: .bottom) {
