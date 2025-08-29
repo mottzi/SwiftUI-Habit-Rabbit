@@ -388,6 +388,426 @@ extension Habit.Value {
     }
     
 }
+// ./Habit Rabbit/Screens/Dashboard/AddHabitSheet.swift
+import SwiftUI
+
+extension Habit.Dashboard {
+
+    struct AddHabitSheet: View {
+
+        @Environment(\.colorScheme) private var colorScheme
+        @Environment(\.dismiss) private var dismiss
+        
+        @FocusState private var focusedField: FocusedField?
+
+        @State private var habitName = ""
+        @State private var habitUnit = ""
+        @State private var selectedIcon = "star.fill"
+        @State private var selectedColor: Color = .blue
+        @State private var showIconPicker = false
+        @State private var targetValue: Int?
+        
+        private let horizontalPadding: CGFloat = 16
+        
+        var body: some View {
+            NavigationStack {
+                ScrollView {
+                    VStack(spacing: 14) {
+                        habitNameSection
+                        Divider()
+                        unitSection
+                        Divider()
+                        targetSection
+                        Divider()
+                        iconSection
+                        Divider()
+                        colorSection
+                        Divider()
+                        addButton
+                            .padding(.top, 32)
+                            .padding(.bottom, 32)
+                            .ignoresSafeArea(.keyboard)
+                    }
+                    .padding(horizontalPadding)
+                    .padding(.horizontal, horizontalPadding)
+                    .padding(.top, 32)
+                    .overlay(alignment: .topTrailing) {
+                        closeButton
+                            .padding(.trailing)
+                            .padding(.top)
+                    }
+                }
+                .scrollBounceBehavior(.basedOnSize)
+            }
+
+            .presentationBackground {
+                Rectangle()
+                    .fill(.thickMaterial)
+                    .padding(.bottom, -100)
+            }
+            .presentationDetents([.large])
+            .interactiveDismissDisabled()
+            .sheet(isPresented: $showIconPicker) { iconPickerSheet }
+        }
+
+    }
+    
+}
+
+extension Habit.Dashboard.AddHabitSheet {
+ 
+    enum FocusedField: CaseIterable {
+        case habitName
+        case habitUnit
+        case target
+    }
+    
+    private func advanceToNextField() {
+        guard let currentField = focusedField else { return }
+        focusedField = currentField.next
+    }
+    
+}
+
+extension Habit.Dashboard.AddHabitSheet {
+
+    private var closeButton: some View {
+        Button(role: .cancel) {
+            dismiss()
+        } label: {
+            Image(systemName: "xmark")
+                .font(.headline)
+                .fontWeight(.semibold)
+                .frame(width: 32, height: 32)
+        }
+        .buttonStyle(.bordered)
+        .buttonBorderShape(.circle)
+        .tint(.red)
+    }
+
+    private var addButton: some View {
+        Button(role: .none) {
+            dismiss()
+        } label: {
+            Label("Add Habit", systemImage: "plus")
+                .fontWeight(.semibold)
+        }
+        .buttonStyle(.borderedProminent)
+        .buttonBorderShape(.capsule)
+        .tint(.blue)
+    }
+
+}
+
+extension Habit.Dashboard.AddHabitSheet {
+
+    private var habitNameSection: some View {
+        VStack(alignment: .leading, spacing: 8) {
+            Text("Habit Name")
+                .font(.headline)
+                .fontWeight(.semibold)
+                .foregroundStyle(.secondary)
+            TextField("Stretching", text: $habitName)
+                .textFieldStyle(.plain)
+                .font(.title)
+                .fontWeight(.semibold)
+                .focused($focusedField, equals: .habitName)
+                .onSubmit {
+                    advanceToNextField()
+                }
+        }
+        .frame(maxWidth: .infinity, alignment: .leading)
+    }
+
+    private var unitSection: some View {
+        VStack(alignment: .leading, spacing: 8) {
+            Text("Unit")
+                .font(.headline)
+                .fontWeight(.semibold)
+                .foregroundStyle(.secondary)
+            TextField("Sessions", text: $habitUnit)
+                .textFieldStyle(.plain)
+                .font(.title)
+                .fontWeight(.semibold)
+                .focused($focusedField, equals: .habitUnit)
+                .onSubmit {
+                    advanceToNextField()
+                }
+        }
+        .frame(maxWidth: .infinity, alignment: .leading)
+    }
+
+}
+
+extension Habit.Dashboard.AddHabitSheet {
+    
+    private var iconSection: some View {
+        VStack(alignment: .leading, spacing: 12) {
+            Text("Icon")
+                .font(.headline)
+                .fontWeight(.semibold)
+                .foregroundStyle(.secondary)
+            iconPickerButton
+                .font(.title3)
+                .fontWeight(.semibold)
+        }
+        .frame(maxWidth: .infinity, alignment: .leading)
+    }
+    
+    private var iconPickerButton: some View {
+        Button {
+            showIconPicker = true
+        } label: {
+            HStack(alignment: .lastTextBaseline) {
+                Image(systemName: selectedIcon)
+                    .font(.title2)
+                    .foregroundStyle(colorScheme == .light ? .black : .white)
+                    .padding(.leading, 1)
+                
+                Text("Change")
+                    .font(.subheadline)
+                    .fontWeight(.bold)
+                    .foregroundStyle(.secondary)
+            }
+        }
+        .buttonStyle(.plain)
+        //            .offset(x: -4)
+    }
+    
+    private var iconPickerSheet: some View {
+        NavigationStack {
+            ScrollView {
+                LazyVGrid(columns: Array(repeating: GridItem(.flexible(), spacing: 16), count: 6), spacing: 10) {
+                    ForEach(Self.commonIcons, id: \.self) { icon in
+                        Button {
+                            Task {
+                                selectedIcon = icon
+                                try? await Task.sleep(for: .milliseconds(100))
+                                showIconPicker = false
+                            }
+                        } label: {
+                            Image(systemName: icon)
+                                .font(.title3)
+                                .foregroundStyle(selectedIcon == icon ? .white : (colorScheme == .light ? .black : .white))
+                                .frame(width: 44, height: 44)
+                                .padding(4)
+                                .background {
+                                    if selectedIcon == icon {
+                                        Circle()
+                                            .fill(.blue)
+                                    } else {
+                                        Habit.Card.Background(in: .circle)
+                                    }
+                                }
+                            
+                        }
+                        .buttonStyle(.plain)
+                    }
+                }
+                .padding(.horizontal, 16)
+                .padding(.bottom, 32)
+                .safeAreaInset(edge: .top, alignment: .trailing) {
+                    Button(role: .cancel) {
+                        showIconPicker = false
+                    } label: {
+                        Image(systemName: "xmark")
+                            .font(.headline)
+                            .fontWeight(.semibold)
+                            .frame(width: 36, height: 36)
+                    }
+                    .buttonStyle(.bordered)
+                    .buttonBorderShape(.circle)
+                    .tint(.red)
+                    .padding(.vertical)
+                    .padding(.trailing, 10)
+                }
+                
+            }
+        }
+        .presentationDetents([.large])
+        .presentationBackground {
+            Rectangle()
+                .fill(.thickMaterial)
+                .padding(.bottom, -100)
+        }
+    }
+    
+}
+
+extension Habit.Dashboard.AddHabitSheet {
+    
+    private var colorSection: some View {
+        VStack(alignment: .leading, spacing: 12) {
+            Text("Color")
+                .font(.headline)
+                .fontWeight(.semibold)
+                .foregroundStyle(.secondary)
+            
+            colorPicker
+        }
+    }
+    
+    private var colorPicker: some View {
+        ScrollView(.horizontal, showsIndicators: false) {
+            HStack(spacing: 12) {
+                ForEach(Self.availableColors.enumerated, id: \.offset) { index, color in
+                    Button {
+                        selectedColor = color
+                    } label: {
+                        Circle()
+                            .fill(color.gradient)
+                            .frame(width: 44, height: 44)
+                            .overlay {
+                                if selectedColor == color {
+                                    Circle()
+                                        .strokeBorder(.primary, lineWidth: 3)
+                                }
+                            }
+                    }
+                    .buttonStyle(.plain)
+                }
+            }
+        }
+        .contentMargins(.horizontal, horizontalPadding * 2)
+        .padding(.horizontal, -horizontalPadding * 2)
+    }
+    
+}
+
+extension Habit.Dashboard.AddHabitSheet {
+
+    private var targetSection: some View {
+        VStack(alignment: .leading, spacing: 8) {
+            Text("Target")
+                .font(.headline)
+                .fontWeight(.semibold)
+                .foregroundStyle(.secondary)
+            TextField("6", value: $targetValue, format: .number)
+                .textFieldStyle(.plain)
+                .font(.title)
+                .fontWeight(.semibold)
+                .keyboardType(.numberPad)
+                .focused($focusedField, equals: .target)
+                .onSubmit {
+                    advanceToNextField()
+                }
+                .toolbar {
+                    ToolbarItemGroup(placement: .keyboard) {
+                        if focusedField == .target {
+                            Spacer()
+                            Button("Done") {
+                                focusedField = nil
+                            }
+                            .fontWeight(.semibold)
+                        }
+                        else {
+                            EmptyView()
+                        }
+                    }
+                }
+        }
+        .frame(maxWidth: .infinity, alignment: .leading)
+    }
+    
+}
+
+extension Habit.Dashboard.AddHabitSheet {
+
+    private static let availableColors: [Color] = [
+        .blue,
+        .orange,
+        .green,
+        .pink,
+        .mint,
+        .purple,
+        .yellow,
+        .red,
+        .teal,
+        .indigo,
+        .brown,
+        .gray,
+        .cyan,
+    ]
+
+    private static let commonIcons: [String] = [
+        "star.fill",
+        "heart.fill",
+        "flame.fill",
+        "drop.fill",
+        "leaf.fill",
+        "moon.fill",
+        "sun.max.fill",
+        "cloud.rain.fill",
+        "snowflake",
+        "bolt.fill",
+        "target",
+        "book.fill",
+        "pencil",
+        "music.note",
+        "camera.fill",
+        "gamecontroller.fill",
+        "figure.walk",
+        "figure.run",
+        "bicycle",
+        "car.fill",
+        "airplane",
+        "house.fill",
+        "building.2.fill",
+        "cup.and.saucer.fill",
+        "fork.knife",
+        "pill.fill",
+        "bed.double.fill",
+        "laptopcomputer",
+        "iphone",
+        "headphones",
+        "tv.fill",
+        "film.fill",
+        "gift.fill",
+        "graduationcap.fill",
+        "brain.head.profile",
+        "dumbbell.fill",
+        "lightbulb.fill",
+        "paintbrush.fill",
+        "wrench.fill",
+        "briefcase.fill",
+        "doc.text.fill",
+        "calendar",
+        "clock.fill",
+        "alarm.fill",
+        "bell.fill",
+        "shield.fill",
+        "lock.fill",
+        "key.fill",
+        "magnifyingglass",
+        "plus.circle.fill",
+        "checkmark.circle.fill",
+        "xmark.circle.fill",
+        "exclamationmark.triangle.fill",
+        "info.circle.fill",
+        "questionmark.circle.fill",
+        "globe",
+        "map.fill",
+        "location.fill",
+        "compass.drawing",
+        "wallet.pass.fill",
+        "creditcard.fill",
+        "banknote.fill",
+        "cart.fill",
+        "bag.fill",
+        "tshirt.fill",
+        "shoe.fill",
+        "eyeglasses",
+        "ring.circle.fill",
+        "speaker.wave.3.fill",
+        "microphone.fill",
+        "phone.fill",
+        "message.fill",
+        "envelope.fill",
+        "paperplane.fill",
+        "wifi",
+        "antenna.radiowaves.left.and.right"
+    ]
+}
 // ./Habit Rabbit/Screens/Dashboard/Dashboard.Debug.swift
 import SwiftUI
 
@@ -402,22 +822,16 @@ extension Habit.Dashboard {
             resetAllButton
             Divider()
             zoomTransitionButton
+            inlineNavTitleButton
             Divider()
             removeDBButton
             removeHabitsButton
         } label: {
-            HStack(spacing: 16) {
-                Image(systemName: "hammer.fill")
-                    .foregroundStyle(colorScheme == .light ? .black : .white)
-                    .frame(width: 64, height: 64)
-                    .background { Habit.Card.Background(in: .circle) }
-                    .padding()
-                
-                Text("Habits: \(dashboardManager.cardManagers.count)")
-                    .font(.footnote)
-                    .fontWeight(.semibold)
-                    .foregroundStyle(.primary.opacity(0.7))
-            }
+            Image(systemName: "hammer.fill")
+                .foregroundStyle(colorScheme == .light ? .black : .white)
+                .frame(width: 64, height: 64)
+                .background { Habit.Card.Background(in: .circle) }
+                .padding()
         }
         .buttonStyle(.plain)
     }
@@ -477,8 +891,18 @@ extension Habit.Dashboard {
         }
     }
     
+    private var inlineNavTitleButton: some View {
+        Button(action: dashboardManager.toggleInlineNavTitle) {
+            Label("Inline Title", systemImage: inlineNavTitleSymbol)
+        }
+    }
+    
     private var zoomTransitionSymbol: String {
         dashboardManager.useZoomTransition ? "checkmark.circle.fill" : "circle"
+    }
+    
+    private var inlineNavTitleSymbol: String {
+        dashboardManager.useInlineNavTitle ? "checkmark.circle.fill" : "circle"
     }
     
 }
@@ -496,6 +920,7 @@ extension Habit.Dashboard {
         
         private(set) var mode: Habit.Card.Mode
         private(set) var useZoomTransition: Bool = false
+        private(set) var useInlineNavTitle: Bool = false
         
         private(set) var cardManagers: [Habit.Card.Manager] = []
         
@@ -608,6 +1033,10 @@ extension Habit.Dashboard.Manager {
     func toggleZoomTransition() {
         useZoomTransition.toggle()
     }
+    
+    func toggleInlineNavTitle() {
+        useInlineNavTitle.toggle()
+    }
         
     func updateMode(to newMode: Habit.Card.Mode) {
         if newMode == mode { return }
@@ -685,14 +1114,14 @@ extension Habit {
     struct Dashboard: View {
         
         @Namespace private var habitTransition
-        
         @Environment(\.colorScheme) var colorScheme
         @Environment(\.scenePhase) private var scenePhase
 
         @Environment(Habit.Dashboard.Manager.self) var dashboardManager
-
         var cardManagers: [Card.Manager] { dashboardManager.cardManagers }
-        
+
+        @State private var presentAddSheet = false
+
         var body: some View {
             let _ = print("Habit.Dashboard: 🔄 \(cardManagers.count) Habit.Cards")
             // let _ = Self._printChanges()
@@ -719,38 +1148,17 @@ extension Habit {
                         }
                     }
                     .padding(16)
-                    .safeAreaInset(edge: .bottom) {
-                        debugButton
-                            .padding(.vertical, 16)
-                    }
-                    .safeAreaInset(edge: .top) {
-                        HStack {
-                            Button("Back") {
-                                dashboardManager.shiftLastDay(to: .yesterday)
-                            }
-                            
-                            Spacer()
-                            
-                            Text("\(dashboardManager.lastDay.formatted(date: .abbreviated, time: .omitted))")
-                            
-                            Spacer()
-                            
-                            Button("Forward") {
-                                dashboardManager.shiftLastDay(to: .tomorrow)
-                            }
-                        }
-                        .padding(16)
-                        .sensoryFeedback(.selection, trigger: dashboardManager.lastDay)
-                    }
+                    .safeAreaInset(edge: .top) { modePicker }
                 }
-                .navigationTitle("Habit Rabbit")
                 .animation(.default, value: cardManagers.count)
-                .toolbar { modePicker }
+                .sheet(isPresented: $presentAddSheet) { AddHabitSheet() }
+                .overlay(alignment: .bottomTrailing) { debugButton }
+                .navigationTitle("Habit Rabbit")
+                .navigationBarTitleDisplayMode(dashboardManager.useInlineNavTitle ? .inline : .automatic)
+                .toolbar { addHabitButton }
             }
             .tint(colorScheme == .dark ? .white : .black)
-            .onCalendarDayChanged {
-                dashboardManager.setLastDay(to: .now)
-            }
+            .onCalendarDayChanged { dashboardManager.setLastDay(to: .now) }
         }
         
         private let columns = [
@@ -764,8 +1172,8 @@ extension Habit {
 
 extension Habit.Dashboard {
     
-    private var modePicker: some ToolbarContent {
-        ToolbarItem(/*placement: .topBarTrailing*/) {
+    private var modePicker: some View {
+        VStack(spacing: 16) {
             ModePicker(
                 width: 240,
                 mode: dashboardManager.mode,
@@ -773,10 +1181,53 @@ extension Habit.Dashboard {
                     dashboardManager.updateMode(to: mode)
                 }
             )
-            .padding(.leading, 8)
             .sensoryFeedback(.selection, trigger: dashboardManager.mode)
+            
+            Text(formattedDate(dashboardManager.lastDay))
+                .font(.system(size: 14, weight: .medium))
+                .foregroundStyle(.secondary)
+        }
+        .padding(.top, 4)
+    }
+    
+    private func formattedDate(_ date: Date) -> String {
+        let formatter = DateFormatter()
+        formatter.locale = Locale.preferred
+        formatter.dateStyle = .full
+        formatter.timeStyle = .none
+        return formatter.string(from: date)
+    }
+    
+    private var addHabitButton: some ToolbarContent {
+        ToolbarItem {
+            Button("Add Habit", systemImage: "plus") {
+                presentAddSheet = true
+            }
+            .buttonBorderShape(.circle)
+            .buttonStyle(.bordered)
+            .fontWeight(.semibold)
         }
     }
+    
+//    private var shiftLastDayControls: some View {
+//        HStack {
+//            Button("Back") {
+//                dashboardManager.shiftLastDay(to: .yesterday)
+//            }
+//            
+//            Spacer()
+//            
+//            Text("\(dashboardManager.lastDay.formatted(date: .abbreviated, time: .omitted))")
+//            
+//            Spacer()
+//            
+//            Button("Forward") {
+//                dashboardManager.shiftLastDay(to: .tomorrow)
+//            }
+//        }
+//        .padding(16)
+//        .sensoryFeedback(.selection, trigger: dashboardManager.lastDay)
+//    }
     
 }
 // ./Habit Rabbit/Screens/DetailView/DetailView.swift
@@ -927,19 +1378,30 @@ extension Habit.Card {
         
         private let extraBackground: B
         private let shape: S
+        private let material: Material
         
         init(
             shape: S,
+            material: Material = .regularMaterial,
             @ViewBuilder background: () -> B
         ) {
             self.shape = shape
+            self.material = material
             self.extraBackground = background()
         }
         
+//        var strokeColor: Color {
+//            if colorScheme == .dark {
+//                Color(red: <#T##Double#>, green: <#T##Double#>, blue: <#T##Double#>)
+//            } else {
+//                
+//            }
+//        }
+        
         var body: some View {
             shape
-                .fill(.regularMaterial)
-                .stroke(.quaternary, lineWidth: colorScheme == .dark ? 1 : 0.6)
+                .fill(material)
+                .strokeBorder(.quaternary, lineWidth: colorScheme == .dark ? 1 : 0.6)
                 .background {
                     if showShadows ?? true {
                         shadowView
@@ -961,8 +1423,8 @@ extension Habit.Card {
                         .blur(radius: 4)
                         .offset(x: 0, y: 2)
                     
-                    shape
-                        .fill(Color(uiColor: .systemBackground))                    
+//                    shape
+//                        .fill(Color(uiColor: .systemBackground)) 
                 }
             }
         }
@@ -994,8 +1456,8 @@ extension Habit.Card.Background where B == EmptyView, S == RoundedRectangle {
 
 extension Habit.Card.Background where B == EmptyView {
     
-    init(in shape: S) {
-        self.init(shape: shape) { EmptyView() }
+    init(in shape: S, material: Material = .regularMaterial) {
+        self.init(shape: shape, material: material) { EmptyView() }
     }
     
 }
@@ -1011,10 +1473,15 @@ extension Habit.Card {
         let habit: Habit
         let modelContext: ModelContext
         
+        private let isMocked: Bool
+
         private(set) var lastDay: Date
         private(set) var mode: Habit.Card.Mode
         
         private var values: [Habit.Value] = []
+        
+        @ObservationIgnored 
+        private var valueCache: [Date: Habit.Value] = [:]
 
         init(
             for habit: Habit,
@@ -1026,8 +1493,28 @@ extension Habit.Card {
             self.mode = mode
             self.lastDay = lastDay
             self.modelContext = modelContext
+            self.isMocked = false
             
             fetchValues()
+        }
+
+        init(mockFor habit: Habit) {
+            let now = Date.now
+
+            self.habit = habit
+            self.mode = .daily
+            self.lastDay = now
+            self.modelContext = ModelContext(try! ModelContainer(for: Habit.self, Habit.Value.self, configurations: ModelConfiguration(isStoredInMemoryOnly: true)))
+            self.isMocked = true
+            
+            // Create a single mock value with half the target
+            let mockValue = Habit.Value(
+                habit: habit, 
+                date: now, 
+                currentValue: habit.target
+            )
+            self.values = [mockValue]
+            self.valueCache = [Date(): mockValue]
         }
         
         var name: String { habit.name }
@@ -1065,29 +1552,59 @@ extension Habit.Card.Manager {
 extension Habit.Card.Manager {
     
     private func fetchOrCreateValue(for date: Date) -> Habit.Value {
+        if isMocked {
+            return values.first ?? Habit.Value(habit: habit, date: date, currentValue: habit.target)
+        }
+        
+        if let cachedValue = valueCache[date] {
+            return cachedValue
+        }
+        
         let descriptor = Habit.Value.filterBy(day: date, for: habit)
-
-        return (try? modelContext.fetch(descriptor))?.first
+        let fetchedValue = (try? modelContext.fetch(descriptor))?.first
         ?? {
             let newValue = Habit.Value(habit: habit, date: date)
             modelContext.insert(newValue)
             return newValue
         }()
+        
+        valueCache[date] = fetchedValue
+        return fetchedValue
     }
     
     private func fetchValues() {
-        // fetch 30 day window of values ending on lastDay
-        let description = Habit.Value.filterBy(days: 30, endingOn: lastDay, for: habit)
-        guard let newValues = try? modelContext.fetch(description) else { return }
-        values = newValues
+        guard !isMocked else { return }
+        // fetch core 30 day window for active values
+        let coreDescription = Habit.Value.filterBy(days: 30, endingOn: lastDay, for: habit)
+        guard let coreValues = try? modelContext.fetch(coreDescription) else { return }
+        values = coreValues
+        
+        // fetch extended window: additional 14 days in past and future for cache pre-loading
+        let pastEnd = lastDay.shift(days: -30) // day before the 30-day window starts
+        let pastDescription = Habit.Value.filterBy(days: 14, endingOn: pastEnd, for: habit)
+        let pastValues = (try? modelContext.fetch(pastDescription)) ?? []
+        
+        let futureStart = lastDay.tomorrow
+        let futureEnd = futureStart.shift(days: 14)
+        let futureDescription = Habit.Value.filterBy(days: 14, endingOn: futureEnd, for: habit)
+        let futureValues = (try? modelContext.fetch(futureDescription)) ?? []
+        
+        // populate cache with all fetched values (core + extended)
+        for value in coreValues + pastValues + futureValues {
+            valueCache[value.date] = value
+        }
+        
+        // create lookup dictionary for efficient date checking
+        let existingValues = Dictionary(values.map { ($0.date, $0) }, uniquingKeysWith: { _, latest in latest })
         
         // abort if lastDay already exists
-        guard !values.contains(where: { $0.date.isSameDay(as: lastDay) }) else { return }
+        guard existingValues[lastDay] == nil else { return }
         
         // create and save lastDay value
         let lastDayValue = Habit.Value(habit: self.habit, date: lastDay)
         modelContext.insert(lastDayValue)
         values.append(lastDayValue)
+        valueCache[lastDay] = lastDayValue
     }
     
     private func shiftToYesterday() {
@@ -1095,23 +1612,32 @@ extension Habit.Card.Manager {
         let newLastDay = lastDay.yesterday
         let newLastDayValue = fetchOrCreateValue(for: newLastDay)
 
-        // 2. Remove the OLD lastDay's value from the array
+        // 2. Create lookup dictionary for efficient operations
+        let existingValues = Dictionary(values.map { ($0.date, $0) }, uniquingKeysWith: { _, latest in latest })
+        
+        // 3. Cache values that are being removed from active window but keep them in cache
         let oldLastDay = self.lastDay
-        values.removeAll(where: { $0.date.isSameDay(as: oldLastDay) })
+        if let removedValue = existingValues[oldLastDay] {
+            valueCache[oldLastDay] = removedValue
+        }
+        
+        // 4. Remove the OLD lastDay's value and build new values array
+        var newValues = values.filter { !$0.date.isSameDay(as: oldLastDay) && !$0.date.isSameDay(as: newLastDay) }
 
-        // 3. Insert the new oldest day's value (only if not already present)
-        let newOldestDay = Calendar.current.date(byAdding: .day, value: -29, to: newLastDay)!
-        if !values.contains(where: { $0.date.isSameDay(as: newOldestDay) }) {
+        // 5. Insert the new oldest day's value (only if not already present)
+        let newOldestDay = newLastDay.shift(days: -29)
+        if existingValues[newOldestDay] == nil {
             let newOldestValue = fetchOrCreateValue(for: newOldestDay)
-            values.insert(newOldestValue, at: 0)
+            newValues.insert(newOldestValue, at: 0)
         }
 
-        // 4. Update lastDay and ensure its value is at the end
+        // 6. Update lastDay and ensure its value is at the end
         lastDay = newLastDay
+        newValues.append(newLastDayValue)
+        values = newValues
         
-        // Remove any existing entry for newLastDay and append it at the end
-        values.removeAll(where: { $0.date.isSameDay(as: newLastDay) })
-        values.append(newLastDayValue)
+        // 7. Cleanup cache periodically
+        cleanupCache()
     }
     
     private func shiftToTomorrow() {
@@ -1120,15 +1646,33 @@ extension Habit.Card.Manager {
         let newLastDayValue = fetchOrCreateValue(for: newLastDay)
         
         // 2. Calculate which day is no longer in the 30-day window
-        let oldestDayToRemove = Calendar.current.date(byAdding: .day, value: -30, to: newLastDay)!
-        values.removeAll(where: { $0.date.isSameDay(as: oldestDayToRemove) })
+        let oldestDayToRemove = newLastDay.shift(days: -30)
         
-        // 3. Update lastDay
+        // 3. Cache values that are being removed from active window
+        let existingValues = Dictionary(values.map { ($0.date, $0) }, uniquingKeysWith: { _, latest in latest })
+        if let removedValue = existingValues[oldestDayToRemove] {
+            valueCache[oldestDayToRemove] = removedValue
+        }
+        
+        // 4. Filter out the oldest day and any existing entry for newLastDay
+        values = values.filter { !$0.date.isSameDay(as: oldestDayToRemove) && !$0.date.isSameDay(as: newLastDay) }
+        
+        // 5. Update lastDay and append new value
         lastDay = newLastDay
-        
-        // 4. Remove any existing entry for newLastDay and append it at the end
-        values.removeAll(where: { $0.date.isSameDay(as: newLastDay) })
         values.append(newLastDayValue)
+        
+        // 6. Cleanup cache periodically
+        cleanupCache()
+    }
+    
+    private func cleanupCache() {
+        // Keep cache size reasonable by maintaining a window around lastDay (30 days in each direction)
+        let pastCutoff = lastDay.shift(days: -30)
+        let futureCutoff = lastDay.shift(days: 30)
+        
+        valueCache = valueCache.filter { date, _ in
+            (pastCutoff...futureCutoff).contains(date)
+        }
     }
     
 }
@@ -1172,6 +1716,11 @@ extension Habit.Card.Manager {
         
         // update with randomized values
         values = newValues
+        
+        // update cache with all randomized values
+        for value in newValues {
+            valueCache[value.date] = value
+        }
     }
     
 }
@@ -1181,9 +1730,9 @@ extension Habit.Card.Manager {
     var dailyValue: Habit.Value? { values.last }
     
     var weeklyValues: [Habit.Value] {
-        let firstDay = Calendar.current.date(byAdding: .day, value: -6, to: lastDay)!
+        let firstDay = lastDay.shift(days: -6)
         let allDays = (0..<7).map {
-            Calendar.current.date(byAdding: .day, value: $0, to: firstDay)!
+            firstDay.shift(days: $0)
         }
         
         let lookup = Dictionary(values.suffix(7).map { ($0.date, $0) }, uniquingKeysWith: { _, latest in latest })
