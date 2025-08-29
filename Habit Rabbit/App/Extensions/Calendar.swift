@@ -25,7 +25,7 @@ extension Date {
     var formatted: String {
         let formatter = DateFormatter()
         formatter.locale = Locale.preferred
-        formatter.setLocalizedDateFormatFromTemplate("EEEddMMyyyy")
+        formatter.setLocalizedDateFormatFromTemplate("EEEEddMMyyyy")
         return formatter.string(from: self)
     }
     

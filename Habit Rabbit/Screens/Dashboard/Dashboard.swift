@@ -39,10 +39,9 @@ extension Habit {
                             .buttonStyle(.plain)
                         }
                     }
-                    .padding(16)
-                    .padding(.top, -4)
+                    .safeAreaInset(edge: .top, spacing: 16) { gridHeader }
+                    .padding([.horizontal, .bottom], 16)
                 }
-                .safeAreaInset(edge: .top) { gridHeader }
                 .animation(.default, value: cardManagers.count)
                 .sheet(isPresented: $presentAddSheet) { AddHabitSheet() }
                 .overlay(alignment: .bottomTrailing) { debugButton }
@@ -67,12 +66,24 @@ extension Habit.Dashboard {
     
     private var addHabitButton: some ToolbarContent {
         ToolbarItem {
-            Button("Add Habit", systemImage: "plus") {
+//            Button("Add Habit", systemImage: "plus") {
+//                presentAddSheet = true
+//            }
+//            .buttonBorderShape(.circle)
+//            .buttonStyle(.bordered)
+//            .fontWeight(.semibold)
+            
+            Button {
                 presentAddSheet = true
+            } label: {
+                Image(systemName: "plus")
+                    .font(.system(size: 14, weight: .semibold))
+                    .foregroundStyle(.secondary)
+                    .frame(width: 34, height: 34)
+                    .background { Habit.Card.Background(in: .circle) }
             }
-            .buttonBorderShape(.circle)
-            .buttonStyle(.bordered)
-            .fontWeight(.semibold)
+            .buttonStyle(.plain)
+            .sensoryFeedback(.selection, trigger: presentAddSheet)
         }
     }
     
