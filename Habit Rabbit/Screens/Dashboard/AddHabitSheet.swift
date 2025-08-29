@@ -41,32 +41,30 @@ extension Habit.Dashboard {
                             .padding(.trailing)
                             .padding(.top)
                     }
-                    
                 }
                 .scrollBounceBehavior(.basedOnSize)
                 .overlay(alignment: .bottom) {
                     addButton
                         .padding(.vertical, 32)
                         
-                            }
-            .ignoresSafeArea(.keyboard)
-            .toolbar {
-                ToolbarItemGroup(placement: .keyboard) {
-                    keyboardToolbar
                 }
+                .ignoresSafeArea(.keyboard)
+                .toolbar {
+                    ToolbarItemGroup(placement: .keyboard) {
+                        keyboardToolbar
+                    }
+                }
+                .presentationBackground {
+                    Rectangle()
+                        .fill(.thickMaterial)
+                        .padding(.bottom, -100)
+                }
+                .presentationDetents([.large])
+                .interactiveDismissDisabled()
+                .sheet(isPresented: $showIconPicker) { iconPickerSheet }
             }
         }
-
-            .presentationBackground {
-                Rectangle()
-                    .fill(.thickMaterial)
-                    .padding(.bottom, -100)
-            }
-            .presentationDetents([.large])
-            .interactiveDismissDisabled()
-            .sheet(isPresented: $showIconPicker) { iconPickerSheet }
-        }
-
+        
     }
     
 }
