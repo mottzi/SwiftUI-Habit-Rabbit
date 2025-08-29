@@ -37,5 +37,21 @@ extension Habit.Dashboard.AddHabitSheet {
         .contentMargins(.horizontal, horizontalPadding * 2)
         .padding(.horizontal, -horizontalPadding * 2)
     }
+    
+    static let availableColors: [Color] = [
+        .blue,
+        .orange,
+        .green,
+        .pink,
+        .mint,
+        .purple,
+        .yellow,
+        .red,
+        .teal,
+        .indigo,
+        .brown,
+        .gray,
+        .cyan,
+    ]
 
 }
