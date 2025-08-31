@@ -35,14 +35,6 @@ extension Habit.Card {
             self.extraBackground = background()
         }
         
-//        var strokeColor: Color {
-//            if colorScheme == .dark {
-//                Color(red: <#T##Double#>, green: <#T##Double#>, blue: <#T##Double#>)
-//            } else {
-//                
-//            }
-//        }
-        
         var body: some View {
             shape
                 .fill(material)
@@ -67,9 +59,6 @@ extension Habit.Card {
                         .fill(.black.opacity(0.05))
                         .blur(radius: 4)
                         .offset(x: 0, y: 2)
-                    
-//                    shape
-//                        .fill(Color(uiColor: .systemBackground)) 
                 }
             }
         }
@@ -80,7 +69,7 @@ extension Habit.Card {
 
 extension Habit.Card.Background where S == RoundedRectangle {
     
-    init(shadow: Bool = true, @ViewBuilder background: () -> B) {
+    init(@ViewBuilder background: () -> B) {
         self.init(
             shape: RoundedRectangle(cornerRadius: Habit.Card.Manager.cornerRadius),
             background: background

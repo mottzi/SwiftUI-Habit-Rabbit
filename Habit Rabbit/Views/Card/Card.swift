@@ -19,8 +19,6 @@ extension Habit {
         @State var isDeleting = false
         
         var body: some View {
-            let _ = print("Habit.Card: 🔄 \(cardManager.name)")
-            // let _ = Self._printChanges()
             VStack(spacing: 0) {
                 Group {
                     switch mode {
@@ -38,7 +36,7 @@ extension Habit {
             .frame(maxWidth: .infinity)
             .frame(height: Card.Manager.cardHeight)
             .clipShape(.rect(cornerRadius: Card.Manager.cornerRadius))
-            .background { Habit.Card.Background { colorEffect } }
+            .background { Habit.Card.Background { colorEffect }.showShadows(false) }
             .geometryGroup()
             .scaleEffect(isDeleting ? 0 : 1)
             .contentShape(.contextMenuPreview, .rect(cornerRadius: Manager.cornerRadius))
@@ -89,6 +87,21 @@ extension Habit.Card {
             .offset(x: 0, y: 180)
             .clipShape(.rect(cornerRadius: Manager.cornerRadius))
             .animation(.bouncy, value: cardManager.isCompleted(for: mode))
+    }
+    
+    @ViewBuilder
+    static func shadowEffect(_ colorScheme: ColorScheme) -> some View {
+        if colorScheme == .light {
+            RoundedRectangle(cornerRadius: Habit.Card.Manager.cornerRadius)
+                .fill(.black.opacity(0.09))
+                .blur(radius: 10)
+                .offset(x: 0, y: 4)
+            
+            RoundedRectangle(cornerRadius: Habit.Card.Manager.cornerRadius)
+                .fill(.black.opacity(0.05))
+                .blur(radius: 4)
+                .offset(x: 0, y: 2)
+        }
     }
     
 }

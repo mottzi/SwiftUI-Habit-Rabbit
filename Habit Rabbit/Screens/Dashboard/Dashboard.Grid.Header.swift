@@ -48,7 +48,7 @@ extension Habit.Dashboard {
                 .font(.system(size: 14, weight: .semibold))
                 .foregroundStyle(.secondary)
                 .frame(width: 34, height: 34)
-                .background { Habit.Card.Background(in: .circle) }
+                .background { Habit.Card.Background(in: .circle).showShadows(false) }
         }
         .buttonStyle(.plain)
         .sensoryFeedback(.selection, trigger: dashboardManager.lastDay)
@@ -62,7 +62,7 @@ extension Habit.Dashboard {
                 .font(.system(size: 14, weight: .semibold))
                 .foregroundStyle(.secondary)
                 .frame(width: 34, height: 34)
-                .background { Habit.Card.Background(in: .circle) }
+                .background { Habit.Card.Background(in: .circle).showShadows(false) }
         }
         .buttonStyle(.plain)
         .sensoryFeedback(.selection, trigger: dashboardManager.lastDay)

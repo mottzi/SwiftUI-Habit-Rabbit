@@ -15,8 +15,6 @@ extension Habit {
         @State private var presentAddSheet = false
 
         var body: some View {
-            let _ = print("Habit.Dashboard: 🔄 \(cardManagers.count) Habit.Cards")
-            // let _ = Self._printChanges()
             NavigationStack {
                 ScrollView {
                     LazyVGrid(columns: columns, spacing: 16) {
@@ -37,6 +35,7 @@ extension Habit {
                                     }
                             }
                             .buttonStyle(.plain)
+                            .background { Habit.Card.shadowEffect(colorScheme) }
                         }
                     }
                     .safeAreaInset(edge: .top, spacing: 16) { gridHeader }
@@ -66,13 +65,6 @@ extension Habit.Dashboard {
     
     private var addHabitButton: some ToolbarContent {
         ToolbarItem {
-//            Button("Add Habit", systemImage: "plus") {
-//                presentAddSheet = true
-//            }
-//            .buttonBorderShape(.circle)
-//            .buttonStyle(.bordered)
-//            .fontWeight(.semibold)
-            
             Button {
                 presentAddSheet = true
             } label: {
