@@ -15,6 +15,9 @@ extension Habit.Dashboard {
         
         private(set) var cardManagers: [Habit.Card.Manager] = []
         
+        var presentEditSheet = false
+        var habitToEdit: Habit?
+        
         @ObservationIgnored
         private var cardManagerCache: [Habit.ID: Habit.Card.Manager] = [:]
         
@@ -161,6 +164,34 @@ extension Habit.Dashboard.Manager {
         habits.forEach { modelContext.insert(habit: $0) }
         guard let _ = try? modelContext.save() else { return }
         refreshCardManagers()
+    }
+    
+    func updateHabit(
+        _ habit: Habit,
+        name: String,
+        unit: String,
+        icon: String,
+        color: Color,
+        target: Int,
+        kind: Habit.Kind
+    ) {
+        habit.name = name
+        habit.unit = unit
+        habit.icon = icon
+        habit.target = target
+        habit.kind = kind
+        habit.colorData = (try? NSKeyedArchiver.archivedData(
+            withRootObject: UIColor(color),
+            requiringSecureCoding: false)
+        ) ?? Data()
+        
+        guard let _ = try? modelContext.save() else { return }
+        refreshCardManagers()
+    }
+    
+    func presentEditSheet(for habit: Habit) {
+        habitToEdit = habit
+        presentEditSheet = true
     }
     
     func addExampleHabits(count: Int) {

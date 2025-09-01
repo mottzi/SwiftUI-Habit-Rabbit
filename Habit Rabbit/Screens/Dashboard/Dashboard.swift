@@ -43,6 +43,11 @@ extension Habit {
                 }
                 .animation(.default, value: cardManagers.count)
                 .sheet(isPresented: $presentAddSheet) { AddHabitSheet() }
+                .sheet(isPresented: $dashboardManager.presentEditSheet) {
+                    if let habitToEdit = dashboardManager.habitToEdit {
+                        EditHabitSheet(habit: habitToEdit)
+                    }
+                }
                 .overlay(alignment: .bottomTrailing) { debugButton }
                 .navigationTitle("Habit Rabbit")
                 .navigationBarTitleDisplayMode(dashboardManager.useInline ? .inline : .automatic)

@@ -139,6 +139,9 @@ extension Habit.Card {
     
     @ViewBuilder
     var contextMenuButtons: some View {
+        Button("Edit", systemImage: "pencil") {
+            dashboardManager.presentEditSheet(for: cardManager.habit)
+        }
         Button("Randomize", systemImage: "sparkles") {
             cardManager.randomizeDailyValue()
         }
