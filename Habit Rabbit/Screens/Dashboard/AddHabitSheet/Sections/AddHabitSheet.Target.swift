@@ -7,7 +7,6 @@ extension Habit.Dashboard.AddHabitSheet {
             Text("Target")
                 .font(.headline)
                 .fontWeight(.semibold)
-                .foregroundStyle(.secondary)
             TextField("6", value: $targetValue, format: .number)
                 .textFieldStyle(.plain)
                 .font(.title)
@@ -17,7 +16,6 @@ extension Habit.Dashboard.AddHabitSheet {
                 .onSubmit {
                     advanceToNextField()
                 }
-
         }
         .frame(maxWidth: .infinity, alignment: .leading)
     }

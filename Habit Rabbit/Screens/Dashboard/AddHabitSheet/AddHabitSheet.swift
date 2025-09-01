@@ -6,6 +6,7 @@ extension Habit.Dashboard {
 
         @Environment(\.colorScheme) var colorScheme
         @Environment(\.dismiss) private var dismiss
+        @Environment(Habit.Dashboard.Manager.self) private var dashboardManager
         
         @FocusState var focusedField: FocusedField?
 
@@ -15,6 +16,7 @@ extension Habit.Dashboard {
         @State var selectedColor: Color = .blue
         @State var showIconPicker = false
         @State var targetValue: Int?
+        @State var habitKind: Habit.Kind = .good
         
         let horizontalPadding: CGFloat = 16
         let columns = Array(repeating: GridItem(.flexible(), spacing: 16), count: 6)
@@ -23,6 +25,7 @@ extension Habit.Dashboard {
             NavigationStack {
                 ScrollView {
                     VStack(spacing: 14) {
+                        kindSection
                         habitNameSection
                         Divider()
                         unitSection
@@ -32,7 +35,6 @@ extension Habit.Dashboard {
                         iconSection
                         Divider()
                         colorSection
-                        Divider()
                     }
                     .padding(horizontalPadding)
                     .padding(.horizontal, horizontalPadding)
@@ -55,6 +57,8 @@ extension Habit.Dashboard {
                 .presentationDetents([.large])
                 .interactiveDismissDisabled()
                 .sheet(isPresented: $showIconPicker) { iconPickerSheet }
+                .navigationTitle("Add Habit")
+                .navigationBarTitleDisplayMode(.inline)
             }
         }
         
@@ -63,6 +67,12 @@ extension Habit.Dashboard {
 }
 
 extension Habit.Dashboard.AddHabitSheet {
+
+    private var isFormValid: Bool {
+        !habitName.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty &&
+        !habitUnit.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty &&
+        targetValue != nil && targetValue! > 0
+    }
 
     private var closeButtonToolbar: some ToolbarContent {
         ToolbarItem(placement: .topBarTrailing) {
@@ -82,7 +92,7 @@ extension Habit.Dashboard.AddHabitSheet {
 
     private var addButton: some View {
         Button(role: .none) {
-            dismiss()
+            addHabit()
         } label: {
             Label("Add Habit", systemImage: "plus")
                 .fontWeight(.semibold)
@@ -90,6 +100,24 @@ extension Habit.Dashboard.AddHabitSheet {
         .buttonStyle(.borderedProminent)
         .buttonBorderShape(.capsule)
         .tint(.blue)
+        .disabled(!isFormValid)
+    }
+    
+    private func addHabit() {
+        guard isFormValid else { return }
+        guard let targetValue else { return }
+        
+        let habit = Habit(
+            name: habitName.trimmingCharacters(in: .whitespacesAndNewlines),
+            unit: habitUnit.trimmingCharacters(in: .whitespacesAndNewlines),
+            icon: selectedIcon,
+            color: selectedColor,
+            target: targetValue,
+            kind: habitKind
+        )
+        
+        dashboardManager.addHabits([habit])
+        dismiss()
     }
 
 }

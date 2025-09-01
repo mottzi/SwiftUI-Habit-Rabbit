@@ -4,7 +4,7 @@ extension Habit.Dashboard.AddHabitSheet {
     
     var habitNameSection: some View {
         VStack(alignment: .leading, spacing: 8) {
-            Text("Habit Name")
+            Text("Name")
                 .font(.headline)
                 .fontWeight(.semibold)
                 .foregroundStyle(.secondary)

@@ -7,7 +7,6 @@ extension Habit.Dashboard.AddHabitSheet {
             Text("Color")
                 .font(.headline)
                 .fontWeight(.semibold)
-                .foregroundStyle(.secondary)
             
             colorPicker
         }
