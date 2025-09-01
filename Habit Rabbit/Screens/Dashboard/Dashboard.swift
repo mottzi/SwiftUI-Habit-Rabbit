@@ -13,6 +13,8 @@ extension Habit {
         var cardManagers: [Card.Manager] { dashboardManager.cardManagers }
 
         @State private var presentAddSheet = false
+        @State private var presentEditSheet = false
+        @State private var habitToEdit: Habit?
 
         var body: some View {
             NavigationStack {
@@ -27,12 +29,15 @@ extension Habit {
                                         view.navigationTransition(.zoom(sourceID: cardManager.habit.id, in: habitTransition))
                                     }
                             } label: {
-                                Habit.Card()
-                                    .environment(cardManager)
-                                    .environment(\.cardOffset, index)
-                                    .if(dashboardManager.useZoom) { view in
-                                        view.matchedTransitionSource(id: cardManager.habit.id, in: habitTransition)
-                                    }
+                                Habit.Card(onEdit: { habit in
+                                    habitToEdit = habit
+                                    presentEditSheet = true
+                                })
+                                .environment(cardManager)
+                                .environment(\.cardOffset, index)
+                                .if(dashboardManager.useZoom) { view in
+                                    view.matchedTransitionSource(id: cardManager.habit.id, in: habitTransition)
+                                }
                             }
                             .buttonStyle(.plain)
                             .background { Habit.Card.shadowEffect(colorScheme) }
@@ -43,8 +48,8 @@ extension Habit {
                 }
                 .animation(.default, value: cardManagers.count)
                 .sheet(isPresented: $presentAddSheet) { AddHabitSheet() }
-                .sheet(isPresented: $dashboardManager.presentEditSheet) {
-                    if let habitToEdit = dashboardManager.habitToEdit {
+                .sheet(isPresented: $presentEditSheet) {
+                    if let habitToEdit {
                         EditHabitSheet(habit: habitToEdit)
                     }
                 }

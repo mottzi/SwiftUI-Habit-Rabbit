@@ -15,9 +15,6 @@ extension Habit.Dashboard {
         
         private(set) var cardManagers: [Habit.Card.Manager] = []
         
-        var presentEditSheet = false
-        var habitToEdit: Habit?
-        
         @ObservationIgnored
         private var cardManagerCache: [Habit.ID: Habit.Card.Manager] = [:]
         
@@ -187,11 +184,6 @@ extension Habit.Dashboard.Manager {
         
         guard let _ = try? modelContext.save() else { return }
         refreshCardManagers()
-    }
-    
-    func presentEditSheet(for habit: Habit) {
-        habitToEdit = habit
-        presentEditSheet = true
     }
     
     func addExampleHabits(count: Int) {

@@ -14,6 +14,8 @@ extension Habit {
         @Environment(Card.Manager.self) var cardManager
         @Environment(Dashboard.Manager.self) var dashboardManager
         
+        var onEdit: ((Habit) -> Void)?
+        
         var mode: Habit.Card.Mode { cardMode ?? cardManager.mode }
         
         @State var isDeleting = false
@@ -139,8 +141,10 @@ extension Habit.Card {
     
     @ViewBuilder
     var contextMenuButtons: some View {
-        Button("Edit", systemImage: "pencil") {
-            dashboardManager.presentEditSheet(for: cardManager.habit)
+        if let onEdit {
+            Button("Edit", systemImage: "pencil") {
+                onEdit(cardManager.habit)
+            }
         }
         Button("Randomize", systemImage: "sparkles") {
             cardManager.randomizeDailyValue()
