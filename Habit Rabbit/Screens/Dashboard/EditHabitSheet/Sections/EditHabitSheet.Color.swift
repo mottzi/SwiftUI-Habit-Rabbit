@@ -7,6 +7,7 @@ extension Habit.Dashboard.EditHabitSheet {
             Text("Color")
                 .font(.headline)
                 .fontWeight(.semibold)
+                .foregroundStyle(.secondary)
             
             colorPicker
         }
@@ -17,13 +18,13 @@ extension Habit.Dashboard.EditHabitSheet {
             HStack(spacing: 12) {
                 ForEach(Self.availableColors.enumerated, id: \.offset) { index, color in
                     Button {
-                        selectedColor = color
+                        selectedColorIndex = index
                     } label: {
                         Circle()
                             .fill(color.gradient)
                             .frame(width: 44, height: 44)
                             .overlay {
-                                if selectedColor == color {
+                                if selectedColorIndex == index {
                                     Circle()
                                         .strokeBorder(.primary, lineWidth: 3)
                                 }

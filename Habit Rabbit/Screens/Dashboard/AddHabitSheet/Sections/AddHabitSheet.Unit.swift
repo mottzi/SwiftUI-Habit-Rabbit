@@ -7,6 +7,8 @@ extension Habit.Dashboard.AddHabitSheet {
             Text("Unit")
                 .font(.headline)
                 .fontWeight(.semibold)
+                .foregroundStyle(.secondary)
+            
             TextField("Sessions", text: $habitUnit)
                 .textFieldStyle(.plain)
                 .font(.title)

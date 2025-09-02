@@ -8,6 +8,8 @@ extension Habit.Dashboard.AddHabitSheet {
                 .font(.headline)
                 .fontWeight(.semibold)
                 .foregroundStyle(.secondary)
+                .foregroundStyle(.secondary)
+            
             TextField("Stretching", text: $habitName)
                 .textFieldStyle(.plain)
                 .font(.title)

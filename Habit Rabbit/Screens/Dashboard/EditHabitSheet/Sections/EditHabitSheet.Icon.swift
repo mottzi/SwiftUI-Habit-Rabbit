@@ -7,6 +7,7 @@ extension Habit.Dashboard.EditHabitSheet {
             Text("Icon")
                 .font(.headline)
                 .fontWeight(.semibold)
+                .foregroundStyle(.secondary)
             iconPickerButton
                 .font(.title3)
                 .fontWeight(.semibold)

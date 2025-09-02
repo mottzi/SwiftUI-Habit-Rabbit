@@ -7,6 +7,7 @@ extension Habit.Dashboard.EditHabitSheet {
             Text("Target")
                 .font(.headline)
                 .fontWeight(.semibold)
+                .foregroundStyle(.secondary)
             TextField("6", value: $targetValue, format: .number)
                 .textFieldStyle(.plain)
                 .font(.title)

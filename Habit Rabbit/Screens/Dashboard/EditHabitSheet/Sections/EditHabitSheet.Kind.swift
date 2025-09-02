@@ -7,6 +7,7 @@ extension Habit.Dashboard.EditHabitSheet {
             Text("Habit")
                 .font(.headline)
                 .fontWeight(.semibold)
+                .foregroundStyle(.secondary)
             
             CustomSegmentedControl(
                 selection: $habitKind,

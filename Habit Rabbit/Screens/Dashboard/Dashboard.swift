@@ -13,7 +13,6 @@ extension Habit {
         var cardManagers: [Card.Manager] { dashboardManager.cardManagers }
 
         @State private var presentAddSheet = false
-        @State private var presentEditSheet = false
         @State private var habitToEdit: Habit?
 
         var body: some View {
@@ -31,7 +30,6 @@ extension Habit {
                             } label: {
                                 Habit.Card(onEdit: { habit in
                                     habitToEdit = habit
-                                    presentEditSheet = true
                                 })
                                 .environment(cardManager)
                                 .environment(\.cardOffset, index)
@@ -48,10 +46,8 @@ extension Habit {
                 }
                 .animation(.default, value: cardManagers.count)
                 .sheet(isPresented: $presentAddSheet) { AddHabitSheet() }
-                .sheet(isPresented: $presentEditSheet) {
-                    if let habitToEdit {
-                        EditHabitSheet(habit: habitToEdit)
-                    }
+                .sheet(item: $habitToEdit) { habit in
+                    EditHabitSheet(habit: habit)
                 }
                 .overlay(alignment: .bottomTrailing) { debugButton }
                 .navigationTitle("Habit Rabbit")

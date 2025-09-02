@@ -15,7 +15,7 @@ extension Habit.Dashboard {
         @State var habitName: String
         @State var habitUnit: String
         @State var selectedIcon: String
-        @State var selectedColor: Color
+        @State var selectedColorIndex: Int
         @State var showIconPicker = false
         @State var targetValue: Int?
         @State var habitKind: Habit.Kind
@@ -28,7 +28,9 @@ extension Habit.Dashboard {
             self._habitName = State(initialValue: habit.name)
             self._habitUnit = State(initialValue: habit.unit)
             self._selectedIcon = State(initialValue: habit.icon)
-            self._selectedColor = State(initialValue: habit.color)
+            // Find the closest matching color index
+            let colorIndex = Self.findClosestColorIndex(for: habit.color)
+            self._selectedColorIndex = State(initialValue: colorIndex)
             self._targetValue = State(initialValue: habit.target)
             self._habitKind = State(initialValue: habit.kind)
         }
@@ -124,11 +126,45 @@ extension Habit.Dashboard.EditHabitSheet {
             name: habitName.trimmingCharacters(in: .whitespacesAndNewlines),
             unit: habitUnit.trimmingCharacters(in: .whitespacesAndNewlines),
             icon: selectedIcon,
-            color: selectedColor,
+            color: Self.availableColors[selectedColorIndex],
             target: targetValue,
             kind: habitKind
         )
         dismiss()
+    }
+    
+    static func findClosestColorIndex(for color: Color) -> Int {
+        // Convert the color to a comparable format and find the best match
+        // For now, we'll use a simple approach by comparing against known colors
+        let availableColors = Self.availableColors
+        
+        // Try to match by creating UIColors and comparing their components
+        let targetUIColor = UIColor(color)
+        var targetRed: CGFloat = 0, targetGreen: CGFloat = 0, targetBlue: CGFloat = 0, targetAlpha: CGFloat = 0
+        targetUIColor.getRed(&targetRed, green: &targetGreen, blue: &targetBlue, alpha: &targetAlpha)
+        
+        var bestMatchIndex = 0
+        var bestDistance = CGFloat.greatestFiniteMagnitude
+        
+        for (index, availableColor) in availableColors.enumerated() {
+            let availableUIColor = UIColor(availableColor)
+            var red: CGFloat = 0, green: CGFloat = 0, blue: CGFloat = 0, alpha: CGFloat = 0
+            availableUIColor.getRed(&red, green: &green, blue: &blue, alpha: &alpha)
+            
+            // Calculate Euclidean distance in RGB space
+            let distance = sqrt(
+                pow(targetRed - red, 2) +
+                pow(targetGreen - green, 2) +
+                pow(targetBlue - blue, 2)
+            )
+            
+            if distance < bestDistance {
+                bestDistance = distance
+                bestMatchIndex = index
+            }
+        }
+        
+        return bestMatchIndex
     }
 
 }
