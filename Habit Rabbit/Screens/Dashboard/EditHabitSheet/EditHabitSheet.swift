@@ -37,9 +37,6 @@ extension Habit.Dashboard {
             NavigationStack {
                 ScrollView {
                     VStack(spacing: 14) {
-                        Text("Edit Habit: \(habit.name)")
-                            .font(.title)
-                            .foregroundColor(.primary)
                         kindSection
                         habitNameSection
                         Divider()
@@ -51,9 +48,9 @@ extension Habit.Dashboard {
                         Divider()
                         colorSection
                     }
+                    .padding(horizontalPadding)
                     .padding(.horizontal, horizontalPadding)
                 }
-                .background(Color(.systemBackground))
                 .scrollBounceBehavior(.basedOnSize)
                 .overlay(alignment: .bottom) {
                     updateButton
@@ -64,7 +61,13 @@ extension Habit.Dashboard {
                     keyboardToolbar
                     closeButtonToolbar
                 }
+                .presentationBackground {
+                    Rectangle()
+                        .fill(.thickMaterial)
+                        .padding(.bottom, -100)
+                }
                 .presentationDetents([.large])
+                .interactiveDismissDisabled()
                 .sheet(isPresented: $showIconPicker) { iconPickerSheet }
                 .navigationTitle("Edit Habit")
                 .navigationBarTitleDisplayMode(.inline)

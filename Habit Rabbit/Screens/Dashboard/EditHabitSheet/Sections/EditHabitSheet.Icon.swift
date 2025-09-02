@@ -54,7 +54,7 @@ extension Habit.Dashboard.EditHabitSheet {
                                 .background {
                                     switch selectedIcon == icon {
                                         case true:  Circle().fill(.blue)
-                                        case false: Circle().fill(.gray.opacity(0.2))
+                                        case false: Habit.Card.Background(in: .circle)
                                     }
                                 }
                             

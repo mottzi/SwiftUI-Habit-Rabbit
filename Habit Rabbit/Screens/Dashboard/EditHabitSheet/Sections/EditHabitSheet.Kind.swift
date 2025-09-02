@@ -8,11 +8,13 @@ extension Habit.Dashboard.EditHabitSheet {
                 .font(.headline)
                 .fontWeight(.semibold)
             
-            Picker("Habit Type", selection: $habitKind) {
-                Text("Good").tag(Habit.Kind.good)
-                Text("Bad").tag(Habit.Kind.bad)
-            }
-            .pickerStyle(.segmented)
+            CustomSegmentedControl(
+                selection: $habitKind,
+                options: [
+                    (value: Habit.Kind.good, icon: "hand.thumbsup.fill", text: "Good", color: .green),
+                    (value: Habit.Kind.bad, icon: "hand.raised.fill", text: "Bad", color: .red)
+                ]
+            )
         }
         .frame(maxWidth: .infinity, alignment: .leading)
     }
