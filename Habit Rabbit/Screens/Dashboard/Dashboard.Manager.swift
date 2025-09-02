@@ -186,6 +186,18 @@ extension Habit.Dashboard.Manager {
         refreshCardManagers()
     }
     
+    func updateHabit(_ habit: Habit, with newHabit: Habit) {
+        updateHabit(
+            habit,
+            name: newHabit.name,
+            unit: newHabit.unit,
+            icon: newHabit.icon,
+            color: newHabit.color,
+            target: newHabit.target,
+            kind: newHabit.kind
+        )
+    }
+    
     func addExampleHabits(count: Int) {
         let templates = Habit.examples
         guard !templates.isEmpty else { return }

@@ -33,22 +33,13 @@ extension Habit.Dashboard.Sheet {
                         kind: .good
                     ),
                     submitLabel: "Add Habit",
-                    submitIcon: "plus"
-                ) { name, unit, icon, color, target, kind in
-                    let habit = Habit(
-                        name: name,
-                        unit: unit,
-                        icon: icon,
-                        color: color,
-                        target: target,
-                        kind: kind
-                    )
-                    dashboardManager.addHabits([habit])
-                    dismiss()
-                }
-                .toolbar {
-                    closeButtonToolbar
-                }
+                    submitIcon: "plus",
+                    onSubmit: { newHabit in
+                        dashboardManager.addHabits([newHabit])
+                        dismiss()
+                    }
+                )
+                .toolbar { closeButtonToolbar }
                 .presentationBackground {
                     Rectangle()
                         .fill(.thickMaterial)

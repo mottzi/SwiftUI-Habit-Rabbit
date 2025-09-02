@@ -47,22 +47,13 @@ extension Habit.Dashboard.Sheet {
                         kind: habit.kind
                     ),
                     submitLabel: "Update Habit",
-                    submitIcon: "checkmark"
-                ) { name, unit, icon, color, target, kind in
-                    dashboardManager.updateHabit(
-                        habit,
-                        name: name,
-                        unit: unit,
-                        icon: icon,
-                        color: color,
-                        target: target,
-                        kind: kind
-                    )
-                    dismiss()
-                }
-                .toolbar {
-                    closeButtonToolbar
-                }
+                    submitIcon: "checkmark",
+                    onSubmit: { newHabit in
+                        dashboardManager.updateHabit(habit, with: newHabit)
+                        dismiss()
+                    }
+                )
+                .toolbar { closeButtonToolbar }
                 .presentationBackground {
                     Rectangle()
                         .fill(.thickMaterial)
