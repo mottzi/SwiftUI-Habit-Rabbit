@@ -1,6 +1,6 @@
 import SwiftUI
 
-extension Habit.Dashboard.EditHabitSheet {
+extension Habit.Dashboard.Sheet {
 
     var iconSection: some View {
         VStack(alignment: .leading, spacing: 12) {
@@ -8,6 +8,7 @@ extension Habit.Dashboard.EditHabitSheet {
                 .font(.headline)
                 .fontWeight(.semibold)
                 .foregroundStyle(.secondary)
+            
             iconPickerButton
                 .font(.title3)
                 .fontWeight(.semibold)
@@ -20,7 +21,7 @@ extension Habit.Dashboard.EditHabitSheet {
             showIconPicker = true
         } label: {
             HStack(alignment: .lastTextBaseline) {
-                Image(systemName: selectedIcon)
+                Image(systemName: icon)
                     .font(.title2)
                     .foregroundStyle(colorScheme == .light ? .black : .white)
                     .padding(.leading, 1)
@@ -38,22 +39,22 @@ extension Habit.Dashboard.EditHabitSheet {
         NavigationStack {
             ScrollView {
                 LazyVGrid(columns: columns, spacing: 10) {
-                    ForEach(Self.commonIcons, id: \.self) { icon in
+                    ForEach(Self.commonIcons, id: \.self) { icn in
                         Button {
                             Task {
-                                selectedIcon = icon
+                                icon = icn
                                 try? await Task.sleep(for: .milliseconds(100))
                                 showIconPicker = false
                                 focusedField = nil
                             }
                         } label: {
-                            Image(systemName: icon)
+                            Image(systemName: icn)
                                 .font(.title3)
-                                .foregroundStyle(selectedIcon == icon ? .white : (colorScheme == .light ? .black : .white))
+                                .foregroundStyle(icon == icn ? .white : (colorScheme == .light ? .black : .white))
                                 .frame(width: 44, height: 44)
                                 .padding(4)
                                 .background {
-                                    switch selectedIcon == icon {
+                                    switch icon == icn {
                                         case true:  Circle().fill(.blue)
                                         case false: Habit.Card.Background(in: .circle)
                                     }
@@ -91,6 +92,10 @@ extension Habit.Dashboard.EditHabitSheet {
             .tint(.red)
             .padding(.trailing, -8)
         }
+    }
+    
+    var columns: [GridItem] {
+        Array(repeating: GridItem(.flexible(), spacing: 16), count: 6)
     }
     
     static let commonIcons: [String] = [

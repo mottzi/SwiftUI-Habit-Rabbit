@@ -1,14 +1,15 @@
 import SwiftUI
 
-extension Habit.Dashboard.EditHabitSheet {
+extension Habit.Dashboard.Sheet {
     
-    var habitNameSection: some View {
+    var nameSection: some View {
         VStack(alignment: .leading, spacing: 8) {
             Text("Name")
                 .font(.headline)
                 .fontWeight(.semibold)
                 .foregroundStyle(.secondary)
-            TextField("Stretching", text: $habitName)
+            
+            TextField("Stretching", text: $name)
                 .textFieldStyle(.plain)
                 .font(.title)
                 .fontWeight(.semibold)

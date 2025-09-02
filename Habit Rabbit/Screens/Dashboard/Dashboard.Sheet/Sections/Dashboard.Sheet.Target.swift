@@ -1,6 +1,6 @@
 import SwiftUI
 
-extension Habit.Dashboard.AddHabitSheet {
+extension Habit.Dashboard.Sheet {
 
     var targetSection: some View {
         VStack(alignment: .leading, spacing: 8) {

@@ -1,14 +1,14 @@
 import SwiftUI
 
-extension Habit.Dashboard {
+extension Habit.Dashboard.Sheet {
 
-    struct AddHabitSheet: View {
+    struct Add: View {
 
         @Environment(\.colorScheme) var colorScheme
         @Environment(\.dismiss) private var dismiss
         @Environment(Habit.Dashboard.Manager.self) private var dashboardManager
         
-        @FocusState var focusedField: FocusedField?
+        @FocusState var focusedField: Habit.Dashboard.Sheet.FocusedField?
 
         @State var habitName = ""
         @State var habitUnit = ""
@@ -23,30 +23,30 @@ extension Habit.Dashboard {
 
         var body: some View {
             NavigationStack {
-                ScrollView {
-                    VStack(spacing: 14) {
-                        kindSection
-                        habitNameSection
-                        Divider()
-                        unitSection
-                        Divider()
-                        targetSection
-                        Divider()
-                        iconSection
-                        Divider()
-                        colorSection
-                    }
-                    .padding(horizontalPadding)
-                    .padding(.horizontal, horizontalPadding)
+                Habit.Dashboard.Sheet(
+                    initial: .init(
+                        name: "",
+                        unit: "",
+                        icon: "star.fill",
+                        color: .blue,
+                        target: nil,
+                        kind: .good
+                    ),
+                    submitLabel: "Add Habit",
+                    submitIcon: "plus"
+                ) { name, unit, icon, color, target, kind in
+                    let habit = Habit(
+                        name: name,
+                        unit: unit,
+                        icon: icon,
+                        color: color,
+                        target: target,
+                        kind: kind
+                    )
+                    dashboardManager.addHabits([habit])
+                    dismiss()
                 }
-                .scrollBounceBehavior(.basedOnSize)
-                .overlay(alignment: .bottom) {
-                    addButton
-                        .padding(.vertical, 32)
-                }
-                .ignoresSafeArea(.keyboard)
                 .toolbar {
-                    keyboardToolbar
                     closeButtonToolbar
                 }
                 .presentationBackground {
@@ -56,7 +56,6 @@ extension Habit.Dashboard {
                 }
                 .presentationDetents([.large])
                 .interactiveDismissDisabled()
-                .sheet(isPresented: $showIconPicker) { iconPickerSheet }
                 .navigationTitle("Add Habit")
                 .navigationBarTitleDisplayMode(.inline)
             }
@@ -66,7 +65,7 @@ extension Habit.Dashboard {
     
 }
 
-extension Habit.Dashboard.AddHabitSheet {
+extension Habit.Dashboard.Sheet.Add {
 
     private var isFormValid: Bool {
         !habitName.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty &&

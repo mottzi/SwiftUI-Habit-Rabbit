@@ -1,7 +1,6 @@
 import SwiftUI
 import Combine
 
-
 extension NotificationCenter {
     
     static var calendarDayChanged: AnyPublisher<Void, Never> {
@@ -16,7 +15,7 @@ extension NotificationCenter {
 
 extension View {
     
-    func onCalendarDayChanged(perform action: @escaping () -> Void) -> some View {
+    func onCalendarDayChanged(action: @escaping () -> Void) -> some View {
         self.onReceive(NotificationCenter.calendarDayChanged) { _ in
             action()
         }

@@ -1,6 +1,6 @@
 import SwiftUI
 
-extension Habit.Dashboard.EditHabitSheet {
+extension Habit.Dashboard.Sheet {
 
     var kindSection: some View {
         VStack(alignment: .leading, spacing: 8) {
@@ -10,7 +10,7 @@ extension Habit.Dashboard.EditHabitSheet {
                 .foregroundStyle(.secondary)
             
             CustomSegmentedControl(
-                selection: $habitKind,
+                selection: $kind,
                 options: [
                     (value: Habit.Kind.good, icon: "hand.thumbsup.fill", text: "Good", color: .green),
                     (value: Habit.Kind.bad, icon: "hand.raised.fill", text: "Bad", color: .red)

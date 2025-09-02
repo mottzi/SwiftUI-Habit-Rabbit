@@ -1,6 +1,6 @@
 import SwiftUI
 
-extension Habit.Dashboard.AddHabitSheet {
+extension Habit.Dashboard.Sheet {
 
     var colorSection: some View {
         VStack(alignment: .leading, spacing: 12) {
@@ -16,15 +16,15 @@ extension Habit.Dashboard.AddHabitSheet {
     private var colorPicker: some View {
         ScrollView(.horizontal, showsIndicators: false) {
             HStack(spacing: 12) {
-                ForEach(Self.availableColors.enumerated, id: \.offset) { index, color in
+                ForEach(Self.availableColors.enumerated, id: \.offset) { _, clr in
                     Button {
-                        selectedColor = color
+                        color = clr
                     } label: {
                         Circle()
-                            .fill(color.gradient)
+                            .fill(clr.gradient)
                             .frame(width: 44, height: 44)
                             .overlay {
-                                if selectedColor == color {
+                                if color == clr {
                                     Circle()
                                         .strokeBorder(.primary, lineWidth: 3)
                                 }

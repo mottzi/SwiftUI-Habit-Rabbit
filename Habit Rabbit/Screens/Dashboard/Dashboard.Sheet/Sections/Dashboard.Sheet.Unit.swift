@@ -1,24 +1,23 @@
 import SwiftUI
 
-extension Habit.Dashboard.AddHabitSheet {
-    
-    var habitNameSection: some View {
+extension Habit.Dashboard.Sheet {
+
+    var unitSection: some View {
         VStack(alignment: .leading, spacing: 8) {
-            Text("Name")
+            Text("Unit")
                 .font(.headline)
                 .fontWeight(.semibold)
                 .foregroundStyle(.secondary)
-                .foregroundStyle(.secondary)
             
-            TextField("Stretching", text: $habitName)
+            TextField("Sessions", text: $unit)
                 .textFieldStyle(.plain)
                 .font(.title)
                 .fontWeight(.semibold)
-                .focused($focusedField, equals: .habitName)
+                .focused($focusedField, equals: .habitUnit)
                 .onSubmit {
                     Task {
                         try? await Task.sleep(for: .milliseconds(300))
-                        advanceToNextField(from: .habitName)
+                        advanceToNextField(from: .habitUnit)
                     }
                 }
                 .submitLabel(.next)
@@ -26,5 +25,5 @@ extension Habit.Dashboard.AddHabitSheet {
         }
         .frame(maxWidth: .infinity, alignment: .leading)
     }
-    
+
 }

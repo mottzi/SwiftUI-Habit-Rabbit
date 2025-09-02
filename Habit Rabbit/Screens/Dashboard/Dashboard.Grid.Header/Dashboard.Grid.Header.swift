@@ -35,7 +35,6 @@ extension Habit.Dashboard {
             previousDayButton
             Text(dashboardManager.lastDay.formatted)
                 .font(.system(size: 14, weight: .medium))
-//                .foregroundStyle(.secondary)
             nextDayButton
         }
     }

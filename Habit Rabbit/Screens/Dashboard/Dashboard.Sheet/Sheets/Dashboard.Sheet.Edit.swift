@@ -1,8 +1,8 @@
 import SwiftUI
 
-extension Habit.Dashboard {
+extension Habit.Dashboard.Sheet {
 
-    struct EditHabitSheet: View {
+    struct Edit: View {
 
         @Environment(\.colorScheme) var colorScheme
         @Environment(\.dismiss) private var dismiss
@@ -10,7 +10,7 @@ extension Habit.Dashboard {
         
         let habit: Habit
         
-        @FocusState var focusedField: FocusedField?
+        @FocusState var focusedField: Habit.Dashboard.Sheet.FocusedField?
 
         @State var habitName: String
         @State var habitUnit: String
@@ -37,30 +37,30 @@ extension Habit.Dashboard {
 
         var body: some View {
             NavigationStack {
-                ScrollView {
-                    VStack(spacing: 14) {
-                        kindSection
-                        habitNameSection
-                        Divider()
-                        unitSection
-                        Divider()
-                        targetSection
-                        Divider()
-                        iconSection
-                        Divider()
-                        colorSection
-                    }
-                    .padding(horizontalPadding)
-                    .padding(.horizontal, horizontalPadding)
+                Habit.Dashboard.Sheet(
+                    initial: .init(
+                        name: habit.name,
+                        unit: habit.unit,
+                        icon: habit.icon,
+                        color: habit.color,
+                        target: habit.target,
+                        kind: habit.kind
+                    ),
+                    submitLabel: "Update Habit",
+                    submitIcon: "checkmark"
+                ) { name, unit, icon, color, target, kind in
+                    dashboardManager.updateHabit(
+                        habit,
+                        name: name,
+                        unit: unit,
+                        icon: icon,
+                        color: color,
+                        target: target,
+                        kind: kind
+                    )
+                    dismiss()
                 }
-                .scrollBounceBehavior(.basedOnSize)
-                .overlay(alignment: .bottom) {
-                    updateButton
-                        .padding(.vertical, 32)
-                }
-                .ignoresSafeArea(.keyboard)
                 .toolbar {
-                    keyboardToolbar
                     closeButtonToolbar
                 }
                 .presentationBackground {
@@ -70,7 +70,6 @@ extension Habit.Dashboard {
                 }
                 .presentationDetents([.large])
                 .interactiveDismissDisabled()
-                .sheet(isPresented: $showIconPicker) { iconPickerSheet }
                 .navigationTitle("Edit Habit")
                 .navigationBarTitleDisplayMode(.inline)
             }
@@ -80,7 +79,7 @@ extension Habit.Dashboard {
     
 }
 
-extension Habit.Dashboard.EditHabitSheet {
+extension Habit.Dashboard.Sheet.Edit {
 
     private var isFormValid: Bool {
         !habitName.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty &&
@@ -126,7 +125,7 @@ extension Habit.Dashboard.EditHabitSheet {
             name: habitName.trimmingCharacters(in: .whitespacesAndNewlines),
             unit: habitUnit.trimmingCharacters(in: .whitespacesAndNewlines),
             icon: selectedIcon,
-            color: Self.availableColors[selectedColorIndex],
+            color: Habit.Dashboard.Sheet.availableColors[selectedColorIndex],
             target: targetValue,
             kind: habitKind
         )
@@ -136,7 +135,7 @@ extension Habit.Dashboard.EditHabitSheet {
     static func findClosestColorIndex(for color: Color) -> Int {
         // Convert the color to a comparable format and find the best match
         // For now, we'll use a simple approach by comparing against known colors
-        let availableColors = Self.availableColors
+        let availableColors = Habit.Dashboard.Sheet.availableColors
         
         // Try to match by creating UIColors and comparing their components
         let targetUIColor = UIColor(color)

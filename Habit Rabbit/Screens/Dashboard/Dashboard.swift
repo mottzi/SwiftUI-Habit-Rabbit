@@ -10,7 +10,7 @@ extension Habit {
         @Environment(\.scenePhase) private var scenePhase
 
         @Environment(Habit.Dashboard.Manager.self) var dashboardManager
-        var cardManagers: [Card.Manager] { dashboardManager.cardManagers }
+        var cardManagers: [Habit.Card.Manager] { dashboardManager.cardManagers }
 
         @State private var presentAddSheet = false
         @State private var habitToEdit: Habit?
@@ -45,10 +45,8 @@ extension Habit {
                     .padding([.horizontal, .bottom], 16)
                 }
                 .animation(.default, value: cardManagers.count)
-                .sheet(isPresented: $presentAddSheet) { AddHabitSheet() }
-                .sheet(item: $habitToEdit) { habit in
-                    EditHabitSheet(habit: habit)
-                }
+                .sheet(isPresented: $presentAddSheet) { Sheet.Add() }
+                .sheet(item: $habitToEdit) { Sheet.Edit(habit: $0) }
                 .overlay(alignment: .bottomTrailing) { debugButton }
                 .navigationTitle("Habit Rabbit")
                 .navigationBarTitleDisplayMode(dashboardManager.useInline ? .inline : .automatic)
