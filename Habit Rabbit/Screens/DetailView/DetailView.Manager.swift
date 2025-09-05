@@ -82,4 +82,14 @@ extension Habit.Card.DetailView.Manager {
         isLoading = false
     }
     
+    func resetValue(_ value: Habit.Value) {
+        value.currentValue = 0
+        try? modelContext.save()
+    }
+    
+    func updateValue(_ value: Habit.Value, to newValue: Int) {
+        value.currentValue = newValue
+        try? modelContext.save()
+    }
+    
 }
