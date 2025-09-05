@@ -45,12 +45,12 @@ extension Habit {
                 .animation(.default, value: cardManagers.count)
                 .sheet(isPresented: $presentAddSheet) { Sheet.Add() }
                 .sheet(item: $habitToEdit) { Sheet.Edit(habit: $0) }
-                //#if DEBUG
-                .overlay(alignment: .bottomTrailing) { debugButton }
-                //#endif
+                .overlay(alignment: .bottomTrailing) { addHabitButton }
                 .navigationTitle(String("Habit Rabbit"))
                 .navigationBarTitleDisplayMode(dashboardManager.useInline ? .inline : .automatic)
-                .toolbar { addHabitButton }
+                #if DEBUG
+                .toolbar { debugButton }
+                #endif
             }
             .tint(colorScheme == .dark ? .white : .black)
             .onCalendarDayChanged { dashboardManager.setLastDay(to: .now) }
@@ -67,20 +67,22 @@ extension Habit {
 
 extension Habit.Dashboard {
     
-    private var addHabitButton: some ToolbarContent {
-        ToolbarItem {
-            Button {
-                presentAddSheet = true
-            } label: {
-                Image(systemName: "plus")
-                    .font(.system(size: 14, weight: .semibold))
-                    .foregroundStyle(.secondary)
-                    .frame(width: 34, height: 34)
-                    .background { Habit.Card.Background(in: .circle).showShadows(false) }
-            }
-            .buttonStyle(.plain)
-            .sensoryFeedback(.selection, trigger: presentAddSheet)
+    private var addHabitButton: some View {
+        Button {
+            presentAddSheet = true
+        } label: {
+            Image(systemName: "plus")
+                .font(.title)
+                .fontWeight(.medium)
+                .foregroundStyle(colorScheme == .light ? .black : .white)
+                .frame(width: 64, height: 64)
+                .background { Habit.Card.Background(in: .circle, material: .ultraThinMaterial) }
+                .padding()
         }
+        .buttonStyle(.plain)
+        .sensoryFeedback(.selection, trigger: presentAddSheet)
+        .offset(x: 6, y: 0)
     }
+    
     
 }

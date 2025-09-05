@@ -16,7 +16,7 @@ extension Habit.Dashboard {
         private(set) var cardManagers: [Habit.Card.Manager] = []
         
         @ObservationIgnored
-        private var cardManagerCache: [Habit.ID: Habit.Card.Manager] = [:]
+        private var cardManagerCache: [PersistentIdentifier: Habit.Card.Manager] = [:]
         
         let weekdaySymbols: [String]
         private(set) var lastDayIndex: Int

@@ -624,7 +624,6 @@
       }
     },
     "Randomize" : {
-      "extractionState" : "stale",
       "localizations" : {
         "de" : {
           "stringUnit" : {
@@ -681,7 +680,6 @@
       }
     },
     "Randomize Name" : {
-      "extractionState" : "stale",
       "localizations" : {
         "de" : {
           "stringUnit" : {

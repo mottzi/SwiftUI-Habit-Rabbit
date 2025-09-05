@@ -11,6 +11,7 @@ struct HabitRabbit: App {
         WindowGroup {
             Habit.Dashboard()
                 .environment(dashboardManager)
+                .fontDesign(.rounded)
         }
     }
     

@@ -53,11 +53,14 @@ extension Habit.Card.DetailView.Manager {
         }
         
         let habitID = habit.id
+        
         let predicate = #Predicate<Habit.Value> {
-            $0.habit?.persistentModelID == habitID && $0.currentValue > 0
+            $0.habit?.persistentModelID == habitID
+            && $0.currentValue > 0
         }
         
-        let dateSort = SortDescriptor(\Habit.Value.date, order: .reverse) // Latest first
+        let dateSort = SortDescriptor(\Habit.Value.date, order: .reverse)
+        
         var descriptor = FetchDescriptor(predicate: predicate, sortBy: [dateSort])
         descriptor.fetchLimit = pageSize
         descriptor.fetchOffset = currentOffset
