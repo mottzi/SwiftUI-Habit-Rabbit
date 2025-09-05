@@ -2,7 +2,7 @@ import SwiftUI
 
 extension Habit.Dashboard {
     
-    private var addHabitButton: some View {
+    var addHabitButton: some View {
         Button {
             presentAddSheet = true
         } label: {

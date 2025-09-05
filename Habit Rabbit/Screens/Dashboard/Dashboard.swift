@@ -1,5 +1,4 @@
 import SwiftUI
-import SwiftData
 
 extension Habit {
     
@@ -7,13 +6,12 @@ extension Habit {
         
         @Namespace private var habitTransition
         @Environment(\.colorScheme) var colorScheme
-        @Environment(\.scenePhase) private var scenePhase
 
         @Environment(Habit.Dashboard.Manager.self) var dashboardManager
         var cardManagers: [Habit.Card.Manager] { dashboardManager.cardManagers }
 
-        @State private var presentAddSheet = false
-        @State private var habitToEdit: Habit?
+        @State var presentAddSheet = false
+        @State var habitToEdit: Habit?
 
         var body: some View {
             NavigationStack {
