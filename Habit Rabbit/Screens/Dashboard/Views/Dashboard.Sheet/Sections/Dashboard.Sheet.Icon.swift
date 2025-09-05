@@ -54,7 +54,7 @@ extension Habit.Dashboard.Sheet {
                                 .frame(width: 44, height: 44)
                                 .padding(4)
                                 .background {
-                                    switch icon == icon {
+                                    switch self.icon == icon {
                                         case true:  Circle().fill(.blue)
                                         case false: Habit.Card.Background(in: .circle)
                                     }

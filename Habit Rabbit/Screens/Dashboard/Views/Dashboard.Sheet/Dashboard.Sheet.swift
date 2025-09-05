@@ -17,7 +17,7 @@ extension Habit.Dashboard {
         @State var name: String
         @State var unit: String
         @State var icon: String
-        @State var color: Color
+        @State var selectedColorIndex: Int
         @State var showIconPicker = false
         @State var targetValue: Int?
         @State var kind: Habit.Kind
@@ -48,7 +48,8 @@ extension Habit.Dashboard {
             self._name = State(initialValue: initial.name)
             self._unit = State(initialValue: initial.unit)
             self._icon = State(initialValue: initial.icon)
-            self._color = State(initialValue: initial.color)
+            let colorIndex = Self.Edit.findClosestColorIndex(for: initial.color)
+            self._selectedColorIndex = State(initialValue: colorIndex)
             self._targetValue = State(initialValue: initial.target)
             self._kind = State(initialValue: initial.kind)
         }
@@ -99,9 +100,10 @@ extension Habit.Dashboard.Sheet {
 extension Habit.Dashboard.Sheet {
 
     private var isFormValid: Bool {
-        !name.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty &&
-        !unit.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty &&
-        targetValue != nil && targetValue! > 0
+        guard !name.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty else { return false }
+        guard !unit.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty else { return false }
+        guard let targetValue, targetValue > 0 else { return false }
+        return true
     }
     
     private func handleSubmit() {
@@ -110,7 +112,7 @@ extension Habit.Dashboard.Sheet {
             name: name.trimmingCharacters(in: .whitespacesAndNewlines),
             unit: unit.trimmingCharacters(in: .whitespacesAndNewlines),
             icon: icon,
-            color: color,
+            color: Self.availableColors[selectedColorIndex],
             target: targetValue,
             kind: kind
         )

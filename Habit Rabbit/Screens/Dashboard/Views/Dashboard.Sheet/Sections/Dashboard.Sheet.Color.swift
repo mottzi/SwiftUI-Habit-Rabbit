@@ -16,15 +16,15 @@ extension Habit.Dashboard.Sheet {
     private var colorPicker: some View {
         ScrollView(.horizontal, showsIndicators: false) {
             HStack(spacing: 12) {
-                ForEach(Self.availableColors.enumerated, id: \.offset) { _, clr in
+                ForEach(Self.availableColors.enumerated, id: \.offset) { index, clr in
                     Button {
-                        color = clr
+                        selectedColorIndex = index
                     } label: {
                         Circle()
                             .fill(clr.gradient)
                             .frame(width: 44, height: 44)
                             .overlay {
-                                if color == clr {
+                                if selectedColorIndex == index {
                                     Circle()
                                         .strokeBorder(.primary, lineWidth: 3)
                                 }
