@@ -31,7 +31,7 @@ extension Habit.Dashboard {
     private var addExampleButton: some View {
         Menu {
             ForEach([1, 2, 4, 8, 20, 50, 100], id: \.self) { count in
-                Button("\(count)") {
+                Button(String("\(count)")) {
                     dashboardManager.addExampleHabits(count: count)
                 }
             }

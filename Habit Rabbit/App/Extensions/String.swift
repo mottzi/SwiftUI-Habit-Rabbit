@@ -7,7 +7,7 @@ extension String {
     }
     
     static func pluralize(string: String, count: Int) -> String {
-        let query = LocalizationValue("^[\(count) \(string)](inflect: true)")
+        let query = LocalizationValue(String("^[\(count) \(string)](inflect: true)"))
         let attributed = AttributedString(localized: query)
         let localized = String(attributed.characters)
         let prefix = "\(count) "

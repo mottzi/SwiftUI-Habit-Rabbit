@@ -9,7 +9,7 @@ extension Habit.Dashboard.Sheet {
                 .fontWeight(.semibold)
                 .foregroundStyle(.secondary)
             
-            TextField("6", value: $targetValue, format: .number)
+            TextField(String("6"), value: $targetValue, format: .number)
                 .textFieldStyle(.plain)
                 .font(.title)
                 .fontWeight(.semibold)

@@ -55,7 +55,7 @@ extension Habit.Card {
     
     var habitLabel: some View {
         VStack(spacing: mode == .monthly ? 4 : 2) {
-            Label("\(cardManager.name)", systemImage: cardManager.icon)
+            Label(String("\(cardManager.name)"), systemImage: cardManager.icon)
                 .font(.headline)
                 .fontWeight(.semibold)
                 .foregroundStyle(.primary)
@@ -63,13 +63,13 @@ extension Habit.Card {
             
             if mode != .daily {
                 (
-                    Text("\(cardManager.currentValue(for: mode))")
+                    Text(verbatim: "\(cardManager.currentValue(for: mode))")
                         .foregroundStyle(.primary.opacity(colorScheme == .dark ? 1 : 0.8))
                     +
-                    Text(" / ")
+                    Text(verbatim: " / ")
                         .foregroundStyle(.primary.opacity(0.6))
                     +
-                    Text("\(cardManager.currentTarget(for: mode))")
+                    Text(verbatim: "\(cardManager.currentTarget(for: mode))")
                         .foregroundStyle(.primary.opacity(0.6))
                 )
                 .font(.subheadline)

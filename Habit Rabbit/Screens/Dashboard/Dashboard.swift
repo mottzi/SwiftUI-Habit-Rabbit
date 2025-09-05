@@ -28,14 +28,12 @@ extension Habit {
                                         view.navigationTransition(.zoom(sourceID: cardManager.habit.id, in: habitTransition))
                                     }
                             } label: {
-                                Habit.Card(onEdit: { habit in
-                                    habitToEdit = habit
-                                })
-                                .environment(cardManager)
-                                .environment(\.cardOffset, index)
-                                .if(dashboardManager.useZoom) { view in
-                                    view.matchedTransitionSource(id: cardManager.habit.id, in: habitTransition)
-                                }
+                                Habit.Card { habitToEdit = $0 }
+                                    .environment(cardManager)
+                                    .environment(\.cardOffset, index)
+                                    .if(dashboardManager.useZoom) { view in
+                                        view.matchedTransitionSource(id: cardManager.habit.id, in: habitTransition)
+                                    }
                             }
                             .buttonStyle(.plain)
                             .background { Habit.Card.shadowEffect(colorScheme) }
@@ -48,7 +46,7 @@ extension Habit {
                 .sheet(isPresented: $presentAddSheet) { Sheet.Add() }
                 .sheet(item: $habitToEdit) { Sheet.Edit(habit: $0) }
                 .overlay(alignment: .bottomTrailing) { debugButton }
-                .navigationTitle("Habit Rabbit")
+                .navigationTitle(String("Habit Rabbit"))
                 .navigationBarTitleDisplayMode(dashboardManager.useInline ? .inline : .automatic)
                 .toolbar { addHabitButton }
             }

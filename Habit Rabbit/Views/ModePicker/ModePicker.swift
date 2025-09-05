@@ -15,7 +15,7 @@ extension Habit.Dashboard {
                         let newMode = mode == item ? mode.next : item
                         onSelection(newMode)
                     } label: {
-                        Text(item.rawValue)
+                        Text(item.localizedTitle)
                             .font(.system(size: 14, weight: .medium))
                             .foregroundStyle(mode == item ? .primary : .secondary)
                             .fontWeight(mode == item ? .bold : .medium)

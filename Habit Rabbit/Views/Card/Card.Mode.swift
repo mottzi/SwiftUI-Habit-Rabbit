@@ -2,10 +2,18 @@ import SwiftUI
 
 extension Habit.Card {
     
-    enum Mode: String, CaseIterable {
-        case daily = "Daily"
-        case weekly = "Weekly"
-        case monthly = "Monthly"
+    enum Mode: CaseIterable {
+        case daily
+        case weekly
+        case monthly
+        
+        var localizedTitle: LocalizedStringKey {
+            switch self {
+                case .daily: "Daily"
+                case .weekly: "Weekly"
+                case .monthly: "Monthly"
+            }
+        }
     }
     
     func cardMode(_ mode: Habit.Card.Mode) -> some View {

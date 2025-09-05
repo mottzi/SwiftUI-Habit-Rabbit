@@ -14,13 +14,13 @@ extension Habit {
             VStack(spacing: 2) {
                 VStack {
                     (
-                        Text("\(value)")
+                        Text(verbatim: "\(value)")
                             .foregroundStyle(.primary.opacity(colorScheme == .dark ? 1 : 0.8))
                         +
-                        Text(" / ")
+                        Text(verbatim: " / ")
                             .foregroundStyle(.primary.opacity(0.6))
                         +
-                        Text("\(target)")
+                        Text(verbatim: "\(target)")
                             .foregroundStyle(.primary.opacity(0.6))
                     )
                     .font(.title2)
@@ -28,7 +28,7 @@ extension Habit {
                     .monospacedDigit()
                     .contentTransition(.numericText())
                 }
-                Text(unit.pluralized(count: target))
+                Text(verbatim: unit.pluralized(count: target))
                     .font(.footnote)
                     .fontWeight(.medium)
                     .foregroundStyle(.secondary)

@@ -7,6 +7,7 @@ extension Habit.Card {
 
         @Environment(Habit.Card.Manager.self) private var cardManager
         @Environment(Habit.Dashboard.Manager.self) private var dashboardManager
+        
         @State private var detailManager: Habit.Card.DetailView.Manager?
         @State private var editingValue: Habit.Value?
         @State private var editValueText: String = ""
@@ -53,9 +54,9 @@ extension Habit.Card.DetailView {
     
     private func valueRow(for value: Habit.Value) -> some View {
         HStack {
-            Text("\(value.date.formatted2)")
+            Text(verbatim: "\(value.date.formatted2)")
             Spacer()
-            Text("\(value.currentValue)")
+            Text(verbatim: "\(value.currentValue)")
         }
     }
 
