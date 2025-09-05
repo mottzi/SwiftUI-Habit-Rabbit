@@ -6,46 +6,27 @@ extension Habit.Card {
     
     struct DetailView: View {
         
-        @Environment(Habit.Card.Manager.self) var cardManager
-        @Environment(Habit.Dashboard.Manager.self) var dashboardManager
+        @Environment(Habit.Card.Manager.self) private var cardManager
+        @Environment(Habit.Dashboard.Manager.self) private var dashboardManager
         @State private var detailManager: Habit.Card.DetailView.Manager?
         
         var body: some View {
             Group {
                 if let detailManager {
-                    if detailManager.values.isEmpty && !detailManager.isLoading {
-                        VStack {
-                            Image(systemName: detailManager.icon)
-                                .font(.system(size: 48))
-                                .foregroundStyle(detailManager.color)
-                                .padding(.bottom, 16)
-                            
-                            Text("No Values Yet")
-                                .font(.title2.weight(.semibold))
-                                .padding(.bottom, 8)
-                            
-                            Text("Start tracking this habit to see your progress here.")
-                                .font(.body)
-                                .foregroundStyle(.secondary)
-                                .multilineTextAlignment(.center)
-                        }
-                        .frame(maxWidth: .infinity, maxHeight: .infinity)
-                        .padding()
-                    } else {
-                        List(detailManager.values, id: \.date) { value in
-                            HStack {
-                                Text("\(value.date.formatted2)")
-                                Spacer()
-                                Text("\(value.currentValue)")                                    
-                            }
-                        }
-                        .environment(detailManager)
-                        .safeAreaInset(edge: .bottom, spacing: 0) {
-                            if detailManager.canLoadMore {
-                                loadMoreButton
-                            }
+                    List(detailManager.values) { value in
+                        HStack {
+                            Text("\(value.date.formatted2)")
+                            Spacer()
+                            Text("\(value.currentValue)")                                    
                         }
                     }
+                    .environment(detailManager)
+                    .safeAreaInset(edge: .bottom, spacing: 0) {
+                        if detailManager.canLoadMore {
+                            loadMoreButton
+                        }
+                    }
+                    .contentMargins(.top, 16)
                 } else {
                     ProgressView()
                         .frame(maxWidth: .infinity, maxHeight: .infinity)
