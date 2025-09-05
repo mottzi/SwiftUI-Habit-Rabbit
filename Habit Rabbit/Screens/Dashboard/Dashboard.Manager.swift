@@ -150,7 +150,14 @@ extension Habit.Dashboard.Manager {
     
     func addHabits(_ habits: [Habit]) {
         habits.forEach { modelContext.insert(habit: $0) }
-        guard let _ = try? modelContext.save() else { return }
+//        guard let _ = try? modelContext.save() else { return }
+
+        do {
+            try modelContext.save()
+        } catch {
+            print("Error adding habits: \(error)")
+            return
+        }
         refreshCardManagers()
     }
     

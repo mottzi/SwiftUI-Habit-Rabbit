@@ -146,6 +146,7 @@ extension Habit.Card {
                 onEdit(cardManager.habit)
             }
         }
+        #if DEBUG
         Button("Randomize", systemImage: "sparkles") {
             cardManager.randomizeDailyValue()
         }
@@ -155,6 +156,7 @@ extension Habit.Card {
         Button("Reset", systemImage: "arrow.counterclockwise") {
             cardManager.dailyValue?.currentValue = 0
         }
+        #endif
         Button("Delete", systemImage: "trash", role: .destructive) {
             deleteWithAnimation()
         }

@@ -45,7 +45,9 @@ extension Habit {
                 .animation(.default, value: cardManagers.count)
                 .sheet(isPresented: $presentAddSheet) { Sheet.Add() }
                 .sheet(item: $habitToEdit) { Sheet.Edit(habit: $0) }
+                //#if DEBUG
                 .overlay(alignment: .bottomTrailing) { debugButton }
+                //#endif
                 .navigationTitle(String("Habit Rabbit"))
                 .navigationBarTitleDisplayMode(dashboardManager.useInline ? .inline : .automatic)
                 .toolbar { addHabitButton }

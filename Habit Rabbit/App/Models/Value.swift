@@ -36,7 +36,8 @@ extension Habit.Value {
         let rangeEnd = Calendar.current.date(byAdding: .day, value: 1, to: today)!
         
         let predicate = #Predicate<Habit.Value> { value in
-            value.habit?.id == habitID
+//            value.habit?.id == habitID
+            value.habit?.persistentModelID == habitID
             && value.date >= rangeStart && value.date < rangeEnd
         }
         

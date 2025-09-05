@@ -54,7 +54,8 @@ extension Habit.Card.DetailView.Manager {
         
         let habitID = habit.id
         let predicate = #Predicate<Habit.Value> { value in
-            value.habit?.id == habitID
+//            value.habit?.id == habitID
+            value.habit?.persistentModelID == habitID
         }
         
         let sortByDate = SortDescriptor(\Habit.Value.date, order: .reverse) // Latest first

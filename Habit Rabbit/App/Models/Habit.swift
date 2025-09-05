@@ -2,7 +2,7 @@ import SwiftUI
 import SwiftData
 
 @Model
-class Habit: Identifiable {
+class Habit {
 
     var name: String
     var unit: String
@@ -66,8 +66,8 @@ extension Habit {
 extension ModelContext {
     
     func insert(habit: Habit) {
-        let value = Habit.Value(habit: habit, date: habit.date)
         insert(habit)
+        let value = Habit.Value(habit: habit, date: habit.date)
         insert(value)
     }
     
