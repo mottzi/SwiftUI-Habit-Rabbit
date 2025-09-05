@@ -32,7 +32,7 @@ extension Habit.Dashboard.Sheet {
                         target: nil,
                         kind: .good
                     ),
-                    submitLabel: "Add Habit",
+                    submitLabel: String(localized: "Add Habit"),
                     submitIcon: "plus",
                     onSubmit: { newHabit in
                         dashboardManager.addHabits([newHabit])

@@ -12,8 +12,8 @@ extension Habit.Dashboard.Sheet {
             CustomSegmentedControl(
                 selection: $kind,
                 options: [
-                    (value: Habit.Kind.good, icon: "hand.thumbsup.fill", text: "Good", color: .green),
-                    (value: Habit.Kind.bad, icon: "hand.raised.fill", text: "Bad", color: .red)
+                    (value: Habit.Kind.good, icon: "hand.thumbsup.fill", text: String(localized: "Good"), color: .green),
+                    (value: Habit.Kind.bad, icon: "hand.raised.fill", text: String(localized: "Bad"), color: .red)
                 ]
             )
         }

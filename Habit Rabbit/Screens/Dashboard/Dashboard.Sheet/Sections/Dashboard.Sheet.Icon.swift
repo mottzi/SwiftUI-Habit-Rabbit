@@ -39,22 +39,22 @@ extension Habit.Dashboard.Sheet {
         NavigationStack {
             ScrollView {
                 LazyVGrid(columns: columns, spacing: 10) {
-                    ForEach(Self.commonIcons, id: \.self) { icn in
+                    ForEach(Self.commonIcons, id: \.self) { icon in
                         Button {
                             Task {
-                                icon = icn
+                                self.icon = icon
                                 try? await Task.sleep(for: .milliseconds(100))
                                 showIconPicker = false
                                 focusedField = nil
                             }
                         } label: {
-                            Image(systemName: icn)
+                            Image(systemName: icon)
                                 .font(.title3)
-                                .foregroundStyle(icon == icn ? .white : (colorScheme == .light ? .black : .white))
+                                .foregroundStyle(icon == icon ? .white : (colorScheme == .light ? .black : .white))
                                 .frame(width: 44, height: 44)
                                 .padding(4)
                                 .background {
-                                    switch icon == icn {
+                                    switch icon == icon {
                                         case true:  Circle().fill(.blue)
                                         case false: Habit.Card.Background(in: .circle)
                                     }
@@ -65,7 +65,7 @@ extension Habit.Dashboard.Sheet {
                     }
                 }
                 .padding(.vertical, 32)
-                
+                .padding(.horizontal, 16)
             }
             .toolbar { closeButton }
         }
