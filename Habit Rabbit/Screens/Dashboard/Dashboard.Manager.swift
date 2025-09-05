@@ -7,7 +7,7 @@ extension Habit.Dashboard {
     class Manager {
 
         private(set) var lastDay: Date
-        private let modelContext: ModelContext
+        private(set) var modelContext: ModelContext
         
         private(set) var mode: Habit.Card.Mode
         private(set) var useZoom: Bool = true
@@ -44,7 +44,6 @@ extension Habit.Dashboard.Manager {
     
     // jump to yesterday or tomorrow with optimized single-day fetch
     func shiftLastDay(to direction: Habit.Card.Manager.DayShift) {
-        print("* Optimized shift to: \(direction) - single fetch")
         
         // Update lastDay and lastDayIndex
         let offset = direction == .tomorrow ? 1 : -1
@@ -70,7 +69,6 @@ extension Habit.Dashboard.Manager {
             shiftLastDay(to: direction)
         } else {
             // Fall back to full rebuild for larger jumps
-            print("* Unoptimized shift to: \(date) - full rebuild")
             lastDay = date
             lastDayIndex = Calendar.current.weekdayIndex(for: date)
             deleteCardManagers()
@@ -80,29 +78,22 @@ extension Habit.Dashboard.Manager {
     
     // clear all card managers from cache
     func deleteCardManagers() {
-        print("* Deleting view models ...")
         cardManagerCache.removeAll()
     }
     
     // rebuild all card managers from scratch
     func refreshCardManagers() {
-        print("* Refreshing view models ...")
         var newCache: [Habit.ID: Habit.Card.Manager] = [:]
         
         let query = FetchDescriptor<Habit>(sortBy: [SortDescriptor(\.date)])
         
-        guard let habits = try? modelContext.fetch(query) else {
-            print("Failed to fetch habits.")
-            return
-        }
+        guard let habits = try? modelContext.fetch(query) else { return }
         
         for habit in habits {
             if let cachedManager = cardManagerCache[habit.id] {
                 newCache[habit.id] = cachedManager
                 continue
             }
-            
-            print("Habit.Manager: 🧾 \(habit.name)")
             
             newCache[habit.id] = Habit.Card.Manager(
                 for: habit,
@@ -220,13 +211,11 @@ extension Habit.Dashboard.Manager {
     func deleteAllHabits() throws {
         try modelContext.delete(model: Habit.self)
         try modelContext.save()
-        print("Dashboard.Manager: deleteAllHabits executed ... ")
         refreshCardManagers()
     }
     
     func deleteAllData() {
         modelContext.container.deleteAllData()
-        print("Dashboard.Manager: deleteAllData executed ... ")
         refreshCardManagers()
     }
     

@@ -28,6 +28,13 @@ extension Date {
         formatter.setLocalizedDateFormatFromTemplate("EEEEddMMyyyy")
         return formatter.string(from: self)
     }
+
+    var formatted2: String {
+        let formatter = DateFormatter()
+        formatter.locale = Locale.preferred
+        formatter.setLocalizedDateFormatFromTemplate("ddMMyyyy")
+        return formatter.string(from: self)
+    }
     
     var debug: String {
         let formatter = DateFormatter()

@@ -1,23 +1,13 @@
 import SwiftUI
 import Combine
 
-extension NotificationCenter {
-    
-    static var calendarDayChanged: AnyPublisher<Void, Never> {
-        NotificationCenter.default
-            .publisher(for: .NSCalendarDayChanged)
-            .map { _ in () }
-            .receive(on: DispatchQueue.main)
-            .eraseToAnyPublisher()
-    }
-    
-}
-
 extension View {
     
     func onCalendarDayChanged(action: @escaping () -> Void) -> some View {
-        self.onReceive(NotificationCenter.calendarDayChanged) { _ in
-            action()
+        self.task {
+            for await _ in NotificationCenter.default.notifications(named: .NSCalendarDayChanged) {
+                action()
+            }
         }
     }
     
