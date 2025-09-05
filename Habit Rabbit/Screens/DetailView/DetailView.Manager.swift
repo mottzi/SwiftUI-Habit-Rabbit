@@ -28,7 +28,7 @@ extension Habit.Card.DetailView {
         var color: Color { habit.color }
         var target: Int { habit.target }
         var kind: Habit.Kind { habit.kind }
-        
+    
     }
     
 }
@@ -53,13 +53,12 @@ extension Habit.Card.DetailView.Manager {
         }
         
         let habitID = habit.id
-        let predicate = #Predicate<Habit.Value> { value in
-//            value.habit?.id == habitID
-            value.habit?.persistentModelID == habitID
+        let predicate = #Predicate<Habit.Value> {
+            $0.habit?.persistentModelID == habitID && $0.currentValue > 0
         }
         
-        let sortByDate = SortDescriptor(\Habit.Value.date, order: .reverse) // Latest first
-        var descriptor = FetchDescriptor(predicate: predicate, sortBy: [sortByDate])
+        let dateSort = SortDescriptor(\Habit.Value.date, order: .reverse) // Latest first
+        var descriptor = FetchDescriptor(predicate: predicate, sortBy: [dateSort])
         descriptor.fetchLimit = pageSize
         descriptor.fetchOffset = currentOffset
         descriptor.relationshipKeyPathsForPrefetching = [\Habit.Value.habit]
@@ -75,7 +74,6 @@ extension Habit.Card.DetailView.Manager {
             
             currentOffset += fetchedValues.count
             canLoadMore = fetchedValues.count == pageSize
-            
         } catch {
             canLoadMore = false
         }

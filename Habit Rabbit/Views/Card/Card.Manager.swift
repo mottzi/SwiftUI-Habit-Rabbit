@@ -160,11 +160,10 @@ extension Habit.Card.Manager {
         // 4. Remove the OLD lastDay's value and build new values array
         var newValues = values.filter { !$0.date.isSameDay(as: oldLastDay) && !$0.date.isSameDay(as: newLastDay) }
 
-        // 5. Insert the new oldest day's value (use cached if available, otherwise create temporary)
+        // 5. Insert the new oldest day's value (only if not already present)
         let newOldestDay = newLastDay.shift(days: -29)
         if existingValues[newOldestDay] == nil {
-            let newOldestValue = valueCache[newOldestDay] 
-                ?? Habit.Value(habit: habit, date: newOldestDay, currentValue: 0)
+            let newOldestValue = fetchOrCreateValue(for: newOldestDay)
             newValues.insert(newOldestValue, at: 0)
         }
 
