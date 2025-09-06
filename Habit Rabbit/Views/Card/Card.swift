@@ -95,12 +95,12 @@ extension Habit.Card {
     static func shadowEffect(_ colorScheme: ColorScheme) -> some View {
         if colorScheme == .light {
             RoundedRectangle(cornerRadius: Habit.Card.Manager.cornerRadius)
-                .fill(.black.opacity(0.09))
+                .fill(.black.opacity(0.08))
                 .blur(radius: 10)
                 .offset(x: 0, y: 4)
             
             RoundedRectangle(cornerRadius: Habit.Card.Manager.cornerRadius)
-                .fill(.black.opacity(0.05))
+                .fill(.black.opacity(0.04))
                 .blur(radius: 4)
                 .offset(x: 0, y: 2)
         }
