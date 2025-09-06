@@ -12,6 +12,7 @@ struct HabitRabbit: App {
         WindowGroup {
             Habit.Dashboard()
                 .environment(dashboardManager)
+                .fontDesign(.rounded)
         }
     }
     
@@ -50,6 +51,13 @@ extension Date {
         let formatter = DateFormatter()
         formatter.locale = Locale.preferred
         formatter.setLocalizedDateFormatFromTemplate("EEEEddMMyyyy")
+        return formatter.string(from: self)
+    }
+
+    var formatted2: String {
+        let formatter = DateFormatter()
+        formatter.locale = Locale.preferred
+        formatter.setLocalizedDateFormatFromTemplate("ddMMyyyy")
         return formatter.string(from: self)
     }
     
@@ -131,27 +139,17 @@ extension RandomAccessCollection {
     }
     
 }
-// ./Habit Rabbit/App/Extensions/NotificationCenter.swift
+// ./Habit Rabbit/App/Extensions/Notifications.swift
 import SwiftUI
 import Combine
-
-extension NotificationCenter {
-    
-    static var calendarDayChanged: AnyPublisher<Void, Never> {
-        NotificationCenter.default
-            .publisher(for: .NSCalendarDayChanged)
-            .map { _ in () }
-            .receive(on: DispatchQueue.main)
-            .eraseToAnyPublisher()
-    }
-    
-}
 
 extension View {
     
     func onCalendarDayChanged(action: @escaping () -> Void) -> some View {
-        self.onReceive(NotificationCenter.calendarDayChanged) { _ in
-            action()
+        self.task {
+            for await _ in NotificationCenter.default.notifications(named: .NSCalendarDayChanged) {
+                action()
+            }
         }
     }
     
@@ -166,7 +164,7 @@ extension String {
     }
     
     static func pluralize(string: String, count: Int) -> String {
-        let query = LocalizationValue("^[\(count) \(string)](inflect: true)")
+        let query = LocalizationValue(String("^[\(count) \(string)](inflect: true)"))
         let attributed = AttributedString(localized: query)
         let localized = String(attributed.characters)
         let prefix = "\(count) "
@@ -216,7 +214,7 @@ import SwiftUI
 import SwiftData
 
 @Model
-class Habit: Identifiable {
+class Habit {
 
     var name: String
     var unit: String
@@ -280,8 +278,8 @@ extension Habit {
 extension ModelContext {
     
     func insert(habit: Habit) {
-        let value = Habit.Value(habit: habit, date: habit.date)
         insert(habit)
+        let value = Habit.Value(habit: habit, date: habit.date)
         insert(value)
     }
     
@@ -395,7 +393,8 @@ extension Habit.Value {
         let rangeEnd = Calendar.current.date(byAdding: .day, value: 1, to: today)!
         
         let predicate = #Predicate<Habit.Value> { value in
-            value.habit?.id == habitID
+//            value.habit?.id == habitID
+            value.habit?.persistentModelID == habitID
             && value.date >= rangeStart && value.date < rangeEnd
         }
         
@@ -418,7 +417,7 @@ extension Habit.Dashboard {
     class Manager {
 
         private(set) var lastDay: Date
-        private let modelContext: ModelContext
+        private(set) var modelContext: ModelContext
         
         private(set) var mode: Habit.Card.Mode
         private(set) var useZoom: Bool = true
@@ -427,7 +426,7 @@ extension Habit.Dashboard {
         private(set) var cardManagers: [Habit.Card.Manager] = []
         
         @ObservationIgnored
-        private var cardManagerCache: [Habit.ID: Habit.Card.Manager] = [:]
+        private var cardManagerCache: [PersistentIdentifier: Habit.Card.Manager] = [:]
         
         let weekdaySymbols: [String]
         private(set) var lastDayIndex: Int
@@ -455,7 +454,6 @@ extension Habit.Dashboard.Manager {
     
     // jump to yesterday or tomorrow with optimized single-day fetch
     func shiftLastDay(to direction: Habit.Card.Manager.DayShift) {
-        print("* Optimized shift to: \(direction) - single fetch")
         
         // Update lastDay and lastDayIndex
         let offset = direction == .tomorrow ? 1 : -1
@@ -481,7 +479,6 @@ extension Habit.Dashboard.Manager {
             shiftLastDay(to: direction)
         } else {
             // Fall back to full rebuild for larger jumps
-            print("* Unoptimized shift to: \(date) - full rebuild")
             lastDay = date
             lastDayIndex = Calendar.current.weekdayIndex(for: date)
             deleteCardManagers()
@@ -491,29 +488,22 @@ extension Habit.Dashboard.Manager {
     
     // clear all card managers from cache
     func deleteCardManagers() {
-        print("* Deleting view models ...")
         cardManagerCache.removeAll()
     }
     
     // rebuild all card managers from scratch
     func refreshCardManagers() {
-        print("* Refreshing view models ...")
         var newCache: [Habit.ID: Habit.Card.Manager] = [:]
         
         let query = FetchDescriptor<Habit>(sortBy: [SortDescriptor(\.date)])
         
-        guard let habits = try? modelContext.fetch(query) else {
-            print("Failed to fetch habits.")
-            return
-        }
+        guard let habits = try? modelContext.fetch(query) else { return }
         
         for habit in habits {
             if let cachedManager = cardManagerCache[habit.id] {
                 newCache[habit.id] = cachedManager
                 continue
             }
-            
-            print("Habit.Manager: 🧾 \(habit.name)")
             
             newCache[habit.id] = Habit.Card.Manager(
                 for: habit,
@@ -570,7 +560,14 @@ extension Habit.Dashboard.Manager {
     
     func addHabits(_ habits: [Habit]) {
         habits.forEach { modelContext.insert(habit: $0) }
-        guard let _ = try? modelContext.save() else { return }
+//        guard let _ = try? modelContext.save() else { return }
+
+        do {
+            try modelContext.save()
+        } catch {
+            print("Error adding habits: \(error)")
+            return
+        }
         refreshCardManagers()
     }
     
@@ -631,20 +628,17 @@ extension Habit.Dashboard.Manager {
     func deleteAllHabits() throws {
         try modelContext.delete(model: Habit.self)
         try modelContext.save()
-        print("Dashboard.Manager: deleteAllHabits executed ... ")
         refreshCardManagers()
     }
     
     func deleteAllData() {
         modelContext.container.deleteAllData()
-        print("Dashboard.Manager: deleteAllData executed ... ")
         refreshCardManagers()
     }
     
 }
 // ./Habit Rabbit/Screens/Dashboard/Dashboard.swift
 import SwiftUI
-import SwiftData
 
 extension Habit {
     
@@ -652,13 +646,12 @@ extension Habit {
         
         @Namespace private var habitTransition
         @Environment(\.colorScheme) var colorScheme
-        @Environment(\.scenePhase) private var scenePhase
 
         @Environment(Habit.Dashboard.Manager.self) var dashboardManager
         var cardManagers: [Habit.Card.Manager] { dashboardManager.cardManagers }
 
-        @State private var presentAddSheet = false
-        @State private var habitToEdit: Habit?
+        @State var presentAddSheet = false
+        @State var habitToEdit: Habit?
 
         var body: some View {
             NavigationStack {
@@ -673,14 +666,12 @@ extension Habit {
                                         view.navigationTransition(.zoom(sourceID: cardManager.habit.id, in: habitTransition))
                                     }
                             } label: {
-                                Habit.Card(onEdit: { habit in
-                                    habitToEdit = habit
-                                })
-                                .environment(cardManager)
-                                .environment(\.cardOffset, index)
-                                .if(dashboardManager.useZoom) { view in
-                                    view.matchedTransitionSource(id: cardManager.habit.id, in: habitTransition)
-                                }
+                                Habit.Card { habitToEdit = $0 }
+                                    .environment(cardManager)
+                                    .environment(\.cardOffset, index)
+                                    .if(dashboardManager.useZoom) { view in
+                                        view.matchedTransitionSource(id: cardManager.habit.id, in: habitTransition)
+                                    }
                             }
                             .buttonStyle(.plain)
                             .background { Habit.Card.shadowEffect(colorScheme) }
@@ -692,10 +683,12 @@ extension Habit {
                 .animation(.default, value: cardManagers.count)
                 .sheet(isPresented: $presentAddSheet) { Sheet.Add() }
                 .sheet(item: $habitToEdit) { Sheet.Edit(habit: $0) }
-                .overlay(alignment: .bottomTrailing) { debugButton }
-                .navigationTitle("Habit Rabbit")
+                .overlay(alignment: .bottomTrailing) { addHabitButton }
+                .navigationTitle(String("Habit Rabbit"))
                 .navigationBarTitleDisplayMode(dashboardManager.useInline ? .inline : .automatic)
-                .toolbar { addHabitButton }
+                #if DEBUG
+                .toolbar { debugButton }
+                #endif
             }
             .tint(colorScheme == .dark ? .white : .black)
             .onCalendarDayChanged { dashboardManager.setLastDay(to: .now) }
@@ -709,61 +702,66 @@ extension Habit {
     }
     
 }
-
-extension Habit.Dashboard {
-    
-    private var addHabitButton: some ToolbarContent {
-        ToolbarItem {
-            Button {
-                presentAddSheet = true
-            } label: {
-                Image(systemName: "plus")
-                    .font(.system(size: 14, weight: .semibold))
-                    .foregroundStyle(.secondary)
-                    .frame(width: 34, height: 34)
-                    .background { Habit.Card.Background(in: .circle).showShadows(false) }
-            }
-            .buttonStyle(.plain)
-            .sensoryFeedback(.selection, trigger: presentAddSheet)
-        }
-    }
-    
-}
-// ./Habit Rabbit/Screens/Dashboard/Dashboard.Debug/Dashboard.Debug.swift
+// ./Habit Rabbit/Screens/Dashboard/Views/Dashboard.AddHabitButton.swift
 import SwiftUI
 
 extension Habit.Dashboard {
     
-    var debugButton: some View {
-        Menu {
-            addExampleButton
-            randomizeButton
-            resetLatestButton
-            Divider()
-            zoomButton
-            inlineButton
-            Divider()
-            killDatabaseButton
-            deleteHabitsButton
+    var addHabitButton: some View {
+        Button {
+            presentAddSheet = true
         } label: {
-            Image(systemName: "hammer.fill")
+            Image(systemName: "plus")
+                .font(.title)
+                .fontWeight(.medium)
                 .foregroundStyle(colorScheme == .light ? .black : .white)
                 .frame(width: 64, height: 64)
-                .background { Habit.Card.Background(in: .circle) }
+                .background { Habit.Card.Background(in: .circle, material: .ultraThinMaterial) }
                 .padding()
         }
         .buttonStyle(.plain)
-        .offset(x: 12, y: 12)
+        .sensoryFeedback(.selection, trigger: presentAddSheet)
+        .offset(x: 6, y: 0)
+    }
+    
+    
+}
+// ./Habit Rabbit/Screens/Dashboard/Views/Dashboard.Debug.swift
+import SwiftUI
+
+extension Habit.Dashboard {
+    
+    var debugButton: some ToolbarContent {
+        ToolbarItem {
+            Menu {
+                addExampleButton
+                randomizeButton
+                resetLatestButton
+                Divider()
+                zoomButton
+                inlineButton
+                Divider()
+                killDatabaseButton
+                deleteHabitsButton
+            } label: {
+                Image(systemName: "gearshape.fill")
+                    .font(.system(size: 14, weight: .semibold))
+                    .foregroundStyle(.primary)
+                    .frame(width: 34, height: 34)
+                    .background { Habit.Card.Background(in: .circle).showShadows(false) }
+            }
+            .buttonStyle(.plain)
+        }
     }
     
 }
 
 extension Habit.Dashboard {
     
-    private var addExampleButton: some View {
+    var addExampleButton: some View {
         Menu {
             ForEach([1, 2, 4, 8, 20, 50, 100], id: \.self) { count in
-                Button("\(count)") {
+                Button(String("\(count)")) {
                     dashboardManager.addExampleHabits(count: count)
                 }
             }
@@ -772,13 +770,13 @@ extension Habit.Dashboard {
         }
     }
     
-    private var randomizeButton: some View {
+    var randomizeButton: some View {
         Button("Randomize All", systemImage: "sparkles") {
             dashboardManager.randomizeAllHabits()
         }
     }
     
-    private var resetLatestButton: some View {
+    var resetLatestButton: some View {
         Button("Reset Latest", systemImage: "0.circle") {
             dashboardManager.resetLatestHabits()
         }
@@ -788,23 +786,23 @@ extension Habit.Dashboard {
 
 extension Habit.Dashboard {
     
-    private var zoomButton: some View {
+    var zoomButton: some View {
         Button(action: dashboardManager.toggleUseZoom) {
             Label("Zoom Transition", systemImage: useZoomSymbol)
         }
     }
     
-    private var inlineButton: some View {
+    var inlineButton: some View {
         Button(action: dashboardManager.toggleUseInline) {
             Label("Inline Title", systemImage: useInlineSymbol)
         }
     }
     
-    private var useZoomSymbol: String {
+    var useZoomSymbol: String {
         dashboardManager.useZoom ? "checkmark.circle.fill" : "circle"
     }
     
-    private var useInlineSymbol: String {
+    var useInlineSymbol: String {
         dashboardManager.useInline ? "checkmark.circle.fill" : "circle"
     }
     
@@ -812,20 +810,20 @@ extension Habit.Dashboard {
 
 extension Habit.Dashboard {
     
-    private var killDatabaseButton: some View {
+    var killDatabaseButton: some View {
         Button("Kill Database", systemImage: "xmark", role: .destructive) {
             dashboardManager.deleteAllData()
         }
     }
     
-    private var deleteHabitsButton: some View {
+    var deleteHabitsButton: some View {
         Button("Delete All", systemImage: "trash", role: .destructive) {
             try? dashboardManager.deleteAllHabits()
         }
     }
     
 }
-// ./Habit Rabbit/Screens/Dashboard/Dashboard.Grid.Header/Dashboard.Grid.Header.swift
+// ./Habit Rabbit/Screens/Dashboard/Views/Dashboard.Grid.Header.swift
 import SwiftUI
 
 extension Habit.Dashboard {
@@ -896,7 +894,7 @@ extension Habit.Dashboard {
     }
     
 }
-// ./Habit Rabbit/Screens/Dashboard/Dashboard.Sheet/Dashboard.Sheet.Keyboard.swift
+// ./Habit Rabbit/Screens/Dashboard/Views/Dashboard.Sheet/Dashboard.Sheet.Keyboard.swift
 import SwiftUI
 
 extension Habit.Dashboard.Sheet {
@@ -947,7 +945,7 @@ extension Habit.Dashboard.Sheet {
     }
     
 }
-// ./Habit Rabbit/Screens/Dashboard/Dashboard.Sheet/Dashboard.Sheet.swift
+// ./Habit Rabbit/Screens/Dashboard/Views/Dashboard.Sheet/Dashboard.Sheet.swift
 import SwiftUI
 import SwiftData
 
@@ -967,7 +965,7 @@ extension Habit.Dashboard {
         @State var name: String
         @State var unit: String
         @State var icon: String
-        @State var color: Color
+        @State var selectedColorIndex: Int
         @State var showIconPicker = false
         @State var targetValue: Int?
         @State var kind: Habit.Kind
@@ -998,7 +996,8 @@ extension Habit.Dashboard {
             self._name = State(initialValue: initial.name)
             self._unit = State(initialValue: initial.unit)
             self._icon = State(initialValue: initial.icon)
-            self._color = State(initialValue: initial.color)
+            let colorIndex = Self.Edit.findClosestColorIndex(for: initial.color)
+            self._selectedColorIndex = State(initialValue: colorIndex)
             self._targetValue = State(initialValue: initial.target)
             self._kind = State(initialValue: initial.kind)
         }
@@ -1049,9 +1048,10 @@ extension Habit.Dashboard.Sheet {
 extension Habit.Dashboard.Sheet {
 
     private var isFormValid: Bool {
-        !name.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty &&
-        !unit.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty &&
-        targetValue != nil && targetValue! > 0
+        guard !name.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty else { return false }
+        guard !unit.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty else { return false }
+        guard let targetValue, targetValue > 0 else { return false }
+        return true
     }
     
     private func handleSubmit() {
@@ -1060,7 +1060,7 @@ extension Habit.Dashboard.Sheet {
             name: name.trimmingCharacters(in: .whitespacesAndNewlines),
             unit: unit.trimmingCharacters(in: .whitespacesAndNewlines),
             icon: icon,
-            color: color,
+            color: Self.availableColors[selectedColorIndex],
             target: targetValue,
             kind: kind
         )
@@ -1068,7 +1068,7 @@ extension Habit.Dashboard.Sheet {
     }
     
 }
-// ./Habit Rabbit/Screens/Dashboard/Dashboard.Sheet/Sections/Dashboard.Sheet.Color.swift
+// ./Habit Rabbit/Screens/Dashboard/Views/Dashboard.Sheet/Sections/Dashboard.Sheet.Color.swift
 import SwiftUI
 
 extension Habit.Dashboard.Sheet {
@@ -1087,15 +1087,15 @@ extension Habit.Dashboard.Sheet {
     private var colorPicker: some View {
         ScrollView(.horizontal, showsIndicators: false) {
             HStack(spacing: 12) {
-                ForEach(Self.availableColors.enumerated, id: \.offset) { _, clr in
+                ForEach(Self.availableColors.enumerated, id: \.offset) { index, clr in
                     Button {
-                        color = clr
+                        selectedColorIndex = index
                     } label: {
                         Circle()
                             .fill(clr.gradient)
                             .frame(width: 44, height: 44)
                             .overlay {
-                                if color == clr {
+                                if selectedColorIndex == index {
                                     Circle()
                                         .strokeBorder(.primary, lineWidth: 3)
                                 }
@@ -1126,7 +1126,7 @@ extension Habit.Dashboard.Sheet {
     ]
 
 }
-// ./Habit Rabbit/Screens/Dashboard/Dashboard.Sheet/Sections/Dashboard.Sheet.Icon.swift
+// ./Habit Rabbit/Screens/Dashboard/Views/Dashboard.Sheet/Sections/Dashboard.Sheet.Icon.swift
 import SwiftUI
 
 extension Habit.Dashboard.Sheet {
@@ -1168,22 +1168,22 @@ extension Habit.Dashboard.Sheet {
         NavigationStack {
             ScrollView {
                 LazyVGrid(columns: columns, spacing: 10) {
-                    ForEach(Self.commonIcons, id: \.self) { icn in
+                    ForEach(Self.commonIcons, id: \.self) { icon in
                         Button {
                             Task {
-                                icon = icn
+                                self.icon = icon
                                 try? await Task.sleep(for: .milliseconds(100))
                                 showIconPicker = false
                                 focusedField = nil
                             }
                         } label: {
-                            Image(systemName: icn)
+                            Image(systemName: icon)
                                 .font(.title3)
-                                .foregroundStyle(icon == icn ? .white : (colorScheme == .light ? .black : .white))
+                                .foregroundStyle(icon == icon ? .white : (colorScheme == .light ? .black : .white))
                                 .frame(width: 44, height: 44)
                                 .padding(4)
                                 .background {
-                                    switch icon == icn {
+                                    switch self.icon == icon {
                                         case true:  Circle().fill(.blue)
                                         case false: Habit.Card.Background(in: .circle)
                                     }
@@ -1194,7 +1194,7 @@ extension Habit.Dashboard.Sheet {
                     }
                 }
                 .padding(.vertical, 32)
-                
+                .padding(.horizontal, 16)
             }
             .toolbar { closeButton }
         }
@@ -1307,7 +1307,7 @@ extension Habit.Dashboard.Sheet {
     ]
 
 }
-// ./Habit Rabbit/Screens/Dashboard/Dashboard.Sheet/Sections/Dashboard.Sheet.Kind.swift
+// ./Habit Rabbit/Screens/Dashboard/Views/Dashboard.Sheet/Sections/Dashboard.Sheet.Kind.swift
 import SwiftUI
 
 extension Habit.Dashboard.Sheet {
@@ -1322,8 +1322,8 @@ extension Habit.Dashboard.Sheet {
             CustomSegmentedControl(
                 selection: $kind,
                 options: [
-                    (value: Habit.Kind.good, icon: "hand.thumbsup.fill", text: "Good", color: .green),
-                    (value: Habit.Kind.bad, icon: "hand.raised.fill", text: "Bad", color: .red)
+                    (value: Habit.Kind.good, icon: "hand.thumbsup.fill", text: String(localized: "Good"), color: .green),
+                    (value: Habit.Kind.bad, icon: "hand.raised.fill", text: String(localized: "Bad"), color: .red)
                 ]
             )
         }
@@ -1331,7 +1331,7 @@ extension Habit.Dashboard.Sheet {
     }
     
 }
-// ./Habit Rabbit/Screens/Dashboard/Dashboard.Sheet/Sections/Dashboard.Sheet.Name.swift
+// ./Habit Rabbit/Screens/Dashboard/Views/Dashboard.Sheet/Sections/Dashboard.Sheet.Name.swift
 import SwiftUI
 
 extension Habit.Dashboard.Sheet {
@@ -1361,7 +1361,7 @@ extension Habit.Dashboard.Sheet {
     }
     
 }
-// ./Habit Rabbit/Screens/Dashboard/Dashboard.Sheet/Sections/Dashboard.Sheet.Target.swift
+// ./Habit Rabbit/Screens/Dashboard/Views/Dashboard.Sheet/Sections/Dashboard.Sheet.Target.swift
 import SwiftUI
 
 extension Habit.Dashboard.Sheet {
@@ -1373,7 +1373,7 @@ extension Habit.Dashboard.Sheet {
                 .fontWeight(.semibold)
                 .foregroundStyle(.secondary)
             
-            TextField("6", value: $targetValue, format: .number)
+            TextField(String("6"), value: $targetValue, format: .number)
                 .textFieldStyle(.plain)
                 .font(.title)
                 .fontWeight(.semibold)
@@ -1387,7 +1387,7 @@ extension Habit.Dashboard.Sheet {
     }
     
 }
-// ./Habit Rabbit/Screens/Dashboard/Dashboard.Sheet/Sections/Dashboard.Sheet.Unit.swift
+// ./Habit Rabbit/Screens/Dashboard/Views/Dashboard.Sheet/Sections/Dashboard.Sheet.Unit.swift
 import SwiftUI
 
 extension Habit.Dashboard.Sheet {
@@ -1417,7 +1417,7 @@ extension Habit.Dashboard.Sheet {
     }
 
 }
-// ./Habit Rabbit/Screens/Dashboard/Dashboard.Sheet/Sheets/Dashboard.Sheet.Add.swift
+// ./Habit Rabbit/Screens/Dashboard/Views/Dashboard.Sheet/Sheets/Dashboard.Sheet.Add.swift
 import SwiftUI
 
 extension Habit.Dashboard.Sheet {
@@ -1452,7 +1452,7 @@ extension Habit.Dashboard.Sheet {
                         target: nil,
                         kind: .good
                     ),
-                    submitLabel: "Add Habit",
+                    submitLabel: String(localized: "Add Habit"),
                     submitIcon: "plus",
                     onSubmit: { newHabit in
                         dashboardManager.addHabits([newHabit])
@@ -1531,7 +1531,7 @@ extension Habit.Dashboard.Sheet.Add {
     }
 
 }
-// ./Habit Rabbit/Screens/Dashboard/Dashboard.Sheet/Sheets/Dashboard.Sheet.Edit.swift
+// ./Habit Rabbit/Screens/Dashboard/Views/Dashboard.Sheet/Sheets/Dashboard.Sheet.Edit.swift
 import SwiftUI
 
 extension Habit.Dashboard.Sheet {
@@ -1692,31 +1692,261 @@ extension Habit.Dashboard.Sheet.Edit {
     }
 
 }
-// ./Habit Rabbit/Screens/DetailView/DetailView.swift
-
+// ./Habit Rabbit/Screens/DetailView/DetailView.Manager.swift
 import SwiftUI
+import SwiftData
 
-extension Habit.Card {
+extension Habit.Card.DetailView {
     
-    struct DetailView: View {
+    @Observable
+    class Manager {
+
+        private let habit: Habit
+        private let modelContext: ModelContext
         
-        @Environment(Habit.Card.Manager.self) var cardManager
+        private(set) var values: [Habit.Value] = []
+        private(set) var isLoading = false
+        private(set) var canLoadMore = false
         
-        var body: some View {
-            NavigationStack {
-                ScrollView {
-                    Habit.AverageView()
-                        .environment(cardManager)
-                        .frame(maxWidth: .infinity)
-                        .padding(16)
-                }
-                .navigationTitle(cardManager.habit.name)
-                .toolbarTitleDisplayMode(.inline)
-            }
+        private let pageSize = 100
+        private var currentOffset = 0
+        
+        init(for habit: Habit, using modelContext: ModelContext) {
+            self.habit = habit
+            self.modelContext = modelContext
+            loadInitialValues()
         }
         
+        var name: String { habit.name }
+        var unit: String { habit.unit }
+        var icon: String { habit.icon }
+        var color: Color { habit.color }
+        var target: Int { habit.target }
+        var kind: Habit.Kind { habit.kind }
+    
     }
     
+}
+
+extension Habit.Card.DetailView.Manager {
+    
+    func loadInitialValues() {
+        loadValues(reset: true)
+    }
+    
+    func loadMoreValues() {
+        guard !isLoading && canLoadMore else { return }
+        loadValues(reset: false)
+    }
+    
+    private func loadValues(reset: Bool) {
+        isLoading = true
+        
+        if reset {
+            currentOffset = 0
+            values = []
+        }
+        
+        let habitID = habit.id
+        
+        let predicate = #Predicate<Habit.Value> {
+            $0.habit?.persistentModelID == habitID
+            && $0.currentValue > 0
+        }
+        
+        let dateSort = SortDescriptor(\Habit.Value.date, order: .reverse)
+        
+        var descriptor = FetchDescriptor(predicate: predicate, sortBy: [dateSort])
+        descriptor.fetchLimit = pageSize
+        descriptor.fetchOffset = currentOffset
+        descriptor.relationshipKeyPathsForPrefetching = [\Habit.Value.habit]
+        
+        do {
+            let fetchedValues = try modelContext.fetch(descriptor)
+            
+            if reset {
+                values = fetchedValues
+            } else {
+                values.append(contentsOf: fetchedValues)
+            }
+            
+            currentOffset += fetchedValues.count
+            canLoadMore = fetchedValues.count == pageSize
+        } catch {
+            canLoadMore = false
+        }
+        
+        isLoading = false
+    }
+    
+    func resetValue(_ value: Habit.Value) {
+        value.currentValue = 0
+        try? modelContext.save()
+    }
+    
+    func updateValue(_ value: Habit.Value, to newValue: Int) {
+        value.currentValue = newValue
+        try? modelContext.save()
+    }
+    
+}
+// ./Habit Rabbit/Screens/DetailView/DetailView.swift
+import SwiftUI
+import SwiftData
+
+extension Habit.Card {
+
+    struct DetailView: View {
+
+        @Environment(Habit.Card.Manager.self) private var cardManager
+        @Environment(Habit.Dashboard.Manager.self) private var dashboardManager
+        
+        @State private var detailManager: Habit.Card.DetailView.Manager?
+        @State private var editingValue: Habit.Value?
+        @State private var editValueText: String = ""
+
+        var body: some View {
+            Group {
+                if let detailManager {
+                    valuesList
+                        .environment(detailManager)
+                        .safeAreaInset(edge: .bottom, spacing: 0) {
+                            if detailManager.canLoadMore {
+                                loadMoreButton
+                            }
+                        }
+                        .contentMargins(.top, 16)
+                } else {
+                    loadingView
+                }
+            }
+            .navigationTitle(cardManager.habit.name)
+            .navigationBarTitleDisplayMode(.inline)
+            .onAppear { setupDetailManager() }
+            .alert("Edit Value", isPresented: .constant(editingValue != nil)) {
+                editValueAlert
+            } message: {
+                editValueMessage
+            }
+        }
+
+    }
+
+}
+
+extension Habit.Card.DetailView {
+
+    private var valuesList: some View {
+        List(detailManager?.values ?? []) { value in
+            valueRow(for: value)
+                .swipeActions(edge: .trailing, allowsFullSwipe: false) {
+                    swipeActions(for: value)
+                }
+        }
+    }
+    
+    private func valueRow(for value: Habit.Value) -> some View {
+        HStack {
+            Text(verbatim: "\(value.date.formatted2)")
+            Spacer()
+            Text(verbatim: "\(value.currentValue)")
+        }
+    }
+
+}
+
+extension Habit.Card.DetailView {
+    
+    @ViewBuilder
+    private func swipeActions(for value: Habit.Value) -> some View {
+        Button {
+            editingValue = value
+            editValueText = "\(value.currentValue)"
+        } label: {
+            Label("Edit", systemImage: "pencil")
+        }
+        .tint(.blue)
+        
+        Button {
+            detailManager?.resetValue(value)
+        } label: {
+            Label("Reset", systemImage: "trash")
+        }
+        .tint(.red)
+    }
+    
+    @ViewBuilder
+    private var editValueAlert: some View {
+        TextField("Value", text: $editValueText)
+            .keyboardType(.numberPad)
+        Button("Cancel", action: cancelEdit)
+        Button("Save", action: saveEdit)
+    }
+    
+    @ViewBuilder
+    private var editValueMessage: some View {
+        if let value = editingValue {
+            Text("Enter new value for \(value.date.formatted2)")
+        }
+    }
+    
+}
+
+extension Habit.Card.DetailView {
+
+    private var loadingView: some View {
+        ProgressView()
+            .frame(maxWidth: .infinity, maxHeight: .infinity)
+    }
+    
+    private var loadMoreButton: some View {
+        Button {
+            detailManager?.loadMoreValues()
+        } label: {
+            HStack {
+                if detailManager?.isLoading == true {
+                    ProgressView()
+                        .scaleEffect(0.8)
+                } else {
+                    Text("Load More Values")
+                }
+            }
+            .frame(maxWidth: .infinity)
+            .padding()
+            .background(.regularMaterial, in: RoundedRectangle(cornerRadius: 12))
+        }
+        .disabled(detailManager?.isLoading == true)
+        .padding(.horizontal)
+        .padding(.bottom, 8)
+    }
+
+}
+
+extension Habit.Card.DetailView {
+
+    private func setupDetailManager() {
+        if detailManager == nil {
+            detailManager = Habit.Card.DetailView.Manager(
+                for: cardManager.habit,
+                using: dashboardManager.modelContext
+            )
+        }
+    }
+
+    private func cancelEdit() {
+        editingValue = nil
+        editValueText = ""
+    }
+
+    private func saveEdit() {
+        if let value = editingValue,
+           let newValue = Int(editValueText) {
+            detailManager?.updateValue(value, to: newValue)
+        }
+        editingValue = nil
+        editValueText = ""
+    }
+
 }
 // ./Habit Rabbit/Views/AverageView/AverageColumn.swift
 import SwiftUI
@@ -2277,10 +2507,18 @@ import SwiftUI
 
 extension Habit.Card {
     
-    enum Mode: String, CaseIterable {
-        case daily = "Daily"
-        case weekly = "Weekly"
-        case monthly = "Monthly"
+    enum Mode: CaseIterable {
+        case daily
+        case weekly
+        case monthly
+        
+        var localizedTitle: LocalizedStringKey {
+            switch self {
+                case .daily: "Daily"
+                case .weekly: "Weekly"
+                case .monthly: "Monthly"
+            }
+        }
     }
     
     func cardMode(_ mode: Habit.Card.Mode) -> some View {
@@ -2352,7 +2590,7 @@ extension Habit.Card {
     
     var habitLabel: some View {
         VStack(spacing: mode == .monthly ? 4 : 2) {
-            Label("\(cardManager.name)", systemImage: cardManager.icon)
+            Label(String("\(cardManager.name)"), systemImage: cardManager.icon)
                 .font(.headline)
                 .fontWeight(.semibold)
                 .foregroundStyle(.primary)
@@ -2360,13 +2598,13 @@ extension Habit.Card {
             
             if mode != .daily {
                 (
-                    Text("\(cardManager.currentValue(for: mode))")
+                    Text(verbatim: "\(cardManager.currentValue(for: mode))")
                         .foregroundStyle(.primary.opacity(colorScheme == .dark ? 1 : 0.8))
                     +
-                    Text(" / ")
+                    Text(verbatim: " / ")
                         .foregroundStyle(.primary.opacity(0.6))
                     +
-                    Text("\(cardManager.currentTarget(for: mode))")
+                    Text(verbatim: "\(cardManager.currentTarget(for: mode))")
                         .foregroundStyle(.primary.opacity(0.6))
                 )
                 .font(.subheadline)
@@ -2443,6 +2681,7 @@ extension Habit.Card {
                 onEdit(cardManager.habit)
             }
         }
+        #if DEBUG
         Button("Randomize", systemImage: "sparkles") {
             cardManager.randomizeDailyValue()
         }
@@ -2452,6 +2691,7 @@ extension Habit.Card {
         Button("Reset", systemImage: "arrow.counterclockwise") {
             cardManager.dailyValue?.currentValue = 0
         }
+        #endif
         Button("Delete", systemImage: "trash", role: .destructive) {
             deleteWithAnimation()
         }
@@ -2730,7 +2970,7 @@ extension Habit.Dashboard {
                         let newMode = mode == item ? mode.next : item
                         onSelection(newMode)
                     } label: {
-                        Text(item.rawValue)
+                        Text(item.localizedTitle)
                             .font(.system(size: 14, weight: .medium))
                             .foregroundStyle(mode == item ? .primary : .secondary)
                             .fontWeight(mode == item ? .bold : .medium)
@@ -2982,13 +3222,13 @@ extension Habit {
             VStack(spacing: 2) {
                 VStack {
                     (
-                        Text("\(value)")
+                        Text(verbatim: "\(value)")
                             .foregroundStyle(.primary.opacity(colorScheme == .dark ? 1 : 0.8))
                         +
-                        Text(" / ")
+                        Text(verbatim: " / ")
                             .foregroundStyle(.primary.opacity(0.6))
                         +
-                        Text("\(target)")
+                        Text(verbatim: "\(target)")
                             .foregroundStyle(.primary.opacity(0.6))
                     )
                     .font(.title2)
@@ -2996,7 +3236,7 @@ extension Habit {
                     .monospacedDigit()
                     .contentTransition(.numericText())
                 }
-                Text(unit.pluralized(count: target))
+                Text(verbatim: unit.pluralized(count: target))
                     .font(.footnote)
                     .fontWeight(.medium)
                     .foregroundStyle(.secondary)
