@@ -119,6 +119,10 @@ extension Habit.Dashboard.Manager {
     func toggleUseInline() {
         useInline.toggle()
     }
+    
+    var titleMode: NavigationBarItem.TitleDisplayMode {
+        useInline ? .inline : .automatic
+    }
         
     func updateMode(to newMode: Habit.Card.Mode) {
         if newMode == mode { return }

@@ -11,6 +11,10 @@ extension Habit.Card {
         @State private var detailManager: Habit.Card.DetailView.Manager?
         @State private var editingValue: Habit.Value?
         @State private var editValueText: String = ""
+        
+        var values: [Habit.Value] {
+            detailManager?.values ?? []
+        }
 
         var body: some View {
             Group {
@@ -43,12 +47,28 @@ extension Habit.Card {
 
 extension Habit.Card.DetailView {
 
+    @ViewBuilder
     private var valuesList: some View {
-        List(detailManager?.values ?? []) { value in
+        List(values) { value in
             valueRow(for: value)
                 .swipeActions(edge: .trailing, allowsFullSwipe: false) {
                     swipeActions(for: value)
                 }
+        }
+        .safeAreaInset(edge: .top) { emptyView }
+    }
+    
+    @ViewBuilder
+    var emptyView: some View {
+        if values.isEmpty {
+            ContentUnavailableView(
+                "No Values",
+                systemImage: "text.page.slash",
+                description: Text("Start tracking to see your progress history here.")
+            )
+            .frame(height: 200)
+            .frame(maxHeight: .infinity, alignment: .top)
+            .padding(.top, 16)
         }
     }
     

@@ -169,6 +169,34 @@
         }
       }
     },
+    "Create your first habit to get started!" : {
+      "localizations" : {
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Erstelle deine erste Gewohnheit, um loszulegen!"
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "¡Crea tu primer hábito para comenzar!"
+          }
+        },
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Créez votre première habitude pour commencer !"
+          }
+        },
+        "it" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Crea la tua prima abitudine per iniziare!"
+          }
+        }
+      }
+    },
     "Daily" : {
       "localizations" : {
         "de" : {
@@ -595,6 +623,62 @@
         }
       }
     },
+    "No Habits" : {
+      "localizations" : {
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Keine Gewohnheiten"
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Sin hábitos"
+          }
+        },
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Aucune habitude"
+          }
+        },
+        "it" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Nessuna abitudine"
+          }
+        }
+      }
+    },
+    "No Values" : {
+      "localizations" : {
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Keine Werte"
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Sin valores"
+          }
+        },
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Aucune valeur"
+          }
+        },
+        "it" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Nessun valore"
+          }
+        }
+      }
+    },
     "Previous" : {
       "localizations" : {
         "de" : {
@@ -815,6 +899,34 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Sessioni"
+          }
+        }
+      }
+    },
+    "Start tracking to see your progress history here." : {
+      "localizations" : {
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Beginne mit der Verfolgung, um deinen Fortschrittsverlauf hier zu sehen."
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Comienza a rastrear para ver tu historial de progreso aquí."
+          }
+        },
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Commencez le suivi pour voir votre historique de progression ici."
+          }
+        },
+        "it" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Inizia a tracciare per vedere la tua cronologia dei progressi qui."
           }
         }
       }

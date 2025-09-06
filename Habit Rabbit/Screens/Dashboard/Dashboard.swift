@@ -37,6 +37,7 @@ extension Habit {
                             .background { Habit.Card.shadowEffect(colorScheme) }
                         }
                     }
+                    .safeAreaInset(edge: .top, spacing: 0) { emptyView }
                     .safeAreaInset(edge: .top, spacing: 16) { gridHeader }
                     .padding([.horizontal, .bottom], 16)
                 }
@@ -45,7 +46,7 @@ extension Habit {
                 .sheet(item: $habitToEdit) { Sheet.Edit(habit: $0) }
                 .overlay(alignment: .bottomTrailing) { addHabitButton }
                 .navigationTitle(String("Habit Rabbit"))
-                .navigationBarTitleDisplayMode(dashboardManager.useInline ? .inline : .automatic)
+                .navigationBarTitleDisplayMode(dashboardManager.titleMode)
                 #if DEBUG
                 .toolbar { debugButton }
                 #endif
