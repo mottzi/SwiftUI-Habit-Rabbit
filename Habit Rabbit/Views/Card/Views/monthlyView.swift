@@ -30,10 +30,10 @@ extension Habit.Card {
                                 .animation(.bouncy, value: cell.value?.currentValue)
                         }
                     }
-                    .compositingGroup()
-                    .geometryGroup()
                 }
             }
+            .compositingGroup()
+            .geometryGroup()
             .frame(height: Habit.Card.Manager.cubesGridHeight)
             .frame(maxWidth: .infinity)
             .clipped()

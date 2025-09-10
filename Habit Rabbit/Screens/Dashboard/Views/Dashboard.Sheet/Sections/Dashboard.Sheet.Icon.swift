@@ -50,16 +50,14 @@ extension Habit.Dashboard.Sheet {
                         } label: {
                             Image(systemName: icon)
                                 .font(.title3)
-                                .foregroundStyle(icon == icon ? .white : (colorScheme == .light ? .black : .white))
                                 .frame(width: 44, height: 44)
                                 .padding(4)
                                 .background {
                                     switch self.icon == icon {
                                         case true:  Circle().fill(.blue)
-                                        case false: Habit.Card.Background(in: .circle)
+                                        case false: Habit.Card.Background(in: .circle).showShadows(false)
                                     }
                                 }
-                            
                         }
                         .buttonStyle(.plain)
                     }

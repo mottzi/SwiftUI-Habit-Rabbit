@@ -5,19 +5,18 @@ import SwiftData
 struct HabitRabbit: App {
     
     let modelContainer: ModelContainer
-    let dashboardManager: Habit.Dashboard.Manager
+    let dashboardManager: Habit.Dashboard.Manager 
+    
+    init() {
+        modelContainer = try! ModelContainer(for: Habit.self, Habit.Value.self)
+        dashboardManager = Habit.Dashboard.Manager(using: modelContainer.mainContext)
+    }
     
     var body: some Scene {
         WindowGroup {
             Habit.Dashboard()
                 .environment(dashboardManager)
-                .fontDesign(.rounded)
         }
-    }
-    
-    init() {
-        modelContainer = try! ModelContainer(for: Habit.self, Habit.Value.self)
-        dashboardManager = Habit.Dashboard.Manager(using: modelContainer.mainContext)
     }
     
 }

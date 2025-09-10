@@ -51,12 +51,12 @@ extension Habit.Card {
             ZStack {
                 if colorScheme == .light {
                     shape
-                        .fill(.black.opacity(0.09))
+                        .fill(.black.opacity(0.08))
                         .blur(radius: 10)
                         .offset(x: 0, y: 4)
                     
                     shape
-                        .fill(.black.opacity(0.05))
+                        .fill(.black.opacity(0.04))
                         .blur(radius: 4)
                         .offset(x: 0, y: 2)
                 }
@@ -71,7 +71,7 @@ extension Habit.Card.Background where S == RoundedRectangle {
     
     init(@ViewBuilder background: () -> B) {
         self.init(
-            shape: RoundedRectangle(cornerRadius: Habit.Card.Manager.cornerRadius),
+            shape: .rect(cornerRadius: Habit.Card.Manager.cornerRadius),
             background: background
         )
     }
@@ -81,7 +81,7 @@ extension Habit.Card.Background where S == RoundedRectangle {
 extension Habit.Card.Background where B == EmptyView, S == RoundedRectangle {
     
     init(shadow: Bool = true) {
-        self.init(shape: RoundedRectangle(cornerRadius: Habit.Card.Manager.cornerRadius)) {
+        self.init(shape: .rect(cornerRadius: Habit.Card.Manager.cornerRadius)) {
             EmptyView()
         }
     }

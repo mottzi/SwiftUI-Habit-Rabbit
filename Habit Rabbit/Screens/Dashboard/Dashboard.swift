@@ -52,6 +52,7 @@ extension Habit {
                 #endif
             }
             .tint(colorScheme == .dark ? .white : .black)
+            .fontDesign(.rounded)
             .onCalendarDayChanged { dashboardManager.setLastDay(to: .now) }
         }
         

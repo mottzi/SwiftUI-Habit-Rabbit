@@ -53,6 +53,25 @@ extension Habit {
 
 extension Habit.Card {
     
+    @ViewBuilder
+    static func shadowEffect(_ colorScheme: ColorScheme) -> some View {
+        if colorScheme == .light {
+            RoundedRectangle(cornerRadius: Habit.Card.Manager.cornerRadius)
+                .fill(.black.opacity(0.08))
+                .blur(radius: 10)
+                .offset(x: 0, y: 4)
+            
+            RoundedRectangle(cornerRadius: Habit.Card.Manager.cornerRadius)
+                .fill(.black.opacity(0.04))
+                .blur(radius: 4)
+                .offset(x: 0, y: 2)
+        }
+    }
+    
+}
+
+extension Habit.Card {
+    
     var habitLabel: some View {
         VStack(spacing: mode == .monthly ? 4 : 2) {
             Label(String("\(cardManager.name)"), systemImage: cardManager.icon)
@@ -89,21 +108,6 @@ extension Habit.Card {
             .offset(x: 0, y: 180)
             .clipShape(.rect(cornerRadius: Manager.cornerRadius))
             .animation(.bouncy, value: cardManager.isCompleted(for: mode))
-    }
-    
-    @ViewBuilder
-    static func shadowEffect(_ colorScheme: ColorScheme) -> some View {
-        if colorScheme == .light {
-            RoundedRectangle(cornerRadius: Habit.Card.Manager.cornerRadius)
-                .fill(.black.opacity(0.08))
-                .blur(radius: 10)
-                .offset(x: 0, y: 4)
-            
-            RoundedRectangle(cornerRadius: Habit.Card.Manager.cornerRadius)
-                .fill(.black.opacity(0.04))
-                .blur(radius: 4)
-                .offset(x: 0, y: 2)
-        }
     }
     
 }

@@ -20,7 +20,8 @@ extension Habit.Dashboard {
         
         let weekdaySymbols: [String]
         private(set) var lastDayIndex: Int
-                
+        
+        @MainActor
         init(
             mode: Habit.Card.Mode = .daily,
             lastDay: Date = .now.startOfDay,
@@ -28,17 +29,18 @@ extension Habit.Dashboard {
         ) {
             self.mode = mode
             self.lastDay = lastDay
-            self.modelContext = modelContext
-            
             self.weekdaySymbols = Calendar.current.weekdaySymbols
             self.lastDayIndex = Calendar.current.weekdayIndex(for: lastDay)
-            
+            self.modelContext = modelContext
+                                        
             refreshCardManagers()
         }
         
     }
     
 }
+
+
 
 extension Habit.Dashboard.Manager {
     
