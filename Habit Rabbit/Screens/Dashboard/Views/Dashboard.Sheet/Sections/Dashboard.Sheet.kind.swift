@@ -9,7 +9,7 @@ extension Habit.Dashboard.Sheet {
                 .fontWeight(.semibold)
                 .foregroundStyle(.secondary)
             
-            CustomSegmentedControl(
+            SegmentedControl(
                 selection: $kind,
                 options: [
                     (value: Habit.Kind.good, icon: "hand.thumbsup.fill", text: String(localized: "Good"), color: .green),

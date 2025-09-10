@@ -1,6 +1,6 @@
 import SwiftUI
 
-struct CustomSegmentedControl<T: Hashable>: View {
+struct SegmentedControl<T: Hashable>: View {
 
     @Binding var selection: T
     let options: [(value: T, icon: String, text: String, color: Color)]

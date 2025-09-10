@@ -6,19 +6,18 @@ import SwiftData
 struct HabitRabbit: App {
     
     let modelContainer: ModelContainer
-    let dashboardManager: Habit.Dashboard.Manager
+    let dashboardManager: Habit.Dashboard.Manager 
+    
+    init() {
+        modelContainer = try! ModelContainer(for: Habit.self, Habit.Value.self)
+        dashboardManager = Habit.Dashboard.Manager(using: modelContainer.mainContext)
+    }
     
     var body: some Scene {
         WindowGroup {
             Habit.Dashboard()
                 .environment(dashboardManager)
-                .fontDesign(.rounded)
         }
-    }
-    
-    init() {
-        modelContainer = try! ModelContainer(for: Habit.self, Habit.Value.self)
-        dashboardManager = Habit.Dashboard.Manager(using: modelContainer.mainContext)
     }
     
 }
@@ -430,7 +429,8 @@ extension Habit.Dashboard {
         
         let weekdaySymbols: [String]
         private(set) var lastDayIndex: Int
-                
+        
+        @MainActor
         init(
             mode: Habit.Card.Mode = .daily,
             lastDay: Date = .now.startOfDay,
@@ -438,17 +438,18 @@ extension Habit.Dashboard {
         ) {
             self.mode = mode
             self.lastDay = lastDay
-            self.modelContext = modelContext
-            
             self.weekdaySymbols = Calendar.current.weekdaySymbols
             self.lastDayIndex = Calendar.current.weekdayIndex(for: lastDay)
-            
+            self.modelContext = modelContext
+                                        
             refreshCardManagers()
         }
         
     }
     
 }
+
+
 
 extension Habit.Dashboard.Manager {
     
@@ -528,6 +529,10 @@ extension Habit.Dashboard.Manager {
     
     func toggleUseInline() {
         useInline.toggle()
+    }
+    
+    var titleMode: NavigationBarItem.TitleDisplayMode {
+        useInline ? .inline : .automatic
     }
         
     func updateMode(to newMode: Habit.Card.Mode) {
@@ -677,6 +682,7 @@ extension Habit {
                             .background { Habit.Card.shadowEffect(colorScheme) }
                         }
                     }
+                    .safeAreaInset(edge: .top, spacing: 0) { emptyView }
                     .safeAreaInset(edge: .top, spacing: 16) { gridHeader }
                     .padding([.horizontal, .bottom], 16)
                 }
@@ -685,12 +691,13 @@ extension Habit {
                 .sheet(item: $habitToEdit) { Sheet.Edit(habit: $0) }
                 .overlay(alignment: .bottomTrailing) { addHabitButton }
                 .navigationTitle(String("Habit Rabbit"))
-                .navigationBarTitleDisplayMode(dashboardManager.useInline ? .inline : .automatic)
+                .navigationBarTitleDisplayMode(dashboardManager.titleMode)
                 #if DEBUG
                 .toolbar { debugButton }
                 #endif
             }
             .tint(colorScheme == .dark ? .white : .black)
+            .fontDesign(.rounded)
             .onCalendarDayChanged { dashboardManager.setLastDay(to: .now) }
         }
         
@@ -702,7 +709,7 @@ extension Habit {
     }
     
 }
-// ./Habit Rabbit/Screens/Dashboard/Views/Dashboard.AddHabitButton.swift
+// ./Habit Rabbit/Screens/Dashboard/Views/Dashboard.addHabitButton.swift
 import SwiftUI
 
 extension Habit.Dashboard {
@@ -726,7 +733,7 @@ extension Habit.Dashboard {
     
     
 }
-// ./Habit Rabbit/Screens/Dashboard/Views/Dashboard.Debug.swift
+// ./Habit Rabbit/Screens/Dashboard/Views/Dashboard.debug.swift
 import SwiftUI
 
 extension Habit.Dashboard {
@@ -823,7 +830,7 @@ extension Habit.Dashboard {
     }
     
 }
-// ./Habit Rabbit/Screens/Dashboard/Views/Dashboard.Grid.Header.swift
+// ./Habit Rabbit/Screens/Dashboard/Views/Dashboard.header.swift
 import SwiftUI
 
 extension Habit.Dashboard {
@@ -835,6 +842,17 @@ extension Habit.Dashboard {
         }
         .padding(.vertical, 6)
         .animation(.bouncy, value: dashboardManager.lastDay)
+    }
+    
+    @ViewBuilder
+    var emptyView: some View {
+        if cardManagers.isEmpty {
+            ContentUnavailableView(
+                "No Habits",
+                systemImage: "rectangle.portrait.slash.fill",
+                description: Text("Create your first habit to get started!")
+            )
+        }
     }
     
 }
@@ -894,7 +912,56 @@ extension Habit.Dashboard {
     }
     
 }
-// ./Habit Rabbit/Screens/Dashboard/Views/Dashboard.Sheet/Dashboard.Sheet.Keyboard.swift
+// ./Habit Rabbit/Screens/Dashboard/Views/Dashboard.ModePicker.swift
+import SwiftUI
+
+extension Habit.Dashboard {
+    
+    struct ModePicker: View {
+        
+        let width: CGFloat
+        let mode: Habit.Card.Mode
+        let onSelection: (Habit.Card.Mode) -> Void
+        
+        var body: some View {
+            HStack(spacing: 0) {
+                ForEach(Habit.Card.Mode.allCases, id: \.self) { item in
+                    Button {
+                        let newMode = mode == item ? mode.next : item
+                        onSelection(newMode)
+                    } label: {
+                        Text(item.localizedTitle)
+                            .font(.system(size: 14, weight: .medium))
+                            .foregroundStyle(mode == item ? .primary : .secondary)
+                            .fontWeight(mode == item ? .bold : .medium)
+                    }
+                    .buttonStyle(.plain)
+                    .contentShape(.rect)
+                    .frame(width: width / 3)
+                    .padding(.vertical, 6)
+                }
+            }
+            .frame(width: width)
+            .background {
+                selectedIndicator
+            }
+        }
+        
+        private var selectedIndicator: some View {
+            Habit.Card.Background(in: .capsule)
+                .showShadows(false)
+                .frame(width: width / 3)
+                .frame(maxWidth: .infinity, alignment: .leading)
+                .offset(
+                    x: CGFloat(Habit.Card.Mode.allCases.firstIndex(of: mode) ?? 0) * (width / 3),
+                    y: 0
+                )
+                .animation(.spring(duration: 0.62), value: mode)
+        }
+    }
+    
+}
+// ./Habit Rabbit/Screens/Dashboard/Views/Dashboard.Sheet/Dashboard.Sheet.keyboard.swift
 import SwiftUI
 
 extension Habit.Dashboard.Sheet {
@@ -1068,7 +1135,7 @@ extension Habit.Dashboard.Sheet {
     }
     
 }
-// ./Habit Rabbit/Screens/Dashboard/Views/Dashboard.Sheet/Sections/Dashboard.Sheet.Color.swift
+// ./Habit Rabbit/Screens/Dashboard/Views/Dashboard.Sheet/Sections/Dashboard.Sheet.color.swift
 import SwiftUI
 
 extension Habit.Dashboard.Sheet {
@@ -1126,7 +1193,7 @@ extension Habit.Dashboard.Sheet {
     ]
 
 }
-// ./Habit Rabbit/Screens/Dashboard/Views/Dashboard.Sheet/Sections/Dashboard.Sheet.Icon.swift
+// ./Habit Rabbit/Screens/Dashboard/Views/Dashboard.Sheet/Sections/Dashboard.Sheet.icon.swift
 import SwiftUI
 
 extension Habit.Dashboard.Sheet {
@@ -1179,16 +1246,14 @@ extension Habit.Dashboard.Sheet {
                         } label: {
                             Image(systemName: icon)
                                 .font(.title3)
-                                .foregroundStyle(icon == icon ? .white : (colorScheme == .light ? .black : .white))
                                 .frame(width: 44, height: 44)
                                 .padding(4)
                                 .background {
                                     switch self.icon == icon {
                                         case true:  Circle().fill(.blue)
-                                        case false: Habit.Card.Background(in: .circle)
+                                        case false: Habit.Card.Background(in: .circle).showShadows(false)
                                     }
                                 }
-                            
                         }
                         .buttonStyle(.plain)
                     }
@@ -1307,7 +1372,7 @@ extension Habit.Dashboard.Sheet {
     ]
 
 }
-// ./Habit Rabbit/Screens/Dashboard/Views/Dashboard.Sheet/Sections/Dashboard.Sheet.Kind.swift
+// ./Habit Rabbit/Screens/Dashboard/Views/Dashboard.Sheet/Sections/Dashboard.Sheet.kind.swift
 import SwiftUI
 
 extension Habit.Dashboard.Sheet {
@@ -1319,7 +1384,7 @@ extension Habit.Dashboard.Sheet {
                 .fontWeight(.semibold)
                 .foregroundStyle(.secondary)
             
-            CustomSegmentedControl(
+            SegmentedControl(
                 selection: $kind,
                 options: [
                     (value: Habit.Kind.good, icon: "hand.thumbsup.fill", text: String(localized: "Good"), color: .green),
@@ -1331,7 +1396,7 @@ extension Habit.Dashboard.Sheet {
     }
     
 }
-// ./Habit Rabbit/Screens/Dashboard/Views/Dashboard.Sheet/Sections/Dashboard.Sheet.Name.swift
+// ./Habit Rabbit/Screens/Dashboard/Views/Dashboard.Sheet/Sections/Dashboard.Sheet.name.swift
 import SwiftUI
 
 extension Habit.Dashboard.Sheet {
@@ -1361,7 +1426,7 @@ extension Habit.Dashboard.Sheet {
     }
     
 }
-// ./Habit Rabbit/Screens/Dashboard/Views/Dashboard.Sheet/Sections/Dashboard.Sheet.Target.swift
+// ./Habit Rabbit/Screens/Dashboard/Views/Dashboard.Sheet/Sections/Dashboard.Sheet.target.swift
 import SwiftUI
 
 extension Habit.Dashboard.Sheet {
@@ -1387,7 +1452,7 @@ extension Habit.Dashboard.Sheet {
     }
     
 }
-// ./Habit Rabbit/Screens/Dashboard/Views/Dashboard.Sheet/Sections/Dashboard.Sheet.Unit.swift
+// ./Habit Rabbit/Screens/Dashboard/Views/Dashboard.Sheet/Sections/Dashboard.Sheet.unit.swift
 import SwiftUI
 
 extension Habit.Dashboard.Sheet {
@@ -1804,6 +1869,10 @@ extension Habit.Card {
         @State private var detailManager: Habit.Card.DetailView.Manager?
         @State private var editingValue: Habit.Value?
         @State private var editValueText: String = ""
+        
+        var values: [Habit.Value] {
+            detailManager?.values ?? []
+        }
 
         var body: some View {
             Group {
@@ -1836,12 +1905,28 @@ extension Habit.Card {
 
 extension Habit.Card.DetailView {
 
+    @ViewBuilder
     private var valuesList: some View {
-        List(detailManager?.values ?? []) { value in
+        List(values) { value in
             valueRow(for: value)
                 .swipeActions(edge: .trailing, allowsFullSwipe: false) {
                     swipeActions(for: value)
                 }
+        }
+        .safeAreaInset(edge: .top) { emptyView }
+    }
+    
+    @ViewBuilder
+    var emptyView: some View {
+        if values.isEmpty {
+            ContentUnavailableView(
+                "No Values",
+                systemImage: "text.page.slash",
+                description: Text("Start tracking to see your progress history here.")
+            )
+            .frame(height: 200)
+            .frame(maxHeight: .infinity, alignment: .top)
+            .padding(.top, 16)
         }
     }
     
@@ -1948,197 +2033,342 @@ extension Habit.Card.DetailView {
     }
 
 }
-// ./Habit Rabbit/Views/AverageView/AverageColumn.swift
+// ./Habit Rabbit/Views/ProgressBar.swift
 import SwiftUI
 
-extension Habit.AverageView {
-
-    struct AverageColumn: View {
-
-        let title: String
+extension Habit {
+    
+    struct ProgressBar: View {
+        
+        @Environment(\.colorScheme) var colorScheme
+        
         let value: Int
         let target: Int
-        let unit: String
         let color: Color
+        let axis: Axis
         let kind: Habit.Kind
         let mode: Habit.Card.Mode
-
+        let width: CGFloat
+        let height: CGFloat
+        
+        private let inset: CGFloat = 3
+        
         var body: some View {
-            VStack(spacing: 10) {
-                Text(title)
-                    .font(.subheadline)
-                    .fontWeight(.semibold)
-                    .foregroundStyle(.secondary)
-                    .frame(maxWidth: .infinity)
-
-                Habit.ProgressBar(
-                    value: value,
-                    target: target,
-                    color: color,
-                    axis: .vertical,
-                    kind: kind,
-                    mode: mode,
-                    width: 50,
-                    height: Habit.Card.Manager.contentHeight
-                )
-                .frame(maxHeight: .infinity)
-
-                Habit.ProgressLabel(
-                    value: value,
-                    target: target,
-                    unit: unit
-                )                
-            }
-            .frame(maxWidth: .infinity)
+            Capsule()
+                .fill(.quaternary)
+                .strokeBorder(.quaternary, lineWidth: trackStrokeWidth)
+                .brightness(trackBrightness)
+                .overlay {
+                    Capsule()
+                        .fill(color.gradient)
+                        .brightness(colorBrightness)
+                        .offset(
+                            x: axis == .horizontal ? offset : 0,
+                            y: axis == .vertical ? offset : 0
+                        )
+                        .shadow(color: .black.opacity(0.07), radius: 2, x: 0, y: -2)
+                        .clipShape(.capsule)
+                        .padding(axis == .vertical ? inset : 0)
+                }
+                .geometryGroup()
+                .frame(width: width, height: height)
+                .fixedSize()
+                .animation(.bouncy, value: value)
         }
-
     }
-
+    
 }
-// ./Habit Rabbit/Views/AverageView/AverageView.swift
+
+// MARK: - Geometry
+extension Habit.ProgressBar {
+    
+    private var progress: CGFloat {
+        guard target > 0 else { return 0 }
+        return CGFloat(value) / CGFloat(target)
+    }
+    
+    private var offset: CGFloat {
+        let dimension = axis == .vertical ? height : width
+        
+        let base = switch (kind, axis) {
+            case (.good, .vertical)   :  dimension - inset * 2    // fills upward
+            case (.good, .horizontal) : -dimension                // fills rightward
+            case (.bad, .vertical)    :  dimension - inset * 2    // depletes downward
+            case (.bad, .horizontal)  : -dimension                // depletes leftward
+        }
+        
+        return switch kind {
+            case .good:
+                switch progress {
+                    case  ...0: base
+                    case 0..<1: base * (1 - compensate(progress))
+                    case  1...: 0
+                    default   : base
+                }
+            case .bad:
+                switch progress {
+                    case  ...0: 0
+                    case 0..<1: base * (1 - compensate(1 - progress))
+                    case  1...: base
+                    default   : 0
+                }
+        }
+    }
+    
+}
+
+extension Habit.ProgressBar {
+    
+    // boosts mid-range values to compensate the visual shortening from rounded capsule caps
+    private func compensate(_ progress: CGFloat) -> CGFloat {
+        let clamped = max(0, min(1, progress))
+        let lift = min(0.06, 0.04 + 0.6 * curvature)
+        let bump = clamped * (1 - clamped)
+        let power: CGFloat = 2
+        let peak = pow(0.25, power)
+        let scale = lift / peak
+        let boost = scale * pow(bump, power)
+        return max(0, min(1, clamped + boost))
+    }
+    
+    // bar thickness relative to its usable track length
+    private var curvature: CGFloat {
+        let isVertical = axis == .vertical
+        let thickness = isVertical ? width : height
+        let length = isVertical ? height : width
+        let inset = isVertical ? inset : 0
+        let track = max(1, length - inset * 2)
+        return min(1, thickness / track)
+    }
+    
+}
+
+// MARK: - Style
+extension Habit.ProgressBar {
+    
+    var colorBrightness: Double {
+        switch (kind, isDark, exceedsTarget) {
+            case (.bad, _, _)          :  0     // bad habit: no adjustment
+            case (.good, true, true)   :  0.1   // exceeding good habit in dark mode: brighter color
+            case (.good, true, false)  : -0.1   // non-exceeding good habit in dark mode: darker color
+            case (.good, false, true)  : -0.1   // exceeding good habit in light mode: darker color
+            case (.good, false, false) :  0.1   // non-exceeding good habit in light mode: brighter color
+        }
+    }
+    
+    var trackBrightness: Double {
+        switch (kind, isDark, exceedsTarget) {
+            case (.good, _, _)       :  0.2   // good habits: no adjustment
+            case (.bad, _, false)    :  0.2   // non-exceeding bad habit in dark mode: no adjustment
+            case (.bad, true, true)  : -0.6   // exceeding bad habit in dark mode: much darker
+            case (.bad, false, true) : -0.5   // exceeding bad habit in light mode: darker
+        }
+    }
+    
+    var trackStrokeWidth: Double {
+        switch (kind, isDark, exceedsTarget, isDaily) {
+            case (.good, _, _, _)          :  0     // good habits: no stroke
+            case (.bad, _, false, _)       :  0     // non-exceeding bad habit: no stroke
+            case (.bad, false, true, _)    :  0     // exceeding bad habit in light mode: no stroke
+            case (.bad, true, true, true)  :  1.5   // exceeding bad habit in daily dark mode: thick stroke
+            case (.bad, true, true, false) :  0.75  // exceeding bad habit in other dark mode: medium stroke
+        }
+    }
+    
+    private var isDark: Bool { colorScheme == .dark }
+    
+    private var isDaily: Bool { mode == .daily }
+    
+    private var exceedsTarget: Bool { value > target }
+    
+}
+// ./Habit Rabbit/Views/ProgressButton.swift
+import SwiftUI
+
+extension Habit {
+    
+    struct ProgressButton: View {
+        
+        @Environment(\.colorScheme) private var colorScheme
+        @Environment(\.cardMode) var cardMode
+        
+        @Environment(Habit.Card.Manager.self) private var cardManager
+        
+        var mode: Habit.Card.Mode {
+            cardMode ?? cardManager.mode
+        }
+        
+        var body: some View {
+            Button {
+                cardManager.dailyValue?.currentValue += 1
+            } label: {
+                ZStack {
+                    Circle()
+                        .fill(.quaternary)
+                    Circle()
+                        .fill(cardManager.color.gradient)
+                        .brightness(buttonBrightness)
+                        .clipShape(.capsule)
+                        .padding(3)
+                        .animation(.default, value: buttonBrightness)
+                    
+                    Image(systemName: "plus")
+                        .font(.title)
+                        .fontWeight(.medium)
+                        .foregroundStyle(.white)
+                }
+            }
+            .buttonStyle(.plain)
+            .sensoryFeedback(.increase, trigger: cardManager.dailyValue?.currentValue)
+        }
+        
+    }
+    
+}
+
+extension Habit.ProgressButton {
+    
+    var buttonBrightness: Double {
+        if cardManager.habit.kind == .good {
+            return cardManager.currentValue(for: mode) > cardManager.habit.target ? (colorScheme == .dark ? 0.1 : -0.1) : (colorScheme == .dark ? -0.1 : 0.1)
+        } else {
+            return 0
+        }
+    }
+    
+}
+// ./Habit Rabbit/Views/ProgressLabel.swift
 import SwiftUI
 
 extension Habit {
 
-    struct AverageView: View {
+    struct ProgressLabel: View {
 
-        @Environment(Habit.Card.Manager.self) var cardManager
         @Environment(\.colorScheme) var colorScheme
 
+        let value: Int
+        let target: Int
+        let unit: String
+
         var body: some View {
-            HStack(spacing: 16) {
-                AverageColumn(
-                    title: "Today",
-                    value: cardManager.currentValue(for: .daily),
-                    target: cardManager.currentTarget(for: .daily),
-                    unit: cardManager.unit,
-                    color: cardManager.color,
-                    kind: cardManager.kind,
-                    mode: .daily
-                )
-                AverageColumn(
-                    title: "Week",
-                    value: cardManager.currentValue(for: .weekly),
-                    target: cardManager.currentTarget(for: .weekly),
-                    unit: cardManager.unit,
-                    color: cardManager.color,
-                    kind: cardManager.kind,
-                    mode: .weekly
-                )
-                AverageColumn(
-                    title: "Month",
-                    value: cardManager.currentValue(for: .monthly),
-                    target: cardManager.currentTarget(for: .monthly),
-                    unit: cardManager.unit,
-                    color: cardManager.color,
-                    kind: cardManager.kind,
-                    mode: .monthly
-                )
+            VStack(spacing: 2) {
+                VStack {
+                    (
+                        Text(verbatim: "\(value)")
+                            .foregroundStyle(.primary.opacity(colorScheme == .dark ? 1 : 0.8))
+                        +
+                        Text(verbatim: " / ")
+                            .foregroundStyle(.primary.opacity(0.6))
+                        +
+                        Text(verbatim: "\(target)")
+                            .foregroundStyle(.primary.opacity(0.6))
+                    )
+                    .font(.title2)
+                    .fontWeight(.semibold)
+                    .monospacedDigit()
+                    .contentTransition(.numericText())
+                }
+                Text(verbatim: unit.pluralized(count: target))
+                    .font(.footnote)
+                    .fontWeight(.medium)
+                    .foregroundStyle(.secondary)
             }
             .frame(maxWidth: .infinity)
-            .frame(height: 232)
-            .padding(20)
-            .background { Habit.Card.Background() }
+            .minimumScaleFactor(0.7)
+            .lineLimit(1)
+            .padding(.horizontal, 2)
         }
 
     }
-
+    
 }
-// ./Habit Rabbit/Views/Background/Background.swift
+// ./Habit Rabbit/Views/SegmentedControl.swift
 import SwiftUI
 
-extension EnvironmentValues {
-    
-    @Entry var showShadows: Bool? = nil
-    
-}
+struct SegmentedControl<T: Hashable>: View {
 
-extension Habit.Card.Background {
+    @Binding var selection: T
+    let options: [(value: T, icon: String, text: String, color: Color)]
     
-    func showShadows(_ show: Bool) -> some View {
-        self.environment(\.showShadows, show)
+    @State private var selectedIndex: Int = 0
+    
+    private var selectedOptionColor: Color {
+        guard let index = options.firstIndex(where: { $0.value == selection }) else { return .blue }
+        return options[index].color
     }
     
-}
-
-extension Habit.Card {
-    
-    struct Background<B: View, S: InsettableShape>: View {
-        
-        @Environment(\.colorScheme) var colorScheme
-        @Environment(\.showShadows) var showShadows
-        
-        private let extraBackground: B
-        private let shape: S
-        private let material: Material
-        
-        init(
-            shape: S,
-            material: Material = .regularMaterial,
-            @ViewBuilder background: () -> B
-        ) {
-            self.shape = shape
-            self.material = material
-            self.extraBackground = background()
-        }
-        
-        var body: some View {
-            shape
-                .fill(material)
-                .strokeBorder(.quaternary, lineWidth: colorScheme == .dark ? 1 : 0.6)
-                .background {
-                    if showShadows ?? true {
-                        shadowView
-                    }
-                    extraBackground
-                }
-        }
-        
-        private var shadowView: some View {
+    var body: some View {
+        GeometryReader { geometry in
+            let segmentWidth = geometry.size.width / CGFloat(options.count)
+            
             ZStack {
-                if colorScheme == .light {
-                    shape
-                        .fill(.black.opacity(0.09))
-                        .blur(radius: 10)
-                        .offset(x: 0, y: 4)
-                    
-                    shape
-                        .fill(.black.opacity(0.05))
-                        .blur(radius: 4)
-                        .offset(x: 0, y: 2)
+                // Background
+                RoundedRectangle(cornerRadius: 10)
+                    .fill(.quaternary)
+                
+                // Moving selected background
+                RoundedRectangle(cornerRadius: 10)
+                    .fill(selectedOptionColor)
+                    .frame(width: segmentWidth - 4, height: geometry.size.height - 4)
+                    .offset(x: CGFloat(selectedIndex) * segmentWidth - geometry.size.width / 2 + segmentWidth / 2)
+                
+                // Segment buttons
+                HStack(spacing: 0) {
+                    ForEach(options.enumerated, id: \.offset) { index, option in
+                        Button {
+                            withAnimation {
+                                selection = option.value
+                                selectedIndex = index
+                            }
+                        } label: {
+                            HStack(spacing: 6) {
+                                Image(systemName: option.icon)
+                                    .font(.system(size: 16, weight: .semibold))
+                                Text(option.text)
+                                    .font(.system(size: 18, weight: .semibold))
+                            }
+                            .foregroundColor(selection == option.value ? .white : .secondary)
+                            .frame(maxWidth: .infinity, maxHeight: .infinity)
+                            .contentShape(.rect)
+                        }
+                        .buttonStyle(.plain)
+                    }
                 }
             }
         }
-        
-    }
-    
-}
-
-extension Habit.Card.Background where S == RoundedRectangle {
-    
-    init(@ViewBuilder background: () -> B) {
-        self.init(
-            shape: RoundedRectangle(cornerRadius: Habit.Card.Manager.cornerRadius),
-            background: background
-        )
-    }
-    
-}
-
-extension Habit.Card.Background where B == EmptyView, S == RoundedRectangle {
-    
-    init(shadow: Bool = true) {
-        self.init(shape: RoundedRectangle(cornerRadius: Habit.Card.Manager.cornerRadius)) {
-            EmptyView()
+        .frame(height: 44)
+        .padding(2)
+        .onAppear {
+            if let index = options.firstIndex(where: { $0.value == selection }) {
+                selectedIndex = index
+            }
+        }
+        .onChange(of: selection) { _, newValue in
+            if let index = options.firstIndex(where: { $0.value == newValue }) {
+                selectedIndex = index
+            }
         }
     }
     
 }
+// ./Habit Rabbit/Views/WeekdaySymbol.swift
+import SwiftUI
 
-extension Habit.Card.Background where B == EmptyView {
+extension Habit {
     
-    init(in shape: S, material: Material = .regularMaterial) {
-        self.init(shape: shape, material: material) { EmptyView() }
+    struct WeekdaySymbol: View {
+        
+        let symbol: String
+        let color: Color
+        
+        var body: some View {
+            Text(symbol)
+                .font(.caption2)
+                .fontWeight(.medium)
+                .foregroundStyle(color)
+                .lineLimit(1)
+        }
+        
     }
     
 }
@@ -2588,6 +2818,25 @@ extension Habit {
 
 extension Habit.Card {
     
+    @ViewBuilder
+    static func shadowEffect(_ colorScheme: ColorScheme) -> some View {
+        if colorScheme == .light {
+            RoundedRectangle(cornerRadius: Habit.Card.Manager.cornerRadius)
+                .fill(.black.opacity(0.08))
+                .blur(radius: 10)
+                .offset(x: 0, y: 4)
+            
+            RoundedRectangle(cornerRadius: Habit.Card.Manager.cornerRadius)
+                .fill(.black.opacity(0.04))
+                .blur(radius: 4)
+                .offset(x: 0, y: 2)
+        }
+    }
+    
+}
+
+extension Habit.Card {
+    
     var habitLabel: some View {
         VStack(spacing: mode == .monthly ? 4 : 2) {
             Label(String("\(cardManager.name)"), systemImage: cardManager.icon)
@@ -2624,21 +2873,6 @@ extension Habit.Card {
             .offset(x: 0, y: 180)
             .clipShape(.rect(cornerRadius: Manager.cornerRadius))
             .animation(.bouncy, value: cardManager.isCompleted(for: mode))
-    }
-    
-    @ViewBuilder
-    static func shadowEffect(_ colorScheme: ColorScheme) -> some View {
-        if colorScheme == .light {
-            RoundedRectangle(cornerRadius: Habit.Card.Manager.cornerRadius)
-                .fill(.black.opacity(0.09))
-                .blur(radius: 10)
-                .offset(x: 0, y: 4)
-            
-            RoundedRectangle(cornerRadius: Habit.Card.Manager.cornerRadius)
-                .fill(.black.opacity(0.05))
-                .blur(radius: 4)
-                .offset(x: 0, y: 2)
-        }
     }
     
 }
@@ -2698,7 +2932,105 @@ extension Habit.Card {
     }
     
 }
-// ./Habit Rabbit/Views/Card/Views/dailyView.swift
+// ./Habit Rabbit/Views/Card/Views/Card.Background.swift
+import SwiftUI
+
+extension EnvironmentValues {
+    
+    @Entry var showShadows: Bool? = nil
+    
+}
+
+extension Habit.Card.Background {
+    
+    func showShadows(_ show: Bool) -> some View {
+        self.environment(\.showShadows, show)
+    }
+    
+}
+
+extension Habit.Card {
+    
+    struct Background<B: View, S: InsettableShape>: View {
+        
+        @Environment(\.colorScheme) var colorScheme
+        @Environment(\.showShadows) var showShadows
+        
+        private let extraBackground: B
+        private let shape: S
+        private let material: Material
+        
+        init(
+            shape: S,
+            material: Material = .regularMaterial,
+            @ViewBuilder background: () -> B
+        ) {
+            self.shape = shape
+            self.material = material
+            self.extraBackground = background()
+        }
+        
+        var body: some View {
+            shape
+                .fill(material)
+                .strokeBorder(.quaternary, lineWidth: colorScheme == .dark ? 1 : 0.6)
+                .background {
+                    if showShadows ?? true {
+                        shadowView
+                    }
+                    extraBackground
+                }
+        }
+        
+        private var shadowView: some View {
+            ZStack {
+                if colorScheme == .light {
+                    shape
+                        .fill(.black.opacity(0.08))
+                        .blur(radius: 10)
+                        .offset(x: 0, y: 4)
+                    
+                    shape
+                        .fill(.black.opacity(0.04))
+                        .blur(radius: 4)
+                        .offset(x: 0, y: 2)
+                }
+            }
+        }
+        
+    }
+    
+}
+
+extension Habit.Card.Background where S == RoundedRectangle {
+    
+    init(@ViewBuilder background: () -> B) {
+        self.init(
+            shape: .rect(cornerRadius: Habit.Card.Manager.cornerRadius),
+            background: background
+        )
+    }
+    
+}
+
+extension Habit.Card.Background where B == EmptyView, S == RoundedRectangle {
+    
+    init(shadow: Bool = true) {
+        self.init(shape: .rect(cornerRadius: Habit.Card.Manager.cornerRadius)) {
+            EmptyView()
+        }
+    }
+    
+}
+
+extension Habit.Card.Background where B == EmptyView {
+    
+    init(in shape: S, material: Material = .regularMaterial) {
+        self.init(shape: shape, material: material) { EmptyView() }
+    }
+    
+}
+// ./Habit Rabbit/Views/Card/Views/Card.dailyView.swift
 import SwiftUI
 
 extension Habit.Card {
@@ -2740,7 +3072,7 @@ extension Habit.Card {
 }
 
 
-// ./Habit Rabbit/Views/Card/Views/monthlyView.swift
+// ./Habit Rabbit/Views/Card/Views/Card.monthlyView.swift
 import SwiftUI
 
 extension Habit.Card {
@@ -2773,10 +3105,10 @@ extension Habit.Card {
                                 .animation(.bouncy, value: cell.value?.currentValue)
                         }
                     }
-                    .compositingGroup()
-                    .geometryGroup()
                 }
             }
+            .compositingGroup()
+            .geometryGroup()
             .frame(height: Habit.Card.Manager.cubesGridHeight)
             .frame(maxWidth: .infinity)
             .clipped()
@@ -2844,7 +3176,7 @@ extension Habit.Card {
     }
     
 }
-// ./Habit Rabbit/Views/Card/Views/weeklyView.swift
+// ./Habit Rabbit/Views/Card/Views/Card.weeklyView.swift
 import SwiftUI
 
 extension Habit.Card {
@@ -2880,394 +3212,6 @@ extension Habit.Card {
         .frame(height: Habit.Card.Manager.contentHeight)
         .padding(.top, 18)
         .padding(.trailing, 4)
-    }
-    
-}
-// ./Habit Rabbit/Views/CustomSegmentedControl/CustomSegmentedControl.swift
-import SwiftUI
-
-struct CustomSegmentedControl<T: Hashable>: View {
-
-    @Binding var selection: T
-    let options: [(value: T, icon: String, text: String, color: Color)]
-    
-    @State private var selectedIndex: Int = 0
-    
-    private var selectedOptionColor: Color {
-        guard let index = options.firstIndex(where: { $0.value == selection }) else { return .blue }
-        return options[index].color
-    }
-    
-    var body: some View {
-        GeometryReader { geometry in
-            let segmentWidth = geometry.size.width / CGFloat(options.count)
-            
-            ZStack {
-                // Background
-                RoundedRectangle(cornerRadius: 10)
-                    .fill(.quaternary)
-                
-                // Moving selected background
-                RoundedRectangle(cornerRadius: 10)
-                    .fill(selectedOptionColor)
-                    .frame(width: segmentWidth - 4, height: geometry.size.height - 4)
-                    .offset(x: CGFloat(selectedIndex) * segmentWidth - geometry.size.width / 2 + segmentWidth / 2)
-                
-                // Segment buttons
-                HStack(spacing: 0) {
-                    ForEach(options.enumerated, id: \.offset) { index, option in
-                        Button {
-                            withAnimation {
-                                selection = option.value
-                                selectedIndex = index
-                            }
-                        } label: {
-                            HStack(spacing: 6) {
-                                Image(systemName: option.icon)
-                                    .font(.system(size: 16, weight: .semibold))
-                                Text(option.text)
-                                    .font(.system(size: 18, weight: .semibold))
-                            }
-                            .foregroundColor(selection == option.value ? .white : .secondary)
-                            .frame(maxWidth: .infinity, maxHeight: .infinity)
-                            .contentShape(.rect)
-                        }
-                        .buttonStyle(.plain)
-                    }
-                }
-            }
-        }
-        .frame(height: 44)
-        .padding(2)
-        .onAppear {
-            if let index = options.firstIndex(where: { $0.value == selection }) {
-                selectedIndex = index
-            }
-        }
-        .onChange(of: selection) { _, newValue in
-            if let index = options.firstIndex(where: { $0.value == newValue }) {
-                selectedIndex = index
-            }
-        }
-    }
-    
-}
-// ./Habit Rabbit/Views/ModePicker/ModePicker.swift
-import SwiftUI
-
-extension Habit.Dashboard {
-    
-    struct ModePicker: View {
-        
-        let width: CGFloat
-        let mode: Habit.Card.Mode
-        let onSelection: (Habit.Card.Mode) -> Void
-        
-        var body: some View {
-            HStack(spacing: 0) {
-                ForEach(Habit.Card.Mode.allCases, id: \.self) { item in
-                    Button {
-                        let newMode = mode == item ? mode.next : item
-                        onSelection(newMode)
-                    } label: {
-                        Text(item.localizedTitle)
-                            .font(.system(size: 14, weight: .medium))
-                            .foregroundStyle(mode == item ? .primary : .secondary)
-                            .fontWeight(mode == item ? .bold : .medium)
-                    }
-                    .buttonStyle(.plain)
-                    .contentShape(.rect)
-                    .frame(width: width / 3)
-                    .padding(.vertical, 6)
-                }
-            }
-            .frame(width: width)
-            .background {
-                selectedIndicator
-            }
-        }
-        
-        private var selectedIndicator: some View {
-            Habit.Card.Background(in: .capsule)
-                .showShadows(false)
-                .frame(width: width / 3)
-                .frame(maxWidth: .infinity, alignment: .leading)
-                .offset(
-                    x: CGFloat(Habit.Card.Mode.allCases.firstIndex(of: mode) ?? 0) * (width / 3),
-                    y: 0
-                )
-                .animation(.spring(duration: 0.62), value: mode)
-        }
-    }
-    
-}
-// ./Habit Rabbit/Views/ProgressBar/ProgressBar.swift
-import SwiftUI
-
-extension Habit {
-    
-    struct ProgressBar: View {
-        
-        @Environment(\.colorScheme) var colorScheme
-        
-        let value: Int
-        let target: Int
-        let color: Color
-        let axis: Axis
-        let kind: Habit.Kind
-        let mode: Habit.Card.Mode
-        let width: CGFloat
-        let height: CGFloat
-        
-        private let inset: CGFloat = 3
-        
-        var body: some View {
-            Capsule()
-                .fill(.quaternary)
-                .strokeBorder(.quaternary, lineWidth: trackStrokeWidth)
-                .brightness(trackBrightness)
-                .overlay {
-                    Capsule()
-                        .fill(color.gradient)
-                        .brightness(colorBrightness)
-                        .offset(
-                            x: axis == .horizontal ? offset : 0,
-                            y: axis == .vertical ? offset : 0
-                        )
-                        .shadow(color: .black.opacity(0.07), radius: 2, x: 0, y: -2)
-                        .clipShape(.capsule)
-                        .padding(axis == .vertical ? inset : 0)
-                }
-                .geometryGroup()
-                .frame(width: width, height: height)
-                .fixedSize()
-                .animation(.bouncy, value: value)
-        }
-    }
-    
-}
-
-// MARK: - Geometry
-extension Habit.ProgressBar {
-    
-    private var progress: CGFloat {
-        guard target > 0 else { return 0 }
-        return CGFloat(value) / CGFloat(target)
-    }
-    
-    private var offset: CGFloat {
-        let dimension = axis == .vertical ? height : width
-        
-        let base = switch (kind, axis) {
-            case (.good, .vertical)   :  dimension - inset * 2    // fills upward
-            case (.good, .horizontal) : -dimension                // fills rightward
-            case (.bad, .vertical)    :  dimension - inset * 2    // depletes downward
-            case (.bad, .horizontal)  : -dimension                // depletes leftward
-        }
-        
-        return switch kind {
-            case .good:
-                switch progress {
-                    case  ...0: base
-                    case 0..<1: base * (1 - compensate(progress))
-                    case  1...: 0
-                    default   : base
-                }
-            case .bad:
-                switch progress {
-                    case  ...0: 0
-                    case 0..<1: base * (1 - compensate(1 - progress))
-                    case  1...: base
-                    default   : 0
-                }
-        }
-    }
-    
-}
-
-extension Habit.ProgressBar {
-    
-    // boosts mid-range values to compensate the visual shortening from rounded capsule caps
-    private func compensate(_ progress: CGFloat) -> CGFloat {
-        let clamped = max(0, min(1, progress))
-        let lift = min(0.06, 0.04 + 0.6 * curvature)
-        let bump = clamped * (1 - clamped)
-        let power: CGFloat = 2
-        let peak = pow(0.25, power)
-        let scale = lift / peak
-        let boost = scale * pow(bump, power)
-        return max(0, min(1, clamped + boost))
-    }
-    
-    // bar thickness relative to its usable track length
-    private var curvature: CGFloat {
-        let isVertical = axis == .vertical
-        let thickness = isVertical ? width : height
-        let length = isVertical ? height : width
-        let inset = isVertical ? inset : 0
-        let track = max(1, length - inset * 2)
-        return min(1, thickness / track)
-    }
-    
-}
-
-// MARK: - Style
-extension Habit.ProgressBar {
-    
-    var colorBrightness: Double {
-        switch (kind, isDark, exceedsTarget) {
-            case (.bad, _, _)          :  0     // bad habit: no adjustment
-            case (.good, true, true)   :  0.1   // exceeding good habit in dark mode: brighter color
-            case (.good, true, false)  : -0.1   // non-exceeding good habit in dark mode: darker color
-            case (.good, false, true)  : -0.1   // exceeding good habit in light mode: darker color
-            case (.good, false, false) :  0.1   // non-exceeding good habit in light mode: brighter color
-        }
-    }
-    
-    var trackBrightness: Double {
-        switch (kind, isDark, exceedsTarget) {
-            case (.good, _, _)       :  0.2   // good habits: no adjustment
-            case (.bad, _, false)    :  0.2   // non-exceeding bad habit in dark mode: no adjustment
-            case (.bad, true, true)  : -0.6   // exceeding bad habit in dark mode: much darker
-            case (.bad, false, true) : -0.5   // exceeding bad habit in light mode: darker
-        }
-    }
-    
-    var trackStrokeWidth: Double {
-        switch (kind, isDark, exceedsTarget, isDaily) {
-            case (.good, _, _, _)          :  0     // good habits: no stroke
-            case (.bad, _, false, _)       :  0     // non-exceeding bad habit: no stroke
-            case (.bad, false, true, _)    :  0     // exceeding bad habit in light mode: no stroke
-            case (.bad, true, true, true)  :  1.5   // exceeding bad habit in daily dark mode: thick stroke
-            case (.bad, true, true, false) :  0.75  // exceeding bad habit in other dark mode: medium stroke
-        }
-    }
-    
-    private var isDark: Bool { colorScheme == .dark }
-    
-    private var isDaily: Bool { mode == .daily }
-    
-    private var exceedsTarget: Bool { value > target }
-    
-}
-// ./Habit Rabbit/Views/ProgressButton/ProgressButton.swift
-import SwiftUI
-
-extension Habit {
-    
-    struct ProgressButton: View {
-        
-        @Environment(\.colorScheme) private var colorScheme
-        @Environment(\.cardMode) var cardMode
-        
-        @Environment(Habit.Card.Manager.self) private var cardManager
-        
-        var mode: Habit.Card.Mode {
-            cardMode ?? cardManager.mode
-        }
-        
-        var body: some View {
-            Button {
-                cardManager.dailyValue?.currentValue += 1
-            } label: {
-                ZStack {
-                    Circle()
-                        .fill(.quaternary)
-                    Circle()
-                        .fill(cardManager.color.gradient)
-                        .brightness(buttonBrightness)
-                        .clipShape(.capsule)
-                        .padding(3)
-                        .animation(.default, value: buttonBrightness)
-                    
-                    Image(systemName: "plus")
-                        .font(.title)
-                        .fontWeight(.medium)
-                        .foregroundStyle(.white)
-                }
-            }
-            .buttonStyle(.plain)
-            .sensoryFeedback(.increase, trigger: cardManager.dailyValue?.currentValue)
-        }
-        
-    }
-    
-}
-
-extension Habit.ProgressButton {
-    
-    var buttonBrightness: Double {
-        if cardManager.habit.kind == .good {
-            return cardManager.currentValue(for: mode) > cardManager.habit.target ? (colorScheme == .dark ? 0.1 : -0.1) : (colorScheme == .dark ? -0.1 : 0.1)
-        } else {
-            return 0
-        }
-    }
-    
-}
-// ./Habit Rabbit/Views/ProgressLabel/ProgressLabel.swift
-import SwiftUI
-
-extension Habit {
-
-    struct ProgressLabel: View {
-
-        @Environment(\.colorScheme) var colorScheme
-
-        let value: Int
-        let target: Int
-        let unit: String
-
-        var body: some View {
-            VStack(spacing: 2) {
-                VStack {
-                    (
-                        Text(verbatim: "\(value)")
-                            .foregroundStyle(.primary.opacity(colorScheme == .dark ? 1 : 0.8))
-                        +
-                        Text(verbatim: " / ")
-                            .foregroundStyle(.primary.opacity(0.6))
-                        +
-                        Text(verbatim: "\(target)")
-                            .foregroundStyle(.primary.opacity(0.6))
-                    )
-                    .font(.title2)
-                    .fontWeight(.semibold)
-                    .monospacedDigit()
-                    .contentTransition(.numericText())
-                }
-                Text(verbatim: unit.pluralized(count: target))
-                    .font(.footnote)
-                    .fontWeight(.medium)
-                    .foregroundStyle(.secondary)
-            }
-            .frame(maxWidth: .infinity)
-            .minimumScaleFactor(0.7)
-            .lineLimit(1)
-            .padding(.horizontal, 2)
-        }
-
-    }
-    
-}
-// ./Habit Rabbit/Views/WeekdaySymbol/WeekdaySymbol.swift
-import SwiftUI
-
-extension Habit {
-    
-    struct WeekdaySymbol: View {
-        
-        let symbol: String
-        let color: Color
-        
-        var body: some View {
-            Text(symbol)
-                .font(.caption2)
-                .fontWeight(.medium)
-                .foregroundStyle(color)
-                .lineLimit(1)
-        }
-        
     }
     
 }
