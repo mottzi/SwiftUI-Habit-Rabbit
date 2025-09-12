@@ -38,7 +38,7 @@ extension Habit {
             .frame(maxWidth: .infinity)
             .frame(height: Card.Manager.cardHeight)
             .clipShape(.rect(cornerRadius: Card.Manager.cornerRadius))
-            .background { Habit.Card.Background { colorEffect }.showShadows(false) }
+//            .background { Habit.Card.Background { colorEffect }.showShadows(false) }
             .geometryGroup()
             .scaleEffect(isDeleting ? 0 : 1)
             .contentShape(.contextMenuPreview, .rect(cornerRadius: Manager.cornerRadius))

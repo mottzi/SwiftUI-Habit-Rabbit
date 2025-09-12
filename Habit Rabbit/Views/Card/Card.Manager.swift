@@ -236,7 +236,7 @@ extension Habit.Card.Manager {
         // randomize values for the last 30 days
         for dayOffset in (0..<30).reversed() {
             let day = lastDay.shift(days: -dayOffset)
-            let randomValue = Int.random(in: 0...habit.target * 2)
+            let randomValue = Int.random(in: Int(Double(habit.target) * 0.8)...habit.target * 2)
                         
             if let existingValue = existingValues[day] {
                 // update existing value
