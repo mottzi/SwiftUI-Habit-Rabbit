@@ -9,7 +9,13 @@ extension Habit.Dashboard {
         private(set) var lastDay: Date
         private(set) var modelContext: ModelContext
         
-        private(set) var mode: Habit.Card.Mode
+        private(set) var mode: Habit.Card.Mode {
+            get { loadMode() }
+            set { saveMode(newValue) }
+        }
+        
+        private var modeCache: Habit.Card.Mode?
+        
         private(set) var useZoom: Bool = true
         private(set) var useInline: Bool = true
         
@@ -23,15 +29,20 @@ extension Habit.Dashboard {
         
         @MainActor
         init(
-            mode: Habit.Card.Mode = .daily,
+            mode: Habit.Card.Mode? = nil,
             lastDay: Date = .now.startOfDay,
             using modelContext: ModelContext
         ) {
-            self.mode = mode
             self.lastDay = lastDay
             self.weekdaySymbols = Calendar.current.weekdaySymbols
             self.lastDayIndex = Calendar.current.weekdayIndex(for: lastDay)
             self.modelContext = modelContext
+            
+            // Override stored mode if explicitly provided
+            if let mode {
+                self.modeCache = mode
+                UserDefaults.standard.set(mode.rawValue, forKey: "dashboardMode")
+            }
                                         
             refreshCardManagers()
         }
@@ -230,6 +241,28 @@ extension Habit.Dashboard.Manager {
     func deleteAllData() {
         modelContext.container.deleteAllData()
         refreshCardManagers()
+    }
+    
+}
+
+extension Habit.Dashboard.Manager {
+    
+    private func loadMode() -> Habit.Card.Mode {
+        if let modeCache { return modeCache }
+        else if let rawValue = UserDefaults.standard.string(forKey: "dashboardMode"),
+                let mode = Habit.Card.Mode(rawValue: rawValue) {
+            modeCache = mode
+            return mode
+        }
+        else {
+            modeCache = .daily
+            return .daily
+        }
+    }
+    
+    private func saveMode(_ newMode: Habit.Card.Mode) {
+        modeCache = newMode
+        UserDefaults.standard.set(newMode.rawValue, forKey: "dashboardMode")
     }
     
 }
