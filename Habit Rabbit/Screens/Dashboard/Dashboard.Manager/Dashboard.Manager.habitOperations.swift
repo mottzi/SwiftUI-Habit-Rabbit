@@ -2,18 +2,33 @@ import SwiftUI
 
 extension Habit.Dashboard.Manager {
     
-    func randomizeAllHabits() {
-        cardManagers.forEach { $0.randomizeMonthlyValues() }
-    }
-    
-    func resetLatestHabits() {
-        cardManagers.forEach { $0.resetDailyValue() }
+    func addHabit(_ habit: Habit) {
+        addHabits([habit])
     }
     
     func addHabits(_ habits: [Habit]) {
         habits.forEach { modelContext.insert(habit: $0) }
         try? modelContext.save()
         refreshCardManagers()
+    }
+    
+}
+
+extension Habit.Dashboard.Manager {
+    
+    func updateHabit(
+        _ habit: Habit,
+        with newHabit: Habit
+    ) {
+        updateHabit(
+            habit,
+            name: newHabit.name,
+            unit: newHabit.unit,
+            icon: newHabit.icon,
+            color: newHabit.color,
+            target: newHabit.target,
+            kind: newHabit.kind
+        )
     }
     
     func updateHabit(
@@ -39,17 +54,9 @@ extension Habit.Dashboard.Manager {
         refreshCardManagers()
     }
     
-    func updateHabit(_ habit: Habit, with newHabit: Habit) {
-        updateHabit(
-            habit,
-            name: newHabit.name,
-            unit: newHabit.unit,
-            icon: newHabit.icon,
-            color: newHabit.color,
-            target: newHabit.target,
-            kind: newHabit.kind
-        )
-    }
+}
+
+extension Habit.Dashboard.Manager {
     
     func addExampleHabits(count: Int) {
         let templates = Habit.examples
@@ -68,6 +75,14 @@ extension Habit.Dashboard.Manager {
         }
         
         addHabits(habits)
+    }
+
+    func randomizeAllHabits() {
+        cardManagers.forEach { $0.randomizeMonthlyValues() }
+    }
+    
+    func resetLatestHabits() {
+        cardManagers.forEach { $0.resetDailyValue() }
     }
     
     func deleteAllHabits() throws {

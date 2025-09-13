@@ -35,7 +35,7 @@ extension Habit.Dashboard.Sheet {
                     submitLabel: String(localized: "Add Habit"),
                     submitIcon: "plus",
                     onSubmit: { newHabit in
-                        dashboardManager.addHabits([newHabit])
+                        dashboardManager.addHabit(newHabit)
                         dismiss()
                     }
                 )
@@ -106,7 +106,7 @@ extension Habit.Dashboard.Sheet.Add {
             kind: habitKind
         )
         
-        dashboardManager.addHabits([habit])
+        dashboardManager.addHabit(habit)
         dismiss()
     }
 
