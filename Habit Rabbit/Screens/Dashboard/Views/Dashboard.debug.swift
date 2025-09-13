@@ -9,9 +9,6 @@ extension Habit.Dashboard {
                 randomizeButton
                 resetLatestButton
                 Divider()
-                zoomButton
-                inlineButton
-                Divider()
                 killDatabaseButton
                 deleteHabitsButton
             } label: {
@@ -51,30 +48,6 @@ extension Habit.Dashboard {
         Button("Reset Latest", systemImage: "0.circle") {
             dashboardManager.resetLatestHabits()
         }
-    }
-    
-}
-
-extension Habit.Dashboard {
-    
-    var zoomButton: some View {
-        Button(action: dashboardManager.toggleUseZoom) {
-            Label("Zoom Transition", systemImage: useZoomSymbol)
-        }
-    }
-    
-    var inlineButton: some View {
-        Button(action: dashboardManager.toggleUseInline) {
-            Label("Inline Title", systemImage: useInlineSymbol)
-        }
-    }
-    
-    var useZoomSymbol: String {
-        dashboardManager.useZoom ? "checkmark.circle.fill" : "circle"
-    }
-    
-    var useInlineSymbol: String {
-        dashboardManager.useInline ? "checkmark.circle.fill" : "circle"
     }
     
 }

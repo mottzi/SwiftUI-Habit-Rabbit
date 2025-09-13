@@ -22,16 +22,12 @@ extension Habit {
                                 Habit.Card.DetailView()
                                     .environment(cardManager)
                                     .environment(dashboardManager)
-                                    .if(dashboardManager.useZoom) { view in
-                                        view.navigationTransition(.zoom(sourceID: cardManager.habit.id, in: habitTransition))
-                                    }
+                                    .navigationTransition(.zoom(sourceID: cardManager.habit.id, in: habitTransition))
                             } label: {
                                 Habit.Card { habitToEdit = $0 }
                                     .environment(cardManager)
                                     .environment(\.cardOffset, index)
-                                    .if(dashboardManager.useZoom) { view in
-                                        view.matchedTransitionSource(id: cardManager.habit.id, in: habitTransition)
-                                    }
+                                    .matchedTransitionSource(id: cardManager.habit.id, in: habitTransition)
                             }
                             .buttonStyle(.plain)
                             .background { Habit.Card.shadowEffect(colorScheme) }
@@ -46,7 +42,7 @@ extension Habit {
                 .sheet(item: $habitToEdit) { Sheet.Edit(habit: $0) }
                 .overlay(alignment: .bottomTrailing) { addHabitButton }
                 .navigationTitle(String("Habit Rabbit"))
-                .navigationBarTitleDisplayMode(dashboardManager.titleMode)
+                .navigationBarTitleDisplayMode(.inline)
                 #if DEBUG
                 .toolbar { debugButton }
                 #endif

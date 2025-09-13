@@ -505,9 +505,6 @@
         }
       }
     },
-    "Inline Title" : {
-      "shouldTranslate" : false
-    },
     "Kill Database" : {
       "shouldTranslate" : false
     },
@@ -1098,9 +1095,6 @@
           }
         }
       }
-    },
-    "Zoom Transition" : {
-      "shouldTranslate" : false
     }
   },
   "version" : "1.0"
