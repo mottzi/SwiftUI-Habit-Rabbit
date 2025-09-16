@@ -11,9 +11,6 @@ extension Habit.Dashboard {
                 Image(systemName: "plus")
                     .font(.title)
                     .fontWeight(.medium)
-//                    .foregroundStyle(colorScheme == .light ? .black : .white)
-//                    .frame(width: 64, height: 64)
-//                    .background { Habit.Card.Background(in: .circle, material: .ultraThinMaterial) }
                     .padding()
                     .glassEffect()
             }
