@@ -20,14 +20,14 @@ extension Habit.Card {
                 ForEach(cardManager.monthlyValues, id: \.first?.date) { weekValues in
                     HStack(spacing: 6) {
                         ForEach(weekValues, id: \.date) { cell in                        
-                            RoundedRectangle(cornerRadius: 4)
-                                .fill(Habit.Card.cubeColor(for: cell.value, habit: cardManager.habit, cardColor: cardManager.color))
-                                .strokeBorder(.tertiary, lineWidth: Habit.Card.cubeStrokeWidth(for: cell.value, habit: cardManager.habit, colorScheme: colorScheme))
-                                .brightness(Habit.Card.cubeBrightness(for: cell.value, habit: cardManager.habit, colorScheme: colorScheme))
-                                .frame(width: 16, height: 16)
-                                .opacity(cell.value == nil ? 0 : 1)
-                                .matchedGeometryEffect(id: "progress\(cell.date)", in: modeTransition)
-                                .animation(.bouncy, value: cell.value?.currentValue)
+                            Habit.Card.Cube(
+                                value: cell.value,
+                                habit: cardManager.habit,
+                                cardColor: cardManager.color
+                            )
+                            .opacity(cell.value == nil ? 0 : 1)
+                            .matchedGeometryEffect(id: "progress\(cell.date)", in: modeTransition)
+                            .animation(.bouncy, value: cell.value?.currentValue)
                         }
                     }
                 }

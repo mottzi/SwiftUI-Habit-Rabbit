@@ -75,12 +75,11 @@ extension Habit.Card.DetailView {
     
     private func valueRow(for value: Habit.Value) -> some View {
         HStack {
-            RoundedRectangle(cornerRadius: 4)
-                .fill(Habit.Card.cubeColor(for: value, habit: cardManager.habit, cardColor: cardManager.color))
-                .strokeBorder(.tertiary, lineWidth: Habit.Card.cubeStrokeWidth(for: value, habit: cardManager.habit, colorScheme: colorScheme))
-                .brightness(Habit.Card.cubeBrightness(for: value, habit: cardManager.habit, colorScheme: colorScheme))
-                .frame(width: 16, height: 16)
-            
+            Habit.Card.Cube(
+                value: value,
+                habit: cardManager.habit,
+                cardColor: cardManager.color
+            )
             Text(verbatim: "\(value.date.formatted2)")
             Spacer()
             Text(verbatim: "\(value.currentValue)")
