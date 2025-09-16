@@ -19,5 +19,4 @@ extension Habit.Dashboard {
         .offset(x: 6, y: 0)
     }
     
-    
 }

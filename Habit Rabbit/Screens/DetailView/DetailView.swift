@@ -5,6 +5,7 @@ extension Habit.Card {
 
     struct DetailView: View {
 
+        @Environment(\.colorScheme) var colorScheme
         @Environment(Habit.Card.Manager.self) private var cardManager
         @Environment(Habit.Dashboard.Manager.self) private var dashboardManager
         
@@ -74,6 +75,12 @@ extension Habit.Card.DetailView {
     
     private func valueRow(for value: Habit.Value) -> some View {
         HStack {
+            RoundedRectangle(cornerRadius: 4)
+                .fill(Habit.Card.cubeColor(for: value, habit: cardManager.habit, cardColor: cardManager.color))
+                .strokeBorder(.tertiary, lineWidth: Habit.Card.cubeStrokeWidth(for: value, habit: cardManager.habit, colorScheme: colorScheme))
+                .brightness(Habit.Card.cubeBrightness(for: value, habit: cardManager.habit, colorScheme: colorScheme))
+                .frame(width: 16, height: 16)
+            
             Text(verbatim: "\(value.date.formatted2)")
             Spacer()
             Text(verbatim: "\(value.currentValue)")

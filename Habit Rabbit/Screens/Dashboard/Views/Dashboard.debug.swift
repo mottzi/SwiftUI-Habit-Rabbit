@@ -16,7 +16,13 @@ extension Habit.Dashboard {
                     .font(.system(size: 14, weight: .semibold))
                     .foregroundStyle(.primary)
                     .frame(width: 34, height: 34)
-                    .background { Habit.Card.Background(in: .circle).showShadows(false) }
+                    .background {
+                        if #available(iOS 26, *) {
+                            EmptyView()
+                        } else {
+                            Habit.Card.Background(in: .circle).showShadows(false)
+                        }
+                    }
             }
             .buttonStyle(.plain)
         }
