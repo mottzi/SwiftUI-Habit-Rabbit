@@ -29,18 +29,21 @@ extension Habit.Card.Cube {
     
     static func color(for value: Habit.Value?, habit: Habit, cardColor: Color) -> AnyShapeStyle {
         guard let value else {
-            if habit.kind == .good {
-                return AnyShapeStyle(.quaternary)
-            } else {
-                return AnyShapeStyle(cardColor)
+            return switch habit.kind {
+                case .good: AnyShapeStyle(.quaternary)
+                case .bad: AnyShapeStyle(cardColor)
             }
         }
         
-        let meetsTarget = habit.kind == .good
-        ? value.currentValue >= habit.target
-        : value.currentValue < habit.target
+        let meetsTarget = switch habit.kind {
+            case .good: value.currentValue >= habit.target
+            case .bad: value.currentValue < habit.target
+        }
         
-        return meetsTarget ? AnyShapeStyle(cardColor) : AnyShapeStyle(.quaternary)
+        return switch meetsTarget {
+            case true: AnyShapeStyle(cardColor)
+            case false: AnyShapeStyle(.quaternary)
+        }
     }
     
     static func brightness(for value: Habit.Value?, habit: Habit, colorScheme: ColorScheme) -> Double {
