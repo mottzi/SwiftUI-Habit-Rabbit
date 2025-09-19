@@ -64,19 +64,32 @@ extension Habit.Dashboard.Sheet.Add {
         targetValue != nil && targetValue! > 0
     }
 
+    @ToolbarContentBuilder
     private var closeButtonToolbar: some ToolbarContent {
-        ToolbarItem(placement: .topBarTrailing) {
-            Button(role: .cancel) {
-                dismiss()
-            } label: {
-                Image(systemName: "xmark")
-                    .font(.headline)
-                    .fontWeight(.semibold)
+        ToolbarItem(placement: .cancellationAction) {
+            if #available(iOS 26, *) {
+                Button(role: .cancel) {
+                    dismiss()
+                } label: {
+                    Image(systemName: "xmark")
+                        .font(.headline)
+                        .fontWeight(.semibold)
+                }
+                .tint(.red)
+            } else {
+                Button(role: .cancel) {
+                    dismiss()
+                } label: {
+                    Image(systemName: "xmark")
+                        .font(.headline)
+                        .fontWeight(.semibold)
+                        .padding(2)
+                }
+                .buttonStyle(.bordered)
+                .buttonBorderShape(.circle)
+                .tint(.red)
+                .padding(.trailing, -4)
             }
-            .buttonStyle(.bordered)
-            .buttonBorderShape(.circle)
-            .tint(.red)
-            .padding(.trailing, -8)
         }
     }
 
