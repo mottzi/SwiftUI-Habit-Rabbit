@@ -11,12 +11,15 @@ extension Habit.Dashboard {
                 Image(systemName: "plus")
                     .font(.title)
                     .fontWeight(.medium)
-                    .padding()
+                    .frame(width: 70, height: 70)
                     .glassEffect()
+                    .offset(x: 6, y: 0)
+                    .padding(.top, 40)
+                    .frame(width: 100, height: 170, alignment: .top)
+                    .contentShape(.rect)
             }
             .buttonStyle(.plain)
             .sensoryFeedback(.selection, trigger: presentAddSheet)
-            .offset(x: -12, y: 0)
         } else {
             Button {
                 presentAddSheet = true
@@ -27,11 +30,13 @@ extension Habit.Dashboard {
                     .foregroundStyle(colorScheme == .light ? .black : .white)
                     .frame(width: 64, height: 64)
                     .background { Habit.Card.Background(in: .circle, material: .ultraThinMaterial) }
-                    .padding()
+                    .offset(x: 6, y: 0)
+                    .padding(.top, 40)
+                    .frame(width: 100, height: 170, alignment: .top)
+                    .contentShape(.rect)
             }
             .buttonStyle(.plain)
             .sensoryFeedback(.selection, trigger: presentAddSheet)
-            .offset(x: 6, y: 0)
         }
         
     }
