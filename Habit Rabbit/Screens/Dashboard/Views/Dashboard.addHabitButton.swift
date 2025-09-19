@@ -12,7 +12,7 @@ extension Habit.Dashboard {
                     .font(.title)
                     .fontWeight(.medium)
                     .frame(width: 70, height: 70)
-                    .glassEffect()
+                    .glassEffect(.regular.interactive())
                     .offset(x: 6, y: 0)
                     .padding(.top, 40)
                     .frame(width: 100, height: 170, alignment: .top)

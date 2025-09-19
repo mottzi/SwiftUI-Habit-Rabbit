@@ -20,3 +20,14 @@ struct HabitRabbit: App {
     }
     
 }
+
+#Preview {
+    
+    let modelContainer = try! ModelContainer(for: Habit.self, Habit.Value.self)
+    let dashboardManager = Habit.Dashboard.Manager(using: modelContainer.mainContext)
+    
+    return Habit.Dashboard()
+        .environment(dashboardManager)
+        .modelContainer(modelContainer)
+    
+}
