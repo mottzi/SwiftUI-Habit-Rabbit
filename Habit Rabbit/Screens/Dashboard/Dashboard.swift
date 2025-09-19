@@ -37,13 +37,11 @@ extension Habit {
                     .safeAreaInset(edge: .top, spacing: 16) { gridHeader }
                     .padding([.horizontal, .bottom], 16)
                 }
+                .overlay(alignment: .bottomTrailing) { addHabitButton }
+                .ignoresSafeArea(.container, edges: .bottom)
                 .animation(.default, value: cardManagers.count)
                 .sheet(isPresented: $presentAddSheet) { Sheet.Add() }
                 .sheet(item: $habitToEdit) { Sheet.Edit(habit: $0) }
-                .overlay(alignment: .bottomTrailing) { 
-                    addHabitButton.debug()
-                }
-                .ignoresSafeArea(.container, edges: .bottom)
                 .navigationTitle(String("Habit Rabbit"))
                 .navigationBarTitleDisplayMode(.inline)
                 #if DEBUG
