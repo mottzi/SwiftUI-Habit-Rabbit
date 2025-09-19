@@ -8,16 +8,68 @@ extension Habit.Card {
 
         let value: Habit.Value?
         let habit: Habit
-        let cardColor: Color
-
+        
+        var cubeColor: AnyShapeStyle { Cube.color(for: value, habit: habit, cardColor: habit.color) }
+        var cubeLineWidth: CGFloat { Cube.strokeWidth(for: value, habit: habit, colorScheme: colorScheme) }
+        var cubeBrightness: CGFloat { Cube.brightness(for: value, habit: habit, colorScheme: colorScheme) }
+        
         var body: some View {
             RoundedRectangle(cornerRadius: 4)
-                .fill(Habit.Card.cubeColor(for: value, habit: habit, cardColor: cardColor))
-                .strokeBorder(.tertiary, lineWidth: Habit.Card.cubeStrokeWidth(for: value, habit: habit, colorScheme: colorScheme))
-                .brightness(Habit.Card.cubeBrightness(for: value, habit: habit, colorScheme: colorScheme))
+                .fill(cubeColor)
+                .strokeBorder(.tertiary, lineWidth: cubeLineWidth)
+                .brightness(cubeBrightness)
                 .frame(width: 16, height: 16)
         }
 
+    }
+    
+}
+
+extension Habit.Card.Cube {
+    
+    static func color(for value: Habit.Value?, habit: Habit, cardColor: Color) -> AnyShapeStyle {
+        guard let value else {
+            if habit.kind == .good {
+                return AnyShapeStyle(.quaternary)
+            } else {
+                return AnyShapeStyle(cardColor)
+            }
+        }
+        
+        let meetsTarget = habit.kind == .good
+        ? value.currentValue >= habit.target
+        : value.currentValue < habit.target
+        
+        return meetsTarget ? AnyShapeStyle(cardColor) : AnyShapeStyle(.quaternary)
+    }
+    
+    static func brightness(for value: Habit.Value?, habit: Habit, colorScheme: ColorScheme) -> Double {
+        guard let value else { return 0 }
+        let isDark = colorScheme == .dark
+        let exceedsTarget = value.currentValue > habit.target
+        let meetsTarget = value.currentValue == habit.target
+        
+        return switch (habit.kind, isDark, exceedsTarget, meetsTarget) {
+            case (.good, true, true, _)   :  0.1   // exceeding good habit in dark mode: brighter
+            case (.good, true, false, _)  : -0.1   // not exceeding good habit in dark mode: darker
+            case (.good, false, true, _)  : -0.1   // exceeding good habit in light mode: darker
+            case (.good, false, false, _) :  0.1   // not exceeding good habit target in light mode: brighter
+            case (.bad, _, false, false)  :  0     // below bad habit: no adjustment
+            case (.bad, _, false, true)   :  0.2   // meeting bad habit: brighter
+            case (.bad, true, true, _)    : -0.6   // exceeding bad habit in dark mode: much darker
+            case (.bad, false, true, _)   : -0.8   // exceeding bad habit in light mode: darker
+        }
+    }
+    
+    static func strokeWidth(for value: Habit.Value?, habit: Habit, colorScheme: ColorScheme) -> Double {
+        guard let value else { return 0 }
+        let isDark = colorScheme == .dark
+        let exceedsTarget = value.currentValue > habit.target
+        
+        return switch (habit.kind, isDark, exceedsTarget) {
+            case (.bad, true, true)  :  0.75  // exceeding bad habit in dark mode: medium stroke
+            default                  :  0     // no stroke
+        }
     }
     
 }

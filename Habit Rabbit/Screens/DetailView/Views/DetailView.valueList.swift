@@ -20,8 +20,7 @@ extension Habit.Card.DetailView {
         HStack {
             Habit.Card.Cube(
                 value: value,
-                habit: cardManager.habit,
-                cardColor: cardManager.color
+                habit: cardManager.habit
             )
             Text(verbatim: "\(value.date.formatted2)")
             Spacer()

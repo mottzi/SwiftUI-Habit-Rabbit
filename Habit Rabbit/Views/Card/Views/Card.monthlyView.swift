@@ -22,8 +22,7 @@ extension Habit.Card {
                         ForEach(weekValues, id: \.date) { cell in                        
                             Habit.Card.Cube(
                                 value: cell.value,
-                                habit: cardManager.habit,
-                                cardColor: cardManager.color
+                                habit: cardManager.habit
                             )
                             .opacity(cell.value == nil ? 0 : 1)
                             .matchedGeometryEffect(id: "progress\(cell.date)", in: modeTransition)
