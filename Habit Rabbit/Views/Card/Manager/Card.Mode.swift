@@ -22,6 +22,14 @@ extension Habit.Card {
     
 }
 
+extension Habit.Card.Manager {
+    
+    func updateMode(to newMode: Habit.Card.Mode) {
+        if mode != newMode { mode = newMode }
+    }
+    
+}
+
 extension EnvironmentValues {
     
     @Entry var cardMode: Habit.Card.Mode? = nil

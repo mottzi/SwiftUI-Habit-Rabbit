@@ -9,7 +9,7 @@ extension Habit.Card {
         let value: Habit.Value?
         let habit: Habit
         
-        var cubeColor: AnyShapeStyle { Cube.color(for: value, habit: habit, cardColor: habit.color) }
+        var cubeColor: AnyShapeStyle { Cube.color(for: value, habit: habit) }
         var cubeLineWidth: CGFloat { Cube.strokeWidth(for: value, habit: habit, colorScheme: colorScheme) }
         var cubeBrightness: CGFloat { Cube.brightness(for: value, habit: habit, colorScheme: colorScheme) }
         
@@ -27,11 +27,11 @@ extension Habit.Card {
 
 extension Habit.Card.Cube {
     
-    static func color(for value: Habit.Value?, habit: Habit, cardColor: Color) -> AnyShapeStyle {
+    static func color(for value: Habit.Value?, habit: Habit) -> AnyShapeStyle {
         guard let value else {
             return switch habit.kind {
                 case .good: AnyShapeStyle(.quaternary)
-                case .bad: AnyShapeStyle(cardColor)
+                case .bad: AnyShapeStyle(habit.color)
             }
         }
         
@@ -41,7 +41,7 @@ extension Habit.Card.Cube {
         }
         
         return switch meetsTarget {
-            case true: AnyShapeStyle(cardColor)
+            case true: AnyShapeStyle(habit.color)
             case false: AnyShapeStyle(.quaternary)
         }
     }
@@ -70,8 +70,8 @@ extension Habit.Card.Cube {
         let exceedsTarget = value.currentValue > habit.target
         
         return switch (habit.kind, isDark, exceedsTarget) {
-            case (.bad, true, true)  :  0.75  // exceeding bad habit in dark mode: medium stroke
-            default                  :  0     // no stroke
+            case (.bad, true, true) : 0.75  // exceeding bad habit in dark mode: medium stroke
+            default                 : 0     // no stroke
         }
     }
     

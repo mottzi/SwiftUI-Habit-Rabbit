@@ -3,7 +3,7 @@ import SwiftUI
 extension Habit.Dashboard.Manager {
     
     // jump to yesterday or tomorrow with optimized single-day fetch
-    func shiftLastDay(to direction: Habit.Card.Manager.DayShift) {
+    func shiftLastDay(to direction: Habit.Card.Manager.DayShiftDirection) {
         
         // Update lastDay and lastDayIndex
         let offset = direction == .tomorrow ? 1 : -1
@@ -25,7 +25,7 @@ extension Habit.Dashboard.Manager {
         
         // Use optimized path for single-day shifts (common case: midnight)
         if abs(dayDifference) == 1 {
-            let direction: Habit.Card.Manager.DayShift = dayDifference > 0 ? .tomorrow : .yesterday
+            let direction: Habit.Card.Manager.DayShiftDirection = dayDifference > 0 ? .tomorrow : .yesterday
             shiftLastDay(to: direction)
         } else {
             // Fall back to full rebuild for larger jumps
