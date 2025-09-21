@@ -8,15 +8,11 @@ extension Habit.Card {
 
         let value: Habit.Value?
         let habit: Habit
-        
-        var cubeColor: AnyShapeStyle { Cube.color(for: value, habit: habit) }
-        var cubeLineWidth: CGFloat { Cube.strokeWidth(for: value, habit: habit, colorScheme: colorScheme) }
-        var cubeBrightness: CGFloat { Cube.brightness(for: value, habit: habit, colorScheme: colorScheme) }
-        
+
         var body: some View {
             RoundedRectangle(cornerRadius: 4)
-                .fill(cubeColor)
-                .strokeBorder(.tertiary, lineWidth: cubeLineWidth)
+                .fill(cubeStyle)
+                .strokeBorder(.tertiary, lineWidth: cubeBorderWidth)
                 .brightness(cubeBrightness)
                 .frame(width: 16, height: 16)
         }
@@ -27,7 +23,7 @@ extension Habit.Card {
 
 extension Habit.Card.Cube {
     
-    static func color(for value: Habit.Value?, habit: Habit) -> AnyShapeStyle {
+    var cubeStyle: AnyShapeStyle {
         guard let value else {
             return switch habit.kind {
                 case .good: AnyShapeStyle(.quaternary)
@@ -46,7 +42,7 @@ extension Habit.Card.Cube {
         }
     }
     
-    static func brightness(for value: Habit.Value?, habit: Habit, colorScheme: ColorScheme) -> Double {
+    var cubeBrightness: Double {
         guard let value else { return 0 }
         let isDark = colorScheme == .dark
         let exceedsTarget = value.currentValue > habit.target
@@ -64,7 +60,7 @@ extension Habit.Card.Cube {
         }
     }
     
-    static func strokeWidth(for value: Habit.Value?, habit: Habit, colorScheme: ColorScheme) -> Double {
+    var cubeBorderWidth: Double {
         guard let value else { return 0 }
         let isDark = colorScheme == .dark
         let exceedsTarget = value.currentValue > habit.target
