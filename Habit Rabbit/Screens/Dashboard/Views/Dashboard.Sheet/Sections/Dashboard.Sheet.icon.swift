@@ -1,7 +1,7 @@
 import SwiftUI
 
 extension Habit.Dashboard.Sheet {
-
+    
     var iconSection: some View {
         VStack(alignment: .leading, spacing: 12) {
             Text("Icon")
@@ -34,7 +34,7 @@ extension Habit.Dashboard.Sheet {
         }
         .buttonStyle(.plain)
     }
-        
+    
     var iconPickerSheet: some View {
         NavigationStack {
             ScrollView {
@@ -356,5 +356,5 @@ extension Habit.Dashboard.Sheet {
         "flag.pattern.checkered",
         "flag.2.crossed.fill",
     ]
-
+    
 }
