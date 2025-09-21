@@ -48,7 +48,7 @@ extension Habit.Dashboard {
             self._name = State(initialValue: initial.name)
             self._unit = State(initialValue: initial.unit)
             self._icon = State(initialValue: initial.icon)
-            let colorIndex = Self.Edit.findClosestColorIndex(for: initial.color)
+            let colorIndex = Edit.colorIndex(for: initial.color)
             self._selectedColorIndex = State(initialValue: colorIndex)
             self._targetValue = State(initialValue: initial.target)
             self._kind = State(initialValue: initial.kind)
@@ -90,7 +90,7 @@ extension Habit.Dashboard.Sheet {
             .padding(.vertical, 32)
         }
         .ignoresSafeArea(.keyboard)
-        .toolbar { keyboardToolbar }
+        .toolbar { keyboardButtons }
         .sheet(isPresented: $showIconPicker) { iconPickerSheet }
     }
 

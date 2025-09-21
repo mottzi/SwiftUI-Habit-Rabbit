@@ -28,9 +28,7 @@ extension Habit.Dashboard.Sheet {
             self._habitName = State(initialValue: habit.name)
             self._habitUnit = State(initialValue: habit.unit)
             self._selectedIcon = State(initialValue: habit.icon)
-            // Find the closest matching color index
-            let colorIndex = Self.findClosestColorIndex(for: habit.color)
-            self._selectedColorIndex = State(initialValue: colorIndex)
+            self._selectedColorIndex = State(initialValue: Edit.colorIndex(for: habit.color))
             self._targetValue = State(initialValue: habit.target)
             self._habitKind = State(initialValue: habit.kind)
         }
@@ -136,7 +134,7 @@ extension Habit.Dashboard.Sheet.Edit {
         dismiss()
     }
     
-    static func findClosestColorIndex(for color: Color) -> Int {
+    static func colorIndex(for color: Color) -> Int {
         // Convert the color to a comparable format and find the best match
         // For now, we'll use a simple approach by comparing against known colors
         let availableColors = Habit.Dashboard.Sheet.availableColors

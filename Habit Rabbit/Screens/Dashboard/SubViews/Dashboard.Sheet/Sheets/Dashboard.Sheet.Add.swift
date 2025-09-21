@@ -39,7 +39,7 @@ extension Habit.Dashboard.Sheet {
                         dismiss()
                     }
                 )
-                .toolbar { closeButtonToolbar }
+                .toolbar { closeButton }
                 .presentationBackground {
                     Rectangle()
                         .fill(.thickMaterial)
@@ -57,15 +57,9 @@ extension Habit.Dashboard.Sheet {
 }
 
 extension Habit.Dashboard.Sheet.Add {
-
-    private var isFormValid: Bool {
-        !habitName.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty &&
-        !habitUnit.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty &&
-        targetValue != nil && targetValue! > 0
-    }
-
+    
     @ToolbarContentBuilder
-    private var closeButtonToolbar: some ToolbarContent {
+    private var closeButton: some ToolbarContent {
         ToolbarItem(placement: .cancellationAction) {
             if #available(iOS 26, *) {
                 Button(role: .cancel) {
@@ -92,18 +86,15 @@ extension Habit.Dashboard.Sheet.Add {
             }
         }
     }
+    
+}
 
-    private var addButton: some View {
-        Button(role: .none) {
-            addHabit()
-        } label: {
-            Label("Add Habit", systemImage: "plus")
-                .fontWeight(.semibold)
-        }
-        .buttonStyle(.borderedProminent)
-        .buttonBorderShape(.capsule)
-        .tint(.blue)
-        .disabled(!isFormValid)
+extension Habit.Dashboard.Sheet.Add {
+    
+    private var isFormValid: Bool {
+        !habitName.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty &&
+        !habitUnit.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty &&
+        targetValue != nil && targetValue! > 0
     }
     
     private func addHabit() {

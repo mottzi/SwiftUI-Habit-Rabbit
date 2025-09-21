@@ -28,7 +28,7 @@ extension Habit.Dashboard.Sheet {
         focusedField = currentField.previous
     }
     
-    var keyboardToolbar: some ToolbarContent {
+    var keyboardButtons: some ToolbarContent {
         ToolbarItem(placement: .keyboard){
             HStack {
                 Button("Previous") { advanceToPreviousField() }

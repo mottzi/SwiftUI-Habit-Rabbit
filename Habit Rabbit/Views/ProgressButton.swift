@@ -44,10 +44,15 @@ extension Habit {
 extension Habit.ProgressButton {
     
     var buttonBrightness: Double {
-        if cardManager.habit.kind == .good {
-            return cardManager.currentValue(for: mode) > cardManager.habit.target ? (colorScheme == .dark ? 0.1 : -0.1) : (colorScheme == .dark ? -0.1 : 0.1)
-        } else {
-            return 0
+        let isDark = colorScheme == .dark
+        let exceedsTarget = cardManager.currentValue(for: mode) > cardManager.habit.target
+        
+        return switch (cardManager.habit.kind, isDark, exceedsTarget) {
+            case (.good, true, true)   :  0.1   // exceeding good habit in dark mode: brighter
+            case (.good, true, false)  : -0.1   // not exceeding good habit in dark mode: darker
+            case (.good, false, true)  : -0.1   // exceeding good habit in light mode: darker
+            case (.good, false, false) :  0.1   // not exceeding good habit in light mode: brighter
+            case (.bad, _, _)          :  0     // bad habits: no adjustment
         }
     }
     
