@@ -5,14 +5,13 @@ extension Habit.Card {
     struct NavigationButton: View {
         
         @Binding var editingHabit: Habit?
-        
+
         @Environment(\.colorScheme) var colorScheme
         @Environment(\.cardOffset) var cardIndex
-        
         @Environment(Habit.Card.Manager.self) var cardManager
         @Environment(Habit.Dashboard.Manager.self) var dashboardManager
         
-        @Namespace private var habitTransition
+        @Namespace var habitTransition
         
         var body: some View {
             NavigationLink {

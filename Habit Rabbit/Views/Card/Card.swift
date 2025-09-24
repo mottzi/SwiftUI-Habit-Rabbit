@@ -5,17 +5,16 @@ extension Habit {
 
     struct Card: View {
         
-        @Namespace var modeTransition
+        @Binding var editingHabit: Habit?
 
         @Environment(\.colorScheme) var colorScheme
         @Environment(\.cardMode) var cardMode
         @Environment(\.cardOffset) var cardOffset
-        
         @Environment(Card.Manager.self) var cardManager
         @Environment(Dashboard.Manager.self) var dashboardManager
         
-        @Binding var editingHabit: Habit?
-        
+        @Namespace var modeTransition
+
         var mode: Habit.Card.Mode { cardMode ?? cardManager.mode }
         
         @State var isDeleting = false

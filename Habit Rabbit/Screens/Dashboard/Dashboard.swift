@@ -6,11 +6,12 @@ extension Habit {
         
         @Environment(\.colorScheme) var colorScheme
         @Environment(Habit.Dashboard.Manager.self) var dashboardManager
-        var cardManagers: [Habit.Card.Manager] { dashboardManager.cardManagers }
 
         @State var showAddSheet = false
         @State var editingHabit: Habit?
         
+        var cardManagers: [Habit.Card.Manager] { dashboardManager.cardManagers }
+
         var body: some View {
             NavigationStack {
                 ScrollView {
