@@ -1,17 +1,18 @@
 import SwiftUI
 
 extension String {
-
+    
     func pluralized(count: Int) -> String {
-        return String.pluralize(string: self, count: count)
+        Self.pluralize(string: self, count: count)
     }
     
     static func pluralize(string: String, count: Int) -> String {
-        let query = LocalizationValue(String("^[\(count) \(string)](inflect: true)"))
+        let query = LocalizedStringResource("^[\(count) \(string)](inflect: true)")
         let attributed = AttributedString(localized: query)
         let localized = String(attributed.characters)
-        let prefix = "\(count) "
+        let prefix = String(localized: "\(count) ")
         guard localized.hasPrefix(prefix) else { return localized }
         return String(localized.dropFirst(prefix.count))
     }
+    
 }
