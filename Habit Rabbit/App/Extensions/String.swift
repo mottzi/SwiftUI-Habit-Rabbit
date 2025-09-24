@@ -15,5 +15,3 @@ extension String {
         return String(localized.dropFirst(prefix.count))
     }
 }
-
-
