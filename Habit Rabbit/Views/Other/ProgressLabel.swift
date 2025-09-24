@@ -53,7 +53,7 @@ extension Habit.ProgressLabel {
     }
     
     var multiLineLabel: some View {
-        VStack(alignment: .center, spacing: 0) {
+        VStack(spacing: 0) {
             Text("\(value)")
                 .foregroundStyle(.primary.opacity(colorScheme == .dark ? 1 : 0.8))
                 .overlay(alignment: .trailing) {
@@ -82,7 +82,7 @@ extension Habit.ProgressLabel {
     }
     
     var multiLineLabelSmall: some View {
-        VStack(alignment: .center, spacing: 0) {
+        VStack(spacing: 0) {
             Text("\(value)")
                 .foregroundStyle(.primary.opacity(colorScheme == .dark ? 1 : 0.8))
                 .overlay(alignment: .trailing) {
@@ -99,6 +99,7 @@ extension Habit.ProgressLabel {
                 .fontWeight(.medium)
                 .foregroundStyle(.secondary)
                 .padding(.top, 2)
+                .offset(x: 2)
         }
         .font(.headline)
         .fontWeight(.semibold)
