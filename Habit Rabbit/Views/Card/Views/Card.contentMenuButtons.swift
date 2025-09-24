@@ -4,10 +4,9 @@ extension Habit.Card {
     
     @ViewBuilder
     var contextMenuButtons: some View {
-        if let onEdit {
-            Button("Edit", systemImage: "pencil") {
-                onEdit(cardManager.habit)
-            }
+        Button("Edit", systemImage: "pencil") {
+            //onEdit(cardManager.habit)
+            editingHabit = cardManager.habit
         }
         
         #if DEBUG

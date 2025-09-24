@@ -6,7 +6,7 @@ extension Habit.Dashboard {
     var addHabitButton: some View {
         if #available(iOS 26, *) {
             Button {
-                presentAddSheet = true
+                showAddSheet = true
             } label: {
                 Image(systemName: "plus")
                     .font(.title)
@@ -19,10 +19,10 @@ extension Habit.Dashboard {
                     .contentShape(.rect)
             }
             .buttonStyle(.plain)
-            .sensoryFeedback(.selection, trigger: presentAddSheet)
+            .sensoryFeedback(.selection, trigger: showAddSheet)
         } else {
             Button {
-                presentAddSheet = true
+                showAddSheet = true
             } label: {
                 Image(systemName: "plus")
                     .font(.title)
@@ -36,7 +36,7 @@ extension Habit.Dashboard {
                     .contentShape(.rect)
             }
             .buttonStyle(.plain)
-            .sensoryFeedback(.selection, trigger: presentAddSheet)
+            .sensoryFeedback(.selection, trigger: showAddSheet)
         }
         
     }

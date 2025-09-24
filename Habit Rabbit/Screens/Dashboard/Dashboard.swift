@@ -4,33 +4,22 @@ extension Habit {
     
     struct Dashboard: View {
         
-        @Namespace private var habitTransition
         @Environment(\.colorScheme) var colorScheme
-
         @Environment(Habit.Dashboard.Manager.self) var dashboardManager
         var cardManagers: [Habit.Card.Manager] { dashboardManager.cardManagers }
 
-        @State var presentAddSheet = false
-        @State var habitToEdit: Habit?
-
+        @State var showAddSheet = false
+        @State var editingHabit: Habit?
+        
         var body: some View {
             NavigationStack {
                 ScrollView {
                     LazyVGrid(columns: columns, spacing: 16) {
                         ForEach(cardManagers.enumerated, id: \.element.habit.id) { index, cardManager in
-                            NavigationLink {
-                                Habit.Card.DetailView()
-                                    .environment(cardManager)
-                                    .environment(dashboardManager)
-                                    .navigationTransition(.zoom(sourceID: cardManager.habit.id, in: habitTransition))
-                            } label: {
-                                Habit.Card { habitToEdit = $0 }
-                                    .environment(cardManager)
-                                    .environment(\.cardOffset, index)
-                                    .matchedTransitionSource(id: cardManager.habit.id, in: habitTransition)
-                            }
-                            .buttonStyle(.plain)
-                            .background { Habit.Card.shadowEffect(colorScheme) }
+                            Habit.Card.NavigationButton(editingHabit: $editingHabit)
+                                .environment(cardManager)
+                                .environment(dashboardManager)
+                                .environment(\.cardOffset, index)
                         }
                     }
                     .safeAreaInset(edge: .top, spacing: 0) { emptyView }
@@ -40,8 +29,8 @@ extension Habit {
                 .overlay(alignment: .bottomTrailing) { addHabitButton }
                 .ignoresSafeArea(.container, edges: .bottom)
                 .animation(.default, value: cardManagers.count)
-                .sheet(isPresented: $presentAddSheet) { Sheet.Add() }
-                .sheet(item: $habitToEdit) { Sheet.Edit(habit: $0) }
+                .sheet(isPresented: $showAddSheet) { Sheet.Add() }
+                .sheet(item: $editingHabit) { Sheet.Edit(habit: $0) }
                 .navigationTitle(String("Habit Rabbit"))
                 .navigationBarTitleDisplayMode(.inline)
                 #if DEBUG

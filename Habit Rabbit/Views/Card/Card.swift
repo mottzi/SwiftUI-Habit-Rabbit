@@ -14,7 +14,7 @@ extension Habit {
         @Environment(Card.Manager.self) var cardManager
         @Environment(Dashboard.Manager.self) var dashboardManager
         
-        var onEdit: ((Habit) -> Void)?
+        @Binding var editingHabit: Habit?
         
         var mode: Habit.Card.Mode { cardMode ?? cardManager.mode }
         
