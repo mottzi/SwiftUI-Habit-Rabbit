@@ -1,10 +1,4 @@
-//
-//  ProgressBar.style.swift
-//  Habit Rabbit
-//
-//  Created by Berken Sayilir on 21.09.2025.
-//
-
+import SwiftUI
 
 extension Habit.ProgressBar {
     
