@@ -2,7 +2,7 @@ import SwiftUI
 
 extension Habit.Dashboard {
     
-    var debugButton: some ToolbarContent {
+    var debugToolbarButton: some ToolbarContent {
         ToolbarItem(placement: .topBarLeading) {
             Menu {
                 addExampleButton

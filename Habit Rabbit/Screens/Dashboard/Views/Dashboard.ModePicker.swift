@@ -60,9 +60,10 @@ extension Habit.Dashboard {
             }
             .pickerStyle(.segmented)
             .glassEffect()
-            .controlSize(.large)
+            .controlSize(.regular)
             .sensoryFeedback(.selection, trigger: manager.mode)
-            .padding(.horizontal, 24)
+            .padding(.horizontal, 42)
+            .padding(.bottom, 16)
         }
     }
     

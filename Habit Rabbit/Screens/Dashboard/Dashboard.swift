@@ -24,7 +24,7 @@ extension Habit {
                         }
                     }
                     .safeAreaInset(edge: .top, spacing: 0) { emptyGridView }
-                    .safeAreaInset(edge: .top, spacing: 16) { gridHeader }
+                    .safeAreaInset(edge: .top, spacing: 4) { gridHeader }
                     .padding([.horizontal, .bottom], 16)
                 }
                 .overlay(alignment: .bottomTrailing) { addHabitButton }
@@ -32,19 +32,17 @@ extension Habit {
                 .animation(.default, value: cardManagers.count)
                 .sheet(isPresented: $showAddSheet) { Sheet.Add() }
                 .sheet(item: $editingHabit) { Sheet.Edit(habit: $0) }
-                .navigationTitle(String("Habit Rabbit"))
                 .navigationBarTitleDisplayMode(.inline)
                 .toolbar {
                     #if DEBUG
-                    debugButton
+                    debugToolbarButton
                     #endif
                     addHabitToolbarButton
+                    ToolbarItem(placement: .principal) { lastDayControl }
                 }
                 .safeAreaBarIfAvailable(edge: .top) {
-                    VStack(spacing: 12) {
-                        lastDayControl.padding(.top, -12)
                         toolbarModePicker
-                    }
+                    
                 }
             }
             .tint(colorScheme == .dark ? .white : .black)

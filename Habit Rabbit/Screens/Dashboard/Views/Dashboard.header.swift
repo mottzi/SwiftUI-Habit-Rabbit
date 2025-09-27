@@ -10,6 +10,7 @@ extension Habit.Dashboard {
                 lastDayControl
             }
             .padding(.vertical, 6)
+            .padding(.bottom, 12)
             .animation(.bouncy, value: dashboardManager.lastDay)
         }
     }
