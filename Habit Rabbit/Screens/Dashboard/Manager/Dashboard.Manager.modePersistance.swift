@@ -21,6 +21,7 @@ extension Habit.Dashboard.Manager {
     func saveMode(_ newMode: Habit.Card.Mode) {
         modeCache = newMode
         UserDefaults.standard.set(newMode.rawValue, forKey: "dashboardMode")
+        synchronizeCardModes()
     }
     
 }

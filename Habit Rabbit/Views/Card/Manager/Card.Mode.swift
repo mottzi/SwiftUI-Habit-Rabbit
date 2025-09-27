@@ -2,10 +2,12 @@ import SwiftUI
 
 extension Habit.Card {
     
-    enum Mode: String, CaseIterable, RawRepresentable {
+    enum Mode: String, CaseIterable, RawRepresentable, Identifiable {
         case daily = "daily"
         case weekly = "weekly"
         case monthly = "monthly"
+        
+        var id: Self { self }
         
         var localizedTitle: LocalizedStringKey {
             switch self {

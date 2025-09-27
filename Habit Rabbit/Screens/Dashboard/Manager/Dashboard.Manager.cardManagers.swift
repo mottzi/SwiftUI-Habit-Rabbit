@@ -44,7 +44,7 @@ extension Habit.Dashboard.Manager {
         synchronizeCardModes()
     }
     
-    private func synchronizeCardModes() {
+    func synchronizeCardModes() {
         cardManagers.forEach { $0.updateMode(to: mode) }
     }
     

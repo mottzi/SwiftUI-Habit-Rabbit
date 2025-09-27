@@ -2,17 +2,20 @@ import SwiftUI
 
 extension Habit.Dashboard {
     
+    @ViewBuilder
     var gridHeader: some View {
-        VStack(spacing: 16) {
-            modePicker
-            dateView
+        if #unavailable(iOS 26.0) {
+            VStack(spacing: 16) {
+                modePicker
+                lastDayControl
+            }
+            .padding(.vertical, 6)
+            .animation(.bouncy, value: dashboardManager.lastDay)
         }
-        .padding(.vertical, 6)
-        .animation(.bouncy, value: dashboardManager.lastDay)
     }
     
     @ViewBuilder
-    var emptyView: some View {
+    var emptyGridView: some View {
         if cardManagers.isEmpty {
             ContentUnavailableView(
                 "No Habits",
@@ -41,11 +44,12 @@ extension Habit.Dashboard {
 
 extension Habit.Dashboard {
     
-    private var dateView: some View {
+    var lastDayControl: some View {
         HStack(spacing: 16) {
             previousDayButton
             Text(dashboardManager.lastDay.formatted)
-                .font(.system(size: 14, weight: .medium))
+                .font(.system(size: 14, weight: .bold))
+                .animation(.bouncy, value: dashboardManager.lastDay)
             nextDayButton
         }
     }

@@ -9,11 +9,11 @@ extension View {
     @ViewBuilder
     func `if`<TrueContent: View, FalseContent: View>(
         _ condition: Bool,
-        @ViewBuilder trueTransform: (Self) -> TrueContent,
+        @ViewBuilder then: (Self) -> TrueContent,
         @ViewBuilder `else`: (Self) -> FalseContent
     ) -> some View {
         if condition {
-            trueTransform(self)
+            then(self)
         } else {
             `else`(self)
         }
@@ -22,10 +22,24 @@ extension View {
     @ViewBuilder
     func `if`<TrueContent: View>(
         _ condition: Bool,
-        @ViewBuilder trueTransform: (Self) -> TrueContent
+        @ViewBuilder then: (Self) -> TrueContent
     ) -> some View {
         if condition {
-            trueTransform(self)
+            then(self)
+        } else {
+            self
+        }
+    }
+    
+    @ViewBuilder
+    func safeAreaBarIfAvailable<Content: View>(
+        edge: VerticalEdge,
+        @ViewBuilder content: @escaping () -> Content
+    ) -> some View {
+        if #available(iOS 26.0, *) {
+            self.safeAreaBar(edge: edge) {
+                content()
+            }
         } else {
             self
         }

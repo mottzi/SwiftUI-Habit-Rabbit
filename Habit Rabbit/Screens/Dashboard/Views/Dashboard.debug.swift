@@ -3,7 +3,7 @@ import SwiftUI
 extension Habit.Dashboard {
     
     var debugButton: some ToolbarContent {
-        ToolbarItem {
+        ToolbarItem(placement: .topBarLeading) {
             Menu {
                 addExampleButton
                 randomizeButton

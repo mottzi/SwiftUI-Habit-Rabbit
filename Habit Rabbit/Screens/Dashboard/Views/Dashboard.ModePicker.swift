@@ -10,7 +10,7 @@ extension Habit.Dashboard {
         
         var body: some View {
             HStack(spacing: 0) {
-                ForEach(Habit.Card.Mode.allCases, id: \.self) { item in
+                ForEach(Habit.Card.Mode.allCases) { item in
                     Button {
                         let newMode = mode == item ? mode.next : item
                         onSelection(newMode)
@@ -42,6 +42,27 @@ extension Habit.Dashboard {
                     y: 0
                 )
                 .animation(.spring(duration: 0.62), value: mode)
+        }
+    }
+    
+}
+
+extension Habit.Dashboard {
+    
+    @ViewBuilder
+    var toolbarModePicker: some View {
+        @Bindable var manager = dashboardManager
+        if #available(iOS 26.0, *) {
+            Picker("View Mode", selection: $manager.mode) {
+                ForEach(Habit.Card.Mode.allCases) { item in
+                    Text(item.localizedTitle)
+                }
+            }
+            .pickerStyle(.segmented)
+            .glassEffect()
+            .controlSize(.large)
+            .sensoryFeedback(.selection, trigger: manager.mode)
+            .padding(.horizontal, 24)
         }
     }
     

@@ -2,25 +2,28 @@ import SwiftUI
 
 extension Habit.Dashboard {
     
+    @ToolbarContentBuilder
+    var addHabitToolbarButton: some ToolbarContent {
+        if #available(iOS 26, *) {
+            ToolbarItem {
+                Button {
+                    showAddSheet = true
+                } label: {
+                    Image(systemName: "plus")
+                        .font(.system(size: 14, weight: .semibold))
+                        .foregroundStyle(.primary)
+                }
+            }
+        }
+    }
+    
+}
+
+extension Habit.Dashboard {
+    
     @ViewBuilder
     var addHabitButton: some View {
-        if #available(iOS 26, *) {
-            Button {
-                showAddSheet = true
-            } label: {
-                Image(systemName: "plus")
-                    .font(.title)
-                    .fontWeight(.medium)
-                    .frame(width: 70, height: 70)
-                    .glassEffect(.regular.interactive())
-                    .offset(x: 6, y: 0)
-                    .padding(.top, 40)
-                    .frame(width: 100, height: 170, alignment: .top)
-                    .contentShape(.rect)
-            }
-            .buttonStyle(.plain)
-            .sensoryFeedback(.selection, trigger: showAddSheet)
-        } else {
+        if #unavailable(iOS 26) {
             Button {
                 showAddSheet = true
             } label: {

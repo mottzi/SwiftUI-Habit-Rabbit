@@ -23,7 +23,7 @@ extension Habit {
                                 .environment(\.cardOffset, index)
                         }
                     }
-                    .safeAreaInset(edge: .top, spacing: 0) { emptyView }
+                    .safeAreaInset(edge: .top, spacing: 0) { emptyGridView }
                     .safeAreaInset(edge: .top, spacing: 16) { gridHeader }
                     .padding([.horizontal, .bottom], 16)
                 }
@@ -34,9 +34,18 @@ extension Habit {
                 .sheet(item: $editingHabit) { Sheet.Edit(habit: $0) }
                 .navigationTitle(String("Habit Rabbit"))
                 .navigationBarTitleDisplayMode(.inline)
-                #if DEBUG
-                .toolbar { debugButton }
-                #endif
+                .toolbar {
+                    #if DEBUG
+                    debugButton
+                    #endif
+                    addHabitToolbarButton
+                }
+                .safeAreaBarIfAvailable(edge: .top) {
+                    VStack(spacing: 12) {
+                        lastDayControl.padding(.top, -12)
+                        toolbarModePicker
+                    }
+                }
             }
             .tint(colorScheme == .dark ? .white : .black)
             .fontDesign(.rounded)

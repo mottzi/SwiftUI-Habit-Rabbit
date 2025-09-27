@@ -10,6 +10,14 @@ struct HabitRabbit: App {
     init() {
         modelContainer = try! ModelContainer(for: Habit.self, Habit.Value.self)
         dashboardManager = Habit.Dashboard.Manager(using: modelContainer.mainContext)
+        
+        UISegmentedControl.appearance().setTitleTextAttributes([
+            .font: UIFont.boldSystemFont(ofSize: 14)
+        ], for: .selected)
+        
+        UISegmentedControl.appearance().setTitleTextAttributes([
+            .font: UIFont.boldSystemFont(ofSize: 14)
+        ], for: .normal)
     }
     
     var body: some Scene {
