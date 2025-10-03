@@ -5,13 +5,12 @@ extension Habit.Dashboard {
     @ToolbarContentBuilder
     var addHabitToolbarButton: some ToolbarContent {
         if #available(iOS 26, *) {
-            ToolbarItem {
+            ToolbarItem(placement: .topBarTrailing) {
                 Button {
                     showAddSheet = true
                 } label: {
                     Image(systemName: "plus")
                         .font(.system(size: 14, weight: .semibold))
-                        .foregroundStyle(.primary)
                 }
             }
         }

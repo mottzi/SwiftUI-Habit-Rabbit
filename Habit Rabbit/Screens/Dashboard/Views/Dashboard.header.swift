@@ -46,41 +46,39 @@ extension Habit.Dashboard {
 extension Habit.Dashboard {
     
     var lastDayControl: some View {
-        HStack(spacing: 16) {
-            previousDayButton
-            Text(dashboardManager.lastDay.formatted)
-                .font(.system(size: 14, weight: .bold))
-                .animation(.bouncy, value: dashboardManager.lastDay)
-            nextDayButton
+        Text(dashboardManager.lastDay.formatted)
+            .font(.system(size: 14, weight: .bold))
+            .animation(.bouncy, value: dashboardManager.lastDay)
+    }
+    
+    var lastDayToolbarControl: some ToolbarContent {
+        ToolbarItem(placement: .principal) {
+            lastDayControl
         }
     }
     
-    private var previousDayButton: some View {
-        Button {
-            dashboardManager.shiftLastDay(to: .yesterday)
-        } label: {
-            Image(systemName: "chevron.left")
-                .font(.system(size: 14, weight: .semibold))
-                .foregroundStyle(.secondary)
-                .frame(width: 34, height: 34)
-                .background { Habit.Card.Background(in: .circle).showShadows(false) }
+    var previousDayToolbarButton: some ToolbarContent {
+        ToolbarItem(placement: .topBarLeading) {
+            Button {
+                dashboardManager.shiftLastDay(to: .yesterday)
+            } label: {
+                Image(systemName: "chevron.left")
+                    .font(.system(size: 14, weight: .semibold))
+            }
+            .sensoryFeedback(.selection, trigger: dashboardManager.lastDay)
         }
-        .buttonStyle(.plain)
-        .sensoryFeedback(.selection, trigger: dashboardManager.lastDay)
     }
     
-    private var nextDayButton: some View {
-        Button {
-            dashboardManager.shiftLastDay(to: .tomorrow)
-        } label: {
-            Image(systemName: "chevron.right")
-                .font(.system(size: 14, weight: .semibold))
-                .foregroundStyle(.secondary)
-                .frame(width: 34, height: 34)
-                .background { Habit.Card.Background(in: .circle).showShadows(false) }
+    var nextDayToolbarButton: some ToolbarContent {
+        ToolbarItem(placement: .topBarLeading) {
+            Button {
+                dashboardManager.shiftLastDay(to: .tomorrow)
+            } label: {
+                Image(systemName: "chevron.right")
+                    .font(.system(size: 14, weight: .semibold))
+            }
+            .sensoryFeedback(.selection, trigger: dashboardManager.lastDay)
         }
-        .buttonStyle(.plain)
-        .sensoryFeedback(.selection, trigger: dashboardManager.lastDay)
     }
     
 }

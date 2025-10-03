@@ -11,11 +11,12 @@ struct HabitRabbit: App {
         modelContainer = try! ModelContainer(for: Habit.self, Habit.Value.self)
         dashboardManager = Habit.Dashboard.Manager(using: modelContainer.mainContext)
         
-        UISegmentedControl.appearance().setTitleTextAttributes([
+        let appearance = UISegmentedControl.appearance()
+        appearance.setTitleTextAttributes([
             .font: UIFont.boldSystemFont(ofSize: 14)
         ], for: .selected)
         
-        UISegmentedControl.appearance().setTitleTextAttributes([
+        appearance.setTitleTextAttributes([
             .font: UIFont.boldSystemFont(ofSize: 14)
         ], for: .normal)
     }
@@ -29,13 +30,14 @@ struct HabitRabbit: App {
     
 }
 
-#Preview {
-    
+@MainActor
+var habitRabitPreview: some View {
     let modelContainer = try! ModelContainer(for: Habit.self, Habit.Value.self)
     let dashboardManager = Habit.Dashboard.Manager(using: modelContainer.mainContext)
     
     return Habit.Dashboard()
         .environment(dashboardManager)
         .modelContainer(modelContainer)
-    
 }
+
+#Preview { habitRabitPreview }

@@ -35,14 +35,16 @@ extension Habit {
                 .navigationBarTitleDisplayMode(.inline)
                 .toolbar {
                     #if DEBUG
-                    debugToolbarButton
+                    debugToolbarMenu
                     #endif
+                    previousDayToolbarButton
+                    if #available(iOS 26.0, *) { ToolbarSpacer(.fixed) }
+                    nextDayToolbarButton
+                    lastDayToolbarControl
                     addHabitToolbarButton
-                    ToolbarItem(placement: .principal) { lastDayControl }
                 }
                 .safeAreaBarIfAvailable(edge: .top) {
-                        toolbarModePicker
-                    
+                    toolbarModePicker
                 }
             }
             .tint(colorScheme == .dark ? .white : .black)

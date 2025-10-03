@@ -2,29 +2,14 @@ import SwiftUI
 
 extension Habit.Dashboard {
     
-    var debugToolbarButton: some ToolbarContent {
-        ToolbarItem(placement: .topBarLeading) {
-            Menu {
-                addExampleButton
-                randomizeButton
-                resetLatestButton
-                Divider()
-                killDatabaseButton
-                deleteHabitsButton
-            } label: {
-                Image(systemName: "gearshape.fill")
-                    .font(.system(size: 14, weight: .semibold))
-                    .foregroundStyle(.primary)
-                    .frame(width: 34, height: 34)
-                    .background {
-                        if #available(iOS 26, *) {
-                            EmptyView()
-                        } else {
-                            Habit.Card.Background(in: .circle).showShadows(false)
-                        }
-                    }
-            }
-            .buttonStyle(.plain)
+    var debugToolbarMenu: some ToolbarContent {
+        ToolbarTitleMenu {
+            addExampleButton
+            randomizeButton
+            resetLatestButton
+            Divider()
+            killDatabaseButton
+            deleteHabitsButton
         }
     }
     
