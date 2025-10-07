@@ -10,6 +10,7 @@ extension Habit.Dashboard {
                 lastDayControl
             }
             .padding(.vertical, 6)
+            .padding(.top, 4)
             .padding(.bottom, 12)
             .animation(.bouncy, value: dashboardManager.lastDay)
         }
@@ -51,7 +52,7 @@ extension Habit.Dashboard {
             .animation(.bouncy, value: dashboardManager.lastDay)
     }
     
-    var lastDayToolbarControl: some ToolbarContent {
+    var lastDayToolbarLabel: some ToolbarContent {
         ToolbarItem(placement: .principal) {
             lastDayControl
         }
