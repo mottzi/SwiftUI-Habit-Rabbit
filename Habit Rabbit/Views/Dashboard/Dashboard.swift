@@ -26,17 +26,17 @@ extension Habit {
                         }
                     }
                     .safeAreaInset(edge: .top, spacing: 0) { emptyGridView }
+                    .safeAreaPadding(.top, 10)
                     .padding(.horizontal, 16)
                     .padding(.bottom, 16)
-                    .padding(.top, 10)
                 }
+                .toolbarRole(.browser)
+                .toolbar { toolbarTitle }
+                .scrollEdgeEffectHidden(true, for: .bottom)
+                .toolbarTitleDisplayMode(.inline)
                 .safeAreaPadding(.top, 6)
                 .safeAreaBar(edge: .top) { toolbarControls }
                 .safeAreaBar(edge: .bottom, alignment: .trailing) { addHabitButton }
-                .scrollEdgeEffectHidden(true, for: .bottom)
-                .toolbarRole(.browser)
-                .toolbarTitleDisplayMode(.inline)
-                .toolbar { toolbarTitle }
                 .animation(.default, value: cardManagers.count)
                 .sheet(isPresented: $showAddSheet) { Sheet.Add() }
                 .sheet(item: $editingHabit) { Sheet.Edit(habit: $0) }
