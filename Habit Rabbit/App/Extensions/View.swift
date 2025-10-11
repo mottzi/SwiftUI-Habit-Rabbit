@@ -31,18 +31,4 @@ extension View {
         }
     }
     
-    @ViewBuilder
-    func safeAreaBarIfAvailable<Content: View>(
-        edge: VerticalEdge,
-        @ViewBuilder content: @escaping () -> Content
-    ) -> some View {
-        if #available(iOS 26.0, *) {
-            self.safeAreaBar(edge: edge) {
-                content()
-            }
-        } else {
-            self
-        }
-    }
-    
 }

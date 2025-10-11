@@ -25,6 +25,7 @@ extension Habit.Card {
                     .environment(\.cardOffset, cardIndex)
                     .matchedTransitionSource(id: cardManager.habit.id, in: habitTransition)
             }
+            .fontDesign(.rounded)
             .buttonStyle(.plain)
             .background { Habit.Card.shadowEffect(colorScheme) }
         }
