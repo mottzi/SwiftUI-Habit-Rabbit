@@ -1,50 +1,13 @@
+//
+//  Ca.swift
+//  Habit Rabbit
+//
+//  Created by Berken Sayilir on 12.10.2025.
+//
+
+
 import SwiftUI
 
-extension Date {
-    
-    var tomorrow: Date {
-        Calendar.current.date(byAdding: .day, value: 1, to: self)!
-    }
-    
-    var yesterday: Date {
-        Calendar.current.date(byAdding: .day, value: -1, to: self)!
-    }
-    
-    var startOfDay: Date {
-        Calendar.current.startOfDay(for: self)
-    }
-
-    func shift(days dayOffset: Int) -> Date {
-        Calendar.current.date(byAdding: .day, value: dayOffset, to: self)!
-    }
-    
-    func isSameDay(as other: Date) -> Bool {
-        Calendar.current.isDate(self, inSameDayAs: other)
-    }
-    
-    var formatted: String {
-        let formatter = DateFormatter()
-        formatter.locale = Locale.preferred
-        formatter.setLocalizedDateFormatFromTemplate("EEEEddMMyyyy")
-        return formatter.string(from: self)
-    }
-
-    var formatted2: String {
-        let formatter = DateFormatter()
-        formatter.locale = Locale.preferred
-        formatter.setLocalizedDateFormatFromTemplate("ddMMyyyy")
-        return formatter.string(from: self)
-    }
-    
-    var debug: String {
-        let formatter = DateFormatter()
-        formatter.locale = .current
-        formatter.timeZone = .current
-        formatter.dateFormat = "EEEE, dd.MM.yyyy, HH:mm:ss"
-        return formatter.string(from: self)
-    }
-    
-}
 
 extension Calendar {
     
@@ -63,18 +26,6 @@ extension Calendar {
         let weekday = component(.weekday, from: date)
         // normalize to zero-based index relative to firstWeekday
         return (weekday - firstWeekday + 7) % 7
-    }
-    
-}
-
-extension Locale {
-    
-    static var preferred: Locale {
-        if let preferredIdentifier = Locale.preferredLanguages.first {
-            return Locale(identifier: preferredIdentifier)
-        } else {
-            return Locale.current
-        }
     }
     
 }
