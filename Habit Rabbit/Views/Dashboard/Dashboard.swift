@@ -30,13 +30,13 @@ extension Habit {
                     .padding(.horizontal, 16)
                     .padding(.bottom, 16)
                 }
-                .toolbarRole(.browser)
-                .toolbar { toolbarTitle }
-                .scrollEdgeEffectHidden(true, for: .bottom)
-                .toolbarTitleDisplayMode(.inline)
+                .scrollEdgeEffectHidden(for: .bottom)
                 .safeAreaPadding(.top, 6)
-                .safeAreaBar(edge: .top) { toolbarControls }
-                .safeAreaBar(edge: .bottom, alignment: .trailing) { addHabitButton }
+                .safeAreaBar(edge: .top) { controls }
+                .safeAreaBar(edge: .bottom, alignment: .trailing) { addButton }
+                .toolbar { title }
+                .toolbarRole(.browser)
+                .toolbarTitleDisplayMode(.inline)
                 .animation(.default, value: cardManagers.count)
                 .sheet(isPresented: $showAddSheet) { Sheet.Add() }
                 .sheet(item: $editingHabit) { Sheet.Edit(habit: $0) }

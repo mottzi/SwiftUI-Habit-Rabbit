@@ -22,7 +22,7 @@ extension Habit.Card.DetailView {
                 value: value,
                 habit: cardManager.habit
             )
-            Text(verbatim: "\(value.date.formatted2)")
+            Text(verbatim: "\(value.date.formatted(.date))")
             Spacer()
             Text(verbatim: "\(value.currentValue)")
         }
@@ -51,7 +51,7 @@ extension Habit.Card.DetailView {
     @ViewBuilder
     var editValueMessage: some View {
         if let value = editingValue {
-            Text("Enter new value for \(value.date.formatted2)")
+            Text("Enter new value for \(value.date.formatted(.date))")
         }
     }
     

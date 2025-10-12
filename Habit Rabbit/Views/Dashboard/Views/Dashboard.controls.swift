@@ -1,11 +1,3 @@
-//
-//  File.swift
-//  Habit Rabbit
-//
-//  Created by Berken Sayilir on 12.10.2025.
-//
-
-
 import SwiftUI
 
 extension Habit.Dashboard {
