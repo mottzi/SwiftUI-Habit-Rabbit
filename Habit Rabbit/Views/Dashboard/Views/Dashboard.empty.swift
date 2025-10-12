@@ -3,7 +3,7 @@ import SwiftUI
 extension Habit.Dashboard {
     
     @ViewBuilder
-    var emptyGridView: some View {
+    var emptyView: some View {
         if cardManagers.isEmpty {
             ContentUnavailableView(
                 "No Habits",

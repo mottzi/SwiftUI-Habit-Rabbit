@@ -25,7 +25,7 @@ extension Habit {
                                 .environment(\.cardOffset, index)
                         }
                     }
-                    .safeAreaInset(edge: .top, spacing: 0) { emptyGridView }
+                    .safeAreaInset(edge: .top, spacing: 0) { emptyView }
                     .safeAreaPadding(.top, 10)
                     .padding(.horizontal, 16)
                     .padding(.bottom, 16)
