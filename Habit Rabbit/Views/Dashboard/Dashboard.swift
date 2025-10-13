@@ -31,10 +31,16 @@ extension Habit {
                     .padding(.bottom, 16)
                 }
                 .scrollEdgeEffectHidden(for: .bottom)
+//                .overlay(alignment: .top) { emptyView }
                 .safeAreaPadding(.top, 6)
                 .safeAreaBar(edge: .top) { controls }
                 .safeAreaBar(edge: .bottom, alignment: .trailing) { addButton }
-                .toolbar { title }
+                .toolbar {
+                    title
+                    #if DEBUG
+                    debugToolbarButton
+                    #endif
+                }
                 .toolbarRole(.browser)
                 .toolbarTitleDisplayMode(.inline)
                 .animation(.default, value: cardManagers.count)

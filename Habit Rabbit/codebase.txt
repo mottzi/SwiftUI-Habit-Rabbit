@@ -1436,7 +1436,7 @@ extension Habit {
                         }
                     }
                     .safeAreaInset(edge: .top, spacing: 0) { emptyView }
-                    .safeAreaPadding(.top, 10)
+                    .safeAreaPadding(.top, 4)
                     .padding(.horizontal, 16)
                     .padding(.bottom, 16)
                 }
@@ -1713,7 +1713,7 @@ import SwiftUI
 extension Habit.Dashboard {
     
     var controls: some View {
-        HStack(spacing: 16) {
+        HStack(spacing: 12) {
             GlassEffectContainer {
                 HStack(spacing: -10) {
                     Button("Back", systemImage: "chevron.left") {
@@ -1742,9 +1742,8 @@ extension Habit.Dashboard {
         }
         .fontDesign(.rounded)
         .padding(.horizontal, 16)
-        .padding(.leading, 6)
-        .padding(.top, 24)
-        .padding(.bottom, 4)
+        .padding(.top, 20)
+        .padding(.bottom, 8)
     }
     
 }
@@ -1839,7 +1838,7 @@ extension Habit.Dashboard {
                 Text(verbatim: dashboardManager.lastDay.formatted(.weekdayDate))
                     .font(.callout)
                     .foregroundStyle(.secondary)
-                    .fontDesign(.monospaced)
+//                    .fontDesign(.monospaced)
             }
             .fontWeight(.semibold)
             .frame(maxWidth: .infinity, alignment: .leading)

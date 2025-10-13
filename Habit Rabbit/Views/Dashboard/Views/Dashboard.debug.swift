@@ -2,14 +2,18 @@ import SwiftUI
 
 extension Habit.Dashboard {
     
-    var debugToolbarMenu: some ToolbarContent {
-        ToolbarTitleMenu {
-            addExampleButton
-            randomizeButton
-            resetLatestButton
-            Divider()
-            killDatabaseButton
-            deleteHabitsButton
+    var debugToolbarButton: some ToolbarContent {
+        ToolbarItem(placement: .topBarTrailing) {
+            Menu {
+                addExampleButton
+                randomizeButton
+                resetLatestButton
+                Divider()
+                killDatabaseButton
+                deleteHabitsButton
+            } label: {
+                Label("Debug", systemImage: "gear")
+            }
         }
     }
     

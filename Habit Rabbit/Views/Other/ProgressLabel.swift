@@ -57,7 +57,7 @@ extension Habit.ProgressLabel {
             Text("\(value)")
                 .foregroundStyle(.primary.opacity(colorScheme == .dark ? 1 : 0.8))
                 .overlay(alignment: .trailing) {
-                    Text("/")
+                    Text(verbatim: "/")
                         .foregroundStyle(.primary.opacity(0.6))
                         .offset(x: 12)
                 }
@@ -86,7 +86,7 @@ extension Habit.ProgressLabel {
             Text("\(value)")
                 .foregroundStyle(.primary.opacity(colorScheme == .dark ? 1 : 0.8))
                 .overlay(alignment: .trailing) {
-                    Text("/")
+                    Text(verbatim: "/")
                         .foregroundStyle(.primary.opacity(0.6))
                         .offset(x: 10)
                 }

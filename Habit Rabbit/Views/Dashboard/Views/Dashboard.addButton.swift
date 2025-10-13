@@ -9,12 +9,13 @@ extension Habit.Dashboard {
             Image(systemName: "plus")
                 .font(.title)
                 .fontWeight(.medium)
-                .padding()
+                .padding(14)
         }
         .buttonStyle(.glass)
         .clipShape(.circle)
         .buttonBorderShape(.circle)
         .sensoryFeedback(.selection, trigger: showAddSheet)
+        .padding(.trailing, 10)
     }
     
 }
