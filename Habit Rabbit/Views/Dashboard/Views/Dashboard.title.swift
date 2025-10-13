@@ -10,7 +10,7 @@ extension Habit.Dashboard {
                 Text(verbatim: dashboardManager.lastDay.formatted(.weekdayDate))
                     .font(.callout)
                     .foregroundStyle(.secondary)
-                    .fontDesign(.monospaced)
+//                    .fontDesign(.monospaced)
             }
             .fontWeight(.semibold)
             .frame(maxWidth: .infinity, alignment: .leading)

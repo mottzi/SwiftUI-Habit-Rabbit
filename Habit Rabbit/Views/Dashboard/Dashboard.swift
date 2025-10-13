@@ -26,7 +26,7 @@ extension Habit {
                         }
                     }
                     .safeAreaInset(edge: .top, spacing: 0) { emptyView }
-                    .safeAreaPadding(.top, 10)
+                    .safeAreaPadding(.top, 4)
                     .padding(.horizontal, 16)
                     .padding(.bottom, 16)
                 }

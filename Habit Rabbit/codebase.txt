@@ -11,6 +11,15 @@ struct HabitRabbit: App {
     init() {
         modelContainer = try! ModelContainer(for: Habit.self, Habit.Value.self)
         dashboardManager = Habit.Dashboard.Manager(using: modelContainer.mainContext)
+        
+        let appearance = UISegmentedControl.appearance()
+        appearance.setTitleTextAttributes([
+            .font: UIFont.boldSystemFont(ofSize: 14)
+        ], for: .selected)
+        
+        appearance.setTitleTextAttributes([
+            .font: UIFont.boldSystemFont(ofSize: 14)
+        ], for: .normal)
     }
     
     var body: some Scene {
@@ -22,64 +31,19 @@ struct HabitRabbit: App {
     
 }
 
-#Preview {
-    
+@MainActor
+var habitRabitPreview: some View {
     let modelContainer = try! ModelContainer(for: Habit.self, Habit.Value.self)
     let dashboardManager = Habit.Dashboard.Manager(using: modelContainer.mainContext)
     
     return Habit.Dashboard()
         .environment(dashboardManager)
         .modelContainer(modelContainer)
-    
 }
+
+#Preview { habitRabitPreview }
 // ./Habit Rabbit/App/Extensions/Calendar.swift
 import SwiftUI
-
-extension Date {
-    
-    var tomorrow: Date {
-        Calendar.current.date(byAdding: .day, value: 1, to: self)!
-    }
-    
-    var yesterday: Date {
-        Calendar.current.date(byAdding: .day, value: -1, to: self)!
-    }
-    
-    var startOfDay: Date {
-        Calendar.current.startOfDay(for: self)
-    }
-
-    func shift(days dayOffset: Int) -> Date {
-        Calendar.current.date(byAdding: .day, value: dayOffset, to: self)!
-    }
-    
-    func isSameDay(as other: Date) -> Bool {
-        Calendar.current.isDate(self, inSameDayAs: other)
-    }
-    
-    var formatted: String {
-        let formatter = DateFormatter()
-        formatter.locale = Locale.preferred
-        formatter.setLocalizedDateFormatFromTemplate("EEEEddMMyyyy")
-        return formatter.string(from: self)
-    }
-
-    var formatted2: String {
-        let formatter = DateFormatter()
-        formatter.locale = Locale.preferred
-        formatter.setLocalizedDateFormatFromTemplate("ddMMyyyy")
-        return formatter.string(from: self)
-    }
-    
-    var debug: String {
-        let formatter = DateFormatter()
-        formatter.locale = .current
-        formatter.timeZone = .current
-        formatter.dateFormat = "EEEE, dd.MM.yyyy, HH:mm:ss"
-        return formatter.string(from: self)
-    }
-    
-}
 
 extension Calendar {
     
@@ -98,18 +62,6 @@ extension Calendar {
         let weekday = component(.weekday, from: date)
         // normalize to zero-based index relative to firstWeekday
         return (weekday - firstWeekday + 7) % 7
-    }
-    
-}
-
-extension Locale {
-    
-    static var preferred: Locale {
-        if let preferredIdentifier = Locale.preferredLanguages.first {
-            return Locale(identifier: preferredIdentifier)
-        } else {
-            return Locale.current
-        }
     }
     
 }
@@ -149,6 +101,83 @@ extension RandomAccessCollection {
     }
     
 }
+// ./Habit Rabbit/App/Extensions/Date.swift
+import SwiftUI
+
+extension Date {
+    
+    var tomorrow: Date {
+        Calendar.current.date(byAdding: .day, value: 1, to: self)!
+    }
+    
+    var yesterday: Date {
+        Calendar.current.date(byAdding: .day, value: -1, to: self)!
+    }
+    
+    var startOfDay: Date {
+        Calendar.current.startOfDay(for: self)
+    }
+
+    func shift(days dayOffset: Int) -> Date {
+        Calendar.current.date(byAdding: .day, value: dayOffset, to: self)!
+    }
+    
+    func isSameDay(as other: Date) -> Bool {
+        Calendar.current.isDate(self, inSameDayAs: other)
+    }
+    
+}
+
+extension Date {
+    
+    enum Format {
+        case date
+        case dateWeekday
+        case weekdayDate
+        case debug
+    }
+    
+    func formatted(_ style: Format) -> String {
+        let formatter = DateFormatter()
+        formatter.locale = Locale.preferred
+        
+        switch style {
+            case .date:
+                formatter.setLocalizedDateFormatFromTemplate("ddMMyyyy")
+                return formatter.string(from: self)
+                
+            case .dateWeekday:
+                formatter.setLocalizedDateFormatFromTemplate("ddMMyyyy")
+                let datePart = formatter.string(from: self)
+                formatter.setLocalizedDateFormatFromTemplate("EEEE")
+                let weekdayPart = formatter.string(from: self)
+                return "\(datePart), \(weekdayPart)"
+                
+            case .weekdayDate:
+                formatter.setLocalizedDateFormatFromTemplate("ddMMyyyyEEEE")
+                return formatter.string(from: self)
+                
+            case .debug:
+                formatter.dateFormat = "EEEE, dd.MM.yyyy, HH:mm:ss"
+                return formatter.string(from: self)
+        }
+    }
+    
+}
+// ./Habit Rabbit/App/Extensions/Locale.swift
+import SwiftUI
+
+extension Locale {
+    
+    static var preferred: Locale {
+        if let preferredIdentifier = Locale.preferredLanguages.first {
+            return Locale(identifier: preferredIdentifier)
+        } else {
+            return Locale.current
+        }
+    }
+    
+}
 // ./Habit Rabbit/App/Extensions/Notifications.swift
 import SwiftUI
 import Combine
@@ -168,19 +197,20 @@ extension View {
 import SwiftUI
 
 extension String {
-
+    
     func pluralized(count: Int) -> String {
-        return String.pluralize(string: self, count: count)
+        Self.pluralize(string: self, count: count)
     }
     
     static func pluralize(string: String, count: Int) -> String {
-        let query = LocalizationValue(String("^[\(count) \(string)](inflect: true)"))
+        let query = LocalizedStringResource("^[\(count) \(string)](inflect: true)")
         let attributed = AttributedString(localized: query)
         let localized = String(attributed.characters)
-        let prefix = "\(count) "
+        let prefix = String(localized: "\(count) ")
         guard localized.hasPrefix(prefix) else { return localized }
         return String(localized.dropFirst(prefix.count))
     }
+    
 }
 // ./Habit Rabbit/App/Extensions/View.swift
 import SwiftUI
@@ -194,11 +224,11 @@ extension View {
     @ViewBuilder
     func `if`<TrueContent: View, FalseContent: View>(
         _ condition: Bool,
-        @ViewBuilder trueTransform: (Self) -> TrueContent,
+        @ViewBuilder then: (Self) -> TrueContent,
         @ViewBuilder `else`: (Self) -> FalseContent
     ) -> some View {
         if condition {
-            trueTransform(self)
+            then(self)
         } else {
             `else`(self)
         }
@@ -207,10 +237,10 @@ extension View {
     @ViewBuilder
     func `if`<TrueContent: View>(
         _ condition: Bool,
-        @ViewBuilder trueTransform: (Self) -> TrueContent
+        @ViewBuilder then: (Self) -> TrueContent
     ) -> some View {
         if condition {
-            trueTransform(self)
+            then(self)
         } else {
             self
         }
@@ -412,2057 +442,6 @@ extension Habit.Value {
         descriptor.relationshipKeyPathsForPrefetching = [\Habit.Value.habit]
         
         return descriptor
-    }
-    
-}
-// ./Habit Rabbit/Screens/Dashboard/Dashboard.Manager.swift
-import SwiftUI
-import SwiftData
-
-extension Habit.Dashboard {
-    
-    @Observable
-    class Manager {
-
-        var lastDay: Date
-        var modelContext: ModelContext
-        
-        var lastDayIndex: Int
-        let weekdaySymbols: [String]
-                
-        var modeCache: Habit.Card.Mode?
-        var mode: Habit.Card.Mode {
-            get { loadMode() }
-            set { saveMode(newValue) }
-        }
-        
-        @ObservationIgnored
-        var cardManagerCache: [PersistentIdentifier: Habit.Card.Manager] = [:]
-        var cardManagers: [Habit.Card.Manager] = []
-                
-        init(
-            mode: Habit.Card.Mode? = nil,
-            lastDay: Date = .now.startOfDay,
-            using modelContext: ModelContext
-        ) {
-            self.lastDay = lastDay
-            self.weekdaySymbols = Calendar.current.weekdaySymbols
-            self.lastDayIndex = Calendar.current.weekdayIndex(for: lastDay)
-            self.modelContext = modelContext
-            
-            if let mode {
-                self.modeCache = mode
-                UserDefaults.standard.set(mode.rawValue, forKey: "dashboardMode")
-            }
-                                        
-            refreshCardManagers()
-        }
-        
-    }
-    
-}
-// ./Habit Rabbit/Screens/Dashboard/Dashboard.swift
-import SwiftUI
-
-extension Habit {
-    
-    struct Dashboard: View {
-        
-        @Environment(\.colorScheme) var colorScheme
-        @Environment(Habit.Dashboard.Manager.self) var dashboardManager
-
-        @State var showAddSheet = false
-        @State var editingHabit: Habit?
-        
-        var cardManagers: [Habit.Card.Manager] { dashboardManager.cardManagers }
-
-        var body: some View {
-            NavigationStack {
-                ScrollView {
-                    LazyVGrid(columns: columns, spacing: 16) {
-                        ForEach(cardManagers.enumerated, id: \.element.habit.id) { index, cardManager in
-                            Habit.Card.NavigationButton(editingHabit: $editingHabit)
-                                .environment(cardManager)
-                                .environment(dashboardManager)
-                                .environment(\.cardOffset, index)
-                        }
-                    }
-                    .safeAreaInset(edge: .top, spacing: 0) { emptyView }
-                    .safeAreaInset(edge: .top, spacing: 16) { gridHeader }
-                    .padding([.horizontal, .bottom], 16)
-                }
-                .overlay(alignment: .bottomTrailing) { addHabitButton }
-                .ignoresSafeArea(.container, edges: .bottom)
-                .animation(.default, value: cardManagers.count)
-                .sheet(isPresented: $showAddSheet) { Sheet.Add() }
-                .sheet(item: $editingHabit) { Sheet.Edit(habit: $0) }
-                .navigationTitle(String("Habit Rabbit"))
-                .navigationBarTitleDisplayMode(.inline)
-                #if DEBUG
-                .toolbar { debugButton }
-                #endif
-            }
-            .tint(colorScheme == .dark ? .white : .black)
-            .fontDesign(.rounded)
-            .onCalendarDayChanged { dashboardManager.setLastDay(to: .now) }
-        }
-        
-        private let columns = [
-            GridItem(.flexible(), spacing: 16),
-            GridItem(.flexible(), spacing: 16),
-        ]
-        
-    }
-    
-}
-// ./Habit Rabbit/Screens/Dashboard/Manager/Dashboard.Manager.cardManagers.swift
-import SwiftUI
-import SwiftData
-
-extension Habit.Dashboard.Manager {
-    
-    // clear all card managers from cache
-    func deleteCardManagers() {
-        cardManagerCache.removeAll()
-    }
-    
-    // rebuild all card managers from scratch
-    func refreshCardManagers() {
-        var newCache: [PersistentIdentifier: Habit.Card.Manager] = [:]
-        
-        let query = FetchDescriptor<Habit>(sortBy: [SortDescriptor(\.date)])
-        
-        guard let habits = try? modelContext.fetch(query) else { return }
-        
-        for habit in habits {
-            if let cachedManager = cardManagerCache[habit.id] {
-                newCache[habit.id] = cachedManager
-                continue
-            }
-            
-            newCache[habit.id] = Habit.Card.Manager(
-                for: habit,
-                until: lastDay,
-                mode: mode,
-                using: modelContext
-            )
-        }
-        
-        self.cardManagerCache = newCache
-        self.cardManagers = habits.compactMap { newCache[$0.id] }
-    }
-    
-}
-
-extension Habit.Dashboard.Manager {
-    
-    func updateMode(to newMode: Habit.Card.Mode) {
-        if newMode == mode { return }
-        mode = newMode
-        synchronizeCardModes()
-    }
-    
-    private func synchronizeCardModes() {
-        cardManagers.forEach { $0.updateMode(to: mode) }
-    }
-    
-}
-// ./Habit Rabbit/Screens/Dashboard/Manager/Dashboard.Manager.habitOperations.swift
-import SwiftUI
-
-extension Habit.Dashboard.Manager {
-    
-    func addHabit(_ habit: Habit) {
-        addHabits([habit])
-    }
-    
-    func addHabits(_ habits: [Habit]) {
-        habits.forEach { modelContext.insert(habit: $0) }
-        try? modelContext.save()
-        refreshCardManagers()
-    }
-    
-}
-
-extension Habit.Dashboard.Manager {
-    
-    func updateHabit(
-        _ habit: Habit,
-        with newHabit: Habit
-    ) {
-        updateHabit(
-            habit,
-            name: newHabit.name,
-            unit: newHabit.unit,
-            icon: newHabit.icon,
-            color: newHabit.color,
-            target: newHabit.target,
-            kind: newHabit.kind
-        )
-    }
-    
-    func updateHabit(
-        _ habit: Habit,
-        name: String,
-        unit: String,
-        icon: String,
-        color: Color,
-        target: Int,
-        kind: Habit.Kind
-    ) {
-        habit.name = name
-        habit.unit = unit
-        habit.icon = icon
-        habit.target = target
-        habit.kind = kind
-        habit.colorData = (try? NSKeyedArchiver.archivedData(
-            withRootObject: UIColor(color),
-            requiringSecureCoding: false)
-        ) ?? Data()
-        
-        guard let _ = try? modelContext.save() else { return }
-        refreshCardManagers()
-    }
-    
-}
-
-extension Habit.Dashboard.Manager {
-    
-    func addExampleHabits(count: Int) {
-        let templates = Habit.examples
-        guard !templates.isEmpty else { return }
-        
-        let habits = (0..<count).map { i in
-            let template = templates[i % templates.count]
-            return Habit(
-                name: template.name,
-                unit: template.unit,
-                icon: template.icon,
-                color: template.color,
-                target: template.target,
-                kind: template.kind
-            )
-        }
-        
-        addHabits(habits)
-    }
-
-    func randomizeAllHabits() {
-        cardManagers.forEach { $0.randomizeMonthlyValues() }
-    }
-    
-    func resetLatestHabits() {
-        cardManagers.forEach { $0.resetDailyValue() }
-    }
-    
-    func deleteAllHabits() throws {
-        try modelContext.delete(model: Habit.self)
-        try modelContext.save()
-        refreshCardManagers()
-    }
-    
-    func deleteAllData() {
-        modelContext.container.deleteAllData()
-        refreshCardManagers()
-    }
-    
-}
-// ./Habit Rabbit/Screens/Dashboard/Manager/Dashboard.Manager.lastDayOperations.swift
-import SwiftUI
-
-extension Habit.Dashboard.Manager {
-    
-    // jump to yesterday or tomorrow with optimized single-day fetch
-    func shiftLastDay(to direction: Habit.Card.Manager.DayShiftDirection) {
-        
-        // Update lastDay and lastDayIndex
-        let offset = direction == .tomorrow ? 1 : -1
-        lastDay = Calendar.current.date(byAdding: .day, value: offset, to: lastDay)!
-        lastDayIndex = Calendar.current.weekdayIndex(for: lastDay)
-        
-        // Update existing card managers with the new lastDay
-        for cardManager in cardManagers {
-            cardManager.shiftLastDay(to: direction)
-        }
-    }
-    
-    // jump to arbitrary date with full refresh or to yesterday / tommorow with single-day-fetch
-    func setLastDay(to date: Date) {
-        guard !date.isSameDay(as: lastDay) else { return }
-        let date = date.startOfDay
-        
-        let dayDifference = Calendar.current.dateComponents([.day], from: lastDay, to: date).day!
-        
-        // Use optimized path for single-day shifts (common case: midnight)
-        if abs(dayDifference) == 1 {
-            let direction: Habit.Card.Manager.DayShiftDirection = dayDifference > 0 ? .tomorrow : .yesterday
-            shiftLastDay(to: direction)
-        } else {
-            // Fall back to full rebuild for larger jumps
-            lastDay = date
-            lastDayIndex = Calendar.current.weekdayIndex(for: date)
-            deleteCardManagers()
-            refreshCardManagers()
-        }
-    }
-    
-}
-
-extension Habit.Dashboard.Manager {
-    
-    func weekdaySymbol(for date: Date) -> String {
-        let index = Calendar.current.weekdayIndex(for: date)
-        guard weekdaySymbols.indices.contains(index) else { return "?" }
-        return weekdaySymbols[index]
-    }
-    
-}
-// ./Habit Rabbit/Screens/Dashboard/Manager/Dashboard.Manager.modePersistance.swift
-import SwiftUI
-
-extension Habit.Dashboard.Manager {
-    
-    func loadMode() -> Habit.Card.Mode {
-        // return cached mode
-        if let modeCache { return modeCache }
-        // fetch and cache mode
-        else if let rawValue = UserDefaults.standard.string(forKey: "dashboardMode"),
-                let mode = Habit.Card.Mode(rawValue: rawValue) {
-            modeCache = mode
-            return mode
-        }
-        // return default mode on failure
-        else {
-            modeCache = .daily
-            return .daily
-        }
-    }
-    
-    func saveMode(_ newMode: Habit.Card.Mode) {
-        modeCache = newMode
-        UserDefaults.standard.set(newMode.rawValue, forKey: "dashboardMode")
-    }
-    
-}
-// ./Habit Rabbit/Screens/Dashboard/Views/Dashboard.addHabitButton.swift
-import SwiftUI
-
-extension Habit.Dashboard {
-    
-    @ViewBuilder
-    var addHabitButton: some View {
-        if #available(iOS 26, *) {
-            Button {
-                showAddSheet = true
-            } label: {
-                Image(systemName: "plus")
-                    .font(.title)
-                    .fontWeight(.medium)
-                    .frame(width: 70, height: 70)
-                    .glassEffect(.regular.interactive())
-                    .offset(x: 6, y: 0)
-                    .padding(.top, 40)
-                    .frame(width: 100, height: 170, alignment: .top)
-                    .contentShape(.rect)
-            }
-            .buttonStyle(.plain)
-            .sensoryFeedback(.selection, trigger: showAddSheet)
-        } else {
-            Button {
-                showAddSheet = true
-            } label: {
-                Image(systemName: "plus")
-                    .font(.title)
-                    .fontWeight(.medium)
-                    .foregroundStyle(colorScheme == .light ? .black : .white)
-                    .frame(width: 64, height: 64)
-                    .background { Habit.Card.Background(in: .circle, material: .ultraThinMaterial) }
-                    .offset(x: 6, y: 0)
-                    .padding(.top, 40)
-                    .frame(width: 100, height: 170, alignment: .top)
-                    .contentShape(.rect)
-            }
-            .buttonStyle(.plain)
-            .sensoryFeedback(.selection, trigger: showAddSheet)
-        }
-        
-    }
-    
-}
-// ./Habit Rabbit/Screens/Dashboard/Views/Dashboard.debug.swift
-import SwiftUI
-
-extension Habit.Dashboard {
-    
-    var debugButton: some ToolbarContent {
-        ToolbarItem {
-            Menu {
-                addExampleButton
-                randomizeButton
-                resetLatestButton
-                Divider()
-                killDatabaseButton
-                deleteHabitsButton
-            } label: {
-                Image(systemName: "gearshape.fill")
-                    .font(.system(size: 14, weight: .semibold))
-                    .foregroundStyle(.primary)
-                    .frame(width: 34, height: 34)
-                    .background {
-                        if #available(iOS 26, *) {
-                            EmptyView()
-                        } else {
-                            Habit.Card.Background(in: .circle).showShadows(false)
-                        }
-                    }
-            }
-            .buttonStyle(.plain)
-        }
-    }
-    
-}
-
-extension Habit.Dashboard {
-    
-    var addExampleButton: some View {
-        Menu {
-            ForEach([1, 2, 4, 8, 20, 50, 100], id: \.self) { count in
-                Button(String("\(count)")) {
-                    dashboardManager.addExampleHabits(count: count)
-                }
-            }
-        } label: {
-            Label("Add Examples", systemImage: "plus")
-        }
-    }
-    
-    var randomizeButton: some View {
-        Button("Randomize All", systemImage: "sparkles") {
-            dashboardManager.randomizeAllHabits()
-        }
-    }
-    
-    var resetLatestButton: some View {
-        Button("Reset Latest", systemImage: "0.circle") {
-            dashboardManager.resetLatestHabits()
-        }
-    }
-    
-}
-
-extension Habit.Dashboard {
-    
-    var killDatabaseButton: some View {
-        Button("Kill Database", systemImage: "xmark", role: .destructive) {
-            dashboardManager.deleteAllData()
-        }
-    }
-    
-    var deleteHabitsButton: some View {
-        Button("Delete All", systemImage: "trash", role: .destructive) {
-            try? dashboardManager.deleteAllHabits()
-        }
-    }
-    
-}
-// ./Habit Rabbit/Screens/Dashboard/Views/Dashboard.header.swift
-import SwiftUI
-
-extension Habit.Dashboard {
-    
-    var gridHeader: some View {
-        VStack(spacing: 16) {
-            modePicker
-            dateView
-        }
-        .padding(.vertical, 6)
-        .animation(.bouncy, value: dashboardManager.lastDay)
-    }
-    
-    @ViewBuilder
-    var emptyView: some View {
-        if cardManagers.isEmpty {
-            ContentUnavailableView(
-                "No Habits",
-                systemImage: "rectangle.portrait.slash.fill",
-                description: Text("Create your first habit to get started!")
-            )
-        }
-    }
-    
-}
-
-extension Habit.Dashboard {
-    
-    private var modePicker: some View {
-        ModePicker(
-            width: 240,
-            mode: dashboardManager.mode,
-            onSelection: { mode in
-                dashboardManager.updateMode(to: mode)
-            }
-        )
-        .sensoryFeedback(.selection, trigger: dashboardManager.mode)
-    }
-    
-}
-
-extension Habit.Dashboard {
-    
-    private var dateView: some View {
-        HStack(spacing: 16) {
-            previousDayButton
-            Text(dashboardManager.lastDay.formatted)
-                .font(.system(size: 14, weight: .medium))
-            nextDayButton
-        }
-    }
-    
-    private var previousDayButton: some View {
-        Button {
-            dashboardManager.shiftLastDay(to: .yesterday)
-        } label: {
-            Image(systemName: "chevron.left")
-                .font(.system(size: 14, weight: .semibold))
-                .foregroundStyle(.secondary)
-                .frame(width: 34, height: 34)
-                .background { Habit.Card.Background(in: .circle).showShadows(false) }
-        }
-        .buttonStyle(.plain)
-        .sensoryFeedback(.selection, trigger: dashboardManager.lastDay)
-    }
-    
-    private var nextDayButton: some View {
-        Button {
-            dashboardManager.shiftLastDay(to: .tomorrow)
-        } label: {
-            Image(systemName: "chevron.right")
-                .font(.system(size: 14, weight: .semibold))
-                .foregroundStyle(.secondary)
-                .frame(width: 34, height: 34)
-                .background { Habit.Card.Background(in: .circle).showShadows(false) }
-        }
-        .buttonStyle(.plain)
-        .sensoryFeedback(.selection, trigger: dashboardManager.lastDay)
-    }
-    
-}
-// ./Habit Rabbit/Screens/Dashboard/Views/Dashboard.ModePicker.swift
-import SwiftUI
-
-extension Habit.Dashboard {
-    
-    struct ModePicker: View {
-        
-        let width: CGFloat
-        let mode: Habit.Card.Mode
-        let onSelection: (Habit.Card.Mode) -> Void
-        
-        var body: some View {
-            HStack(spacing: 0) {
-                ForEach(Habit.Card.Mode.allCases, id: \.self) { item in
-                    Button {
-                        let newMode = mode == item ? mode.next : item
-                        onSelection(newMode)
-                    } label: {
-                        Text(item.localizedTitle)
-                            .font(.system(size: 14, weight: .medium))
-                            .foregroundStyle(mode == item ? .primary : .secondary)
-                            .fontWeight(mode == item ? .bold : .medium)
-                    }
-                    .buttonStyle(.plain)
-                    .contentShape(.rect)
-                    .frame(width: width / 3)
-                    .padding(.vertical, 6)
-                }
-            }
-            .frame(width: width)
-            .background {
-                selectedIndicator
-            }
-        }
-        
-        private var selectedIndicator: some View {
-            Habit.Card.Background(in: .capsule)
-                .showShadows(false)
-                .frame(width: width / 3)
-                .frame(maxWidth: .infinity, alignment: .leading)
-                .offset(
-                    x: CGFloat(Habit.Card.Mode.allCases.firstIndex(of: mode) ?? 0) * (width / 3),
-                    y: 0
-                )
-                .animation(.spring(duration: 0.62), value: mode)
-        }
-    }
-    
-}
-// ./Habit Rabbit/Screens/Dashboard/Views/Dashboard.Sheet/Dashboard.Sheet.keyboard.swift
-import SwiftUI
-
-extension Habit.Dashboard.Sheet {
-    
-    enum FocusedField: CaseIterable {
-        case habitName
-        case habitUnit
-        case target
-        case icon
-    }
-    
-    func advanceToNextField(from currentField: FocusedField? = nil) {
-        let currentField = currentField ?? focusedField
-        guard let currentField else { return }
-        let nextField = currentField.next
-        
-        if nextField == .icon {
-            focusedField = .icon
-            showIconPicker = true
-            focusedField = nil
-        } else {
-            focusedField = nextField
-        }
-    }
-    
-    func advanceToPreviousField() {
-        guard let currentField = focusedField else { return }
-        focusedField = currentField.previous
-    }
-    
-    var keyboardButtons: some ToolbarContent {
-        ToolbarItem(placement: .keyboard){
-            HStack {
-                Button("Previous") { advanceToPreviousField() }
-                    .disabled(focusedField?.isFirst == true)
-                    .fontWeight(.semibold)
-                
-                Button("Next") { advanceToNextField() }
-                    .disabled(focusedField?.isLast == true)
-                    .fontWeight(.semibold)
-                
-                Spacer()
-                
-                Button("Done") { focusedField = nil }
-                    .fontWeight(.semibold)
-            }
-        }
-    }
-    
-}
-// ./Habit Rabbit/Screens/Dashboard/Views/Dashboard.Sheet/Dashboard.Sheet.swift
-import SwiftUI
-import SwiftData
-
-extension Habit.Dashboard {
-    
-    struct Sheet: View {
-        
-        @Environment(\.colorScheme) var colorScheme
-        
-        let initial: InitialValues
-        let submitLabel: String
-        let submitIcon: String
-        let onSubmit: (Habit) -> ()
-        
-        @FocusState var focusedField: FocusedField?
-        
-        @State var name: String
-        @State var unit: String
-        @State var icon: String
-        @State var selectedColorIndex: Int
-        @State var showIconPicker = false
-        @State var targetValue: Int?
-        @State var kind: Habit.Kind
-        
-        let horizontalPadding: CGFloat = 16
-        
-        struct InitialValues {
-            
-            var name: String
-            var unit: String
-            var icon: String
-            var color: Color
-            var target: Int?
-            var kind: Habit.Kind
-            
-        }
-        
-        init(
-            initial: InitialValues,
-            submitLabel: String,
-            submitIcon: String,
-            onSubmit: @escaping (Habit) -> ()
-        ) {
-            self.initial = initial
-            self.submitLabel = submitLabel
-            self.submitIcon = submitIcon
-            self.onSubmit = onSubmit
-            self._name = State(initialValue: initial.name)
-            self._unit = State(initialValue: initial.unit)
-            self._icon = State(initialValue: initial.icon)
-            let colorIndex = Edit.colorIndex(for: initial.color)
-            self._selectedColorIndex = State(initialValue: colorIndex)
-            self._targetValue = State(initialValue: initial.target)
-            self._kind = State(initialValue: initial.kind)
-        }
-    }
-}
-
-extension Habit.Dashboard.Sheet {
-
-    var body: some View {
-        ScrollView {
-            VStack(spacing: 14) {
-                kindSection
-                nameSection
-                Divider()
-                unitSection
-                Divider()
-                targetSection
-                Divider()
-                iconSection
-                Divider()
-                colorSection
-            }
-            .padding(horizontalPadding)
-            .padding(.horizontal, horizontalPadding)
-        }
-        .scrollBounceBehavior(.basedOnSize)
-        .overlay(alignment: .bottom) {
-            Button(role: .none) {
-                handleSubmit()
-            } label: {
-                Label(submitLabel, systemImage: submitIcon)
-                    .fontWeight(.semibold)
-            }
-            .buttonStyle(.borderedProminent)
-            .buttonBorderShape(.capsule)
-            .tint(.blue)
-            .disabled(!isFormValid)
-            .padding(.vertical, 32)
-        }
-        .ignoresSafeArea(.keyboard)
-        .toolbar { keyboardButtons }
-        .sheet(isPresented: $showIconPicker) { iconPickerSheet }
-    }
-
-}
-
-
-extension Habit.Dashboard.Sheet {
-
-    private var isFormValid: Bool {
-        guard !name.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty else { return false }
-        guard !unit.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty else { return false }
-        guard let targetValue, targetValue > 0 else { return false }
-        return true
-    }
-    
-    private func handleSubmit() {
-        guard isFormValid, let targetValue else { return }
-        let habit = Habit(
-            name: name.trimmingCharacters(in: .whitespacesAndNewlines),
-            unit: unit.trimmingCharacters(in: .whitespacesAndNewlines),
-            icon: icon,
-            color: Self.availableColors[selectedColorIndex],
-            target: targetValue,
-            kind: kind
-        )
-        onSubmit(habit)
-    }
-    
-}
-// ./Habit Rabbit/Screens/Dashboard/Views/Dashboard.Sheet/Sections/Dashboard.Sheet.color.swift
-import SwiftUI
-
-extension Habit.Dashboard.Sheet {
-
-    var colorSection: some View {
-        VStack(alignment: .leading, spacing: 12) {
-            Text("Color")
-                .font(.headline)
-                .fontWeight(.semibold)
-                .foregroundStyle(.secondary)
-            
-            colorPicker
-        }
-    }
-    
-    private var colorPicker: some View {
-        ScrollView(.horizontal, showsIndicators: false) {
-            HStack(spacing: 12) {
-                ForEach(Self.availableColors.enumerated, id: \.offset) { index, clr in
-                    Button {
-                        selectedColorIndex = index
-                    } label: {
-                        Circle()
-                            .fill(clr.gradient)
-                            .frame(width: 44, height: 44)
-                            .overlay {
-                                if selectedColorIndex == index {
-                                    Circle()
-                                        .strokeBorder(.primary, lineWidth: 3)
-                                }
-                            }
-                    }
-                    .buttonStyle(.plain)
-                }
-            }
-        }
-        .contentMargins(.horizontal, horizontalPadding * 2)
-        .padding(.horizontal, -horizontalPadding * 2)
-    }
-    
-    static let availableColors: [Color] = [
-        .blue,
-        .orange,
-        .green,
-        .pink,
-        .mint,
-        .purple,
-        .yellow,
-        .red,
-        .teal,
-        .indigo,
-        .brown,
-        .gray,
-        .cyan,
-    ]
-
-}
-// ./Habit Rabbit/Screens/Dashboard/Views/Dashboard.Sheet/Sections/Dashboard.Sheet.icon.swift
-import SwiftUI
-
-extension Habit.Dashboard.Sheet {
-    
-    var iconSection: some View {
-        VStack(alignment: .leading, spacing: 12) {
-            Text("Icon")
-                .font(.headline)
-                .fontWeight(.semibold)
-                .foregroundStyle(.secondary)
-            
-            iconPickerButton
-                .font(.title3)
-                .fontWeight(.semibold)
-        }
-        .frame(maxWidth: .infinity, alignment: .leading)
-    }
-    
-    private var iconPickerButton: some View {
-        Button {
-            showIconPicker = true
-        } label: {
-            HStack(alignment: .lastTextBaseline) {
-                Image(systemName: icon)
-                    .font(.title2)
-                    .foregroundStyle(colorScheme == .light ? .black : .white)
-                    .padding(.leading, 1)
-                
-                Text("Change")
-                    .font(.subheadline)
-                    .fontWeight(.bold)
-                    .foregroundStyle(.secondary)
-            }
-        }
-        .buttonStyle(.plain)
-    }
-    
-    var iconPickerSheet: some View {
-        NavigationStack {
-            ScrollView {
-                LazyVGrid(columns: columns, spacing: 10) {
-                    ForEach(Self.commonIcons, id: \.self) { icon in
-                        Button {
-                            Task {
-                                self.icon = icon
-                                try? await Task.sleep(for: .milliseconds(100))
-                                showIconPicker = false
-                                focusedField = nil
-                            }
-                        } label: {
-                            Image(systemName: icon)
-                                .font(.title3)
-                                .frame(width: 44, height: 44)
-                                .padding(4)
-                                .background {
-                                    switch self.icon == icon {
-                                        case true:  Circle().fill(.blue)
-                                        case false: Habit.Card.Background(in: .circle).showShadows(false)
-                                    }
-                                }
-                        }
-                        .buttonStyle(.plain)
-                    }
-                }
-                .padding(.vertical, 32)
-                .padding(.horizontal, 16)
-            }
-            .toolbar { closeButton }
-        }
-        .presentationDetents([.large])
-        .presentationBackground {
-            Rectangle()
-                .fill(.thickMaterial)
-                .padding(.bottom, -100)
-        }
-    }
-    
-    @ToolbarContentBuilder
-    private var closeButton: some ToolbarContent {
-        ToolbarItem(placement: .cancellationAction) {
-            if #available(iOS 26, *) {
-                Button(role: .cancel) {
-                    showIconPicker = false
-                    focusedField = nil
-                } label: {
-                    Image(systemName: "xmark")
-                        .font(.headline)
-                        .fontWeight(.semibold)
-                }
-                .tint(.red)
-            } else {
-                Button(role: .cancel) {
-                    showIconPicker = false
-                    focusedField = nil
-                } label: {
-                    Image(systemName: "xmark")
-                        .font(.headline)
-                        .fontWeight(.semibold)
-                        .padding(2)
-                }
-                .buttonStyle(.bordered)
-                .buttonBorderShape(.circle)
-                .tint(.red)
-                .padding(.trailing, -4)
-            }
-        }
-    }
-    
-    var columns: [GridItem] {
-        Array(repeating: GridItem(.flexible(), spacing: 16), count: 6)
-    }
-    
-    static let commonIcons: [String] = [
-        // communitction
-        "microphone.fill",
-        "message.fill",
-        "quote.closing",
-        "phone.fill",
-        "video.fill",
-        "envelope.front.fill",
-        "envelope.fill",
-        "waveform",
-        "recordingtape",
-        "shippingbox.fill",
-        "clock.fill",
-        "alarm.fill",
-        "hourglass",
-        
-        
-        // eat & drink
-        "cup.and.saucer.fill",
-        "mug.fill",
-        "takeoutbag.and.cup.and.straw.fill",
-        "wineglass.fill",
-        "waterbottle.fill",
-        "birthday.cake.fill",
-        "carrot.fill",
-        "fork.knife",
-        "scalemass.fill",
-        
-        // personal
-        "shower.fill",
-        "bathtub.fill",
-        "comb.fill",
-        "sunglasses",
-        
-        "frying.pan.fill",
-        "bed.double.fill",
-        "washer.fill",
-        "dryer.fill",
-        "dishwasher.fill",
-        "oven.fill",
-        "stove.fill",
-        "refrigerator.fill",
-        "toilet.fill",
-        "teddybear.fill",
-        "gift.fill",
-        
-        
-        // leasure
-        "videoprojector.fill",
-        "party.popper.fill",
-        "balloon.2.fill",
-        "laser.burst",
-        "popcorn.fill",
-        "stroller.fill",
-        "movieclapper",
-        "ticket.fill",
-        "film.stack.fill",
-        "gamecontroller.fill",
-        "paintpalette.fill",
-        
-        // nature
-        "tree.fill",
-        "fossil.shell.fill",
-        
-        
-        // games
-        "puzzlepiece.extension.fill",
-        "theatermasks.fill",
-        "theatermask.and.paintbrush.fill",
-        
-        // weather
-        "sun.max.fill",
-        "sunrise.fill",
-        "sunset.fill",
-        "sun.horizon.fill",
-        "sun.rain.fill",
-        "moon.fill",
-        "moon.stars.fill",
-        "cloud",
-        "smoke.fill",
-        "cloud.rain.fill",
-        "cloud.bolt.fill",
-        "cloud.sun.fill",
-        "wind",
-        "snowflake",
-        "tornado",
-        "thermometer.high",
-        "degreesign.fahrenheit",
-        "degreesign.celsius",
-        "rainbow",
-        
-        // maps
-        "figure.walk",
-        "figure.wave",
-        "cart.fill",
-        "basket.fill",
-        "creditcard.fill",
-        "wallet.bifold.fill",
-        "wand.and.sparkles.inverse",
-        
-        "location.fill",
-        "mappin",
-        "map.fill",
-        "car.fill",
-        "bus.fill",
-        "tram.fill",
-        "bicycle",
-        "fuelpump.fill",
-        "licenseplate.fill",
-        "point.bottomleft.forward.to.point.topright.scurvepath.fill",
-        "binoculars.fill",
-        "tent.fill",
-        "signpost.right.fill",
-        "fuelpump.fill",
-        
-        // office
-        "door.left.hand.open",
-        "door.left.hand.closed",
-        "door.sliding.right.hand.open",
-        "door.sliding.right.hand.closed",
-        "door.garage.open",
-        "door.garage.closed",
-        "air.purifier.fill",
-        "heater.vertical.fill",
-        "spigot.fill",
-        
-        "pencil.and.scribble",
-        "rectangle.and.pencil.and.ellipsis",
-        "highlighter",
-        "square.and.pencil",
-        "eraser.fill",
-        "paperplane.fill",
-        "tray.full.fill",
-        "tray.2.fill",
-        "archivebox.fill",
-        "externaldrive.fill",
-        "document.fill",
-        "document.on.document.fill",
-        "list.bullet.clipboard.fill",
-        "pencil.and.list.clipboard",
-        "note.text",
-        "calendar",
-        "book.fill",
-        "text.book.closed.fill",
-        "magazine.fill",
-        "newspaper.fill",
-        "books.vertical.fill",
-        "menucard.fill",
-        "bookmark.fill",
-        "paperclip",
-        "link",
-        "gauge.with.dots.needle.bottom.0percent",
-        "dice.fill",
-        "printer.fill",
-        "scanner.fill",
-        "headset",
-        "radio.fill",
-        "battery.100percent",
-        "battery.100percent.bolt",
-        
-        // wear
-        "graduationcap.fill",
-        "backpack.fill",
-        "bag.fill",
-        "handbag.fill",
-        "briefcase.fill",
-        "suitcase.fill",
-        "suitcase.cart.fill",
-        "suitcase.rolling.fill",
-        
-        // tools
-        "ruler.fill",
-        "flashlight.on.fill",
-        "camera.fill",
-        "web.camera.fill",
-        "gear",
-        "scissors",
-        "paintbrush.fill",
-        "paintbrush.pointed.fill",
-        "level.fill",
-        "wrench.adjustable.fill",
-        "hammer.fill",
-        "screwdriver.fill",
-        "eyedropper.halffull",
-        "lightbulb.fill",
-        "fan.fill",
-        "poweroutlet.strip.fill",
-        "powerplug.fill",
-        "lock.fill",
-        "lock.open.fill",
-        "key.fill",
-        "pin.fill",
-        
-        // sport
-        "dumbbell.fill",
-        "soccerball.inverse",
-        "baseball.fill",
-        "basketball.fill",
-        "american.football.fill",
-        "tennis.racket",
-        "tennisball.fill",
-        "volleyball.fill",
-        "skateboard",
-        "skis.fill",
-        "snowboard.fill",
-        "surfboard.fill",
-        "rosette",
-        "medal.fill",
-        "medal.star.fill",
-        "shield.fill",
-        "trophy.fill",
-        "sailboat.fill",
-        "helmet.fill",
-        "hat.cap.fill",
-        "tshirt.fill",
-        "jacket.fill",
-        "coat.fill",
-        "shoe.fill",
-        "hat.widebrim.fill",
-        "crown.fill",
-        
-        // music
-        "pianokeys.inverse",
-        "guitars.fill",
-        
-        // medical
-        "inhaler.fill",
-        "cross.case.fill",
-        "syringe.fill",
-        "pill.fill",
-        "cross.vial.fill",
-        
-        // other
-        "tag.fill",
-        "lasso",
-        "trash",
-        "folder.fill",
-        "megaphone.fill",
-        "speaker.wave.2.fill",
-        "bell.fill",
-        "music.microphone",
-        "magnifyingglass",
-        "flag.fill",
-        "flag.pattern.checkered",
-        "flag.2.crossed.fill",
-    ]
-    
-}
-// ./Habit Rabbit/Screens/Dashboard/Views/Dashboard.Sheet/Sections/Dashboard.Sheet.kind.swift
-import SwiftUI
-
-extension Habit.Dashboard.Sheet {
-
-    var kindSection: some View {
-        VStack(alignment: .leading, spacing: 8) {
-            Text("Habit")
-                .font(.headline)
-                .fontWeight(.semibold)
-                .foregroundStyle(.secondary)
-            
-            SegmentedControl(
-                selection: $kind,
-                options: [
-                    (value: Habit.Kind.good, icon: "hand.thumbsup.fill", text: String(localized: "Good"), color: .green),
-                    (value: Habit.Kind.bad, icon: "hand.raised.fill", text: String(localized: "Bad"), color: .red)
-                ]
-            )
-        }
-        .frame(maxWidth: .infinity, alignment: .leading)
-    }
-    
-}
-// ./Habit Rabbit/Screens/Dashboard/Views/Dashboard.Sheet/Sections/Dashboard.Sheet.name.swift
-import SwiftUI
-
-extension Habit.Dashboard.Sheet {
-    
-    var nameSection: some View {
-        VStack(alignment: .leading, spacing: 8) {
-            Text("Name")
-                .font(.headline)
-                .fontWeight(.semibold)
-                .foregroundStyle(.secondary)
-            
-            TextField("Stretching", text: $name)
-                .textFieldStyle(.plain)
-                .font(.title)
-                .fontWeight(.semibold)
-                .focused($focusedField, equals: .habitName)
-                .onSubmit {
-                    Task {
-                        try? await Task.sleep(for: .milliseconds(300))
-                        advanceToNextField(from: .habitName)
-                    }
-                }
-                .submitLabel(.next)
-                .autocorrectionDisabled()
-        }
-        .frame(maxWidth: .infinity, alignment: .leading)
-    }
-    
-}
-// ./Habit Rabbit/Screens/Dashboard/Views/Dashboard.Sheet/Sections/Dashboard.Sheet.target.swift
-import SwiftUI
-
-extension Habit.Dashboard.Sheet {
-
-    var targetSection: some View {
-        VStack(alignment: .leading, spacing: 8) {
-            Text("Target")
-                .font(.headline)
-                .fontWeight(.semibold)
-                .foregroundStyle(.secondary)
-            
-            TextField(String("6"), value: $targetValue, format: .number)
-                .textFieldStyle(.plain)
-                .font(.title)
-                .fontWeight(.semibold)
-                .keyboardType(.numberPad)
-                .focused($focusedField, equals: .target)
-                .onSubmit {
-                    advanceToNextField()
-                }
-        }
-        .frame(maxWidth: .infinity, alignment: .leading)
-    }
-    
-}
-// ./Habit Rabbit/Screens/Dashboard/Views/Dashboard.Sheet/Sections/Dashboard.Sheet.unit.swift
-import SwiftUI
-
-extension Habit.Dashboard.Sheet {
-
-    var unitSection: some View {
-        VStack(alignment: .leading, spacing: 8) {
-            Text("Unit")
-                .font(.headline)
-                .fontWeight(.semibold)
-                .foregroundStyle(.secondary)
-            
-            TextField("Sessions", text: $unit)
-                .textFieldStyle(.plain)
-                .font(.title)
-                .fontWeight(.semibold)
-                .focused($focusedField, equals: .habitUnit)
-                .onSubmit {
-                    Task {
-                        try? await Task.sleep(for: .milliseconds(300))
-                        advanceToNextField(from: .habitUnit)
-                    }
-                }
-                .submitLabel(.next)
-                .autocorrectionDisabled()
-        }
-        .frame(maxWidth: .infinity, alignment: .leading)
-    }
-
-}
-// ./Habit Rabbit/Screens/Dashboard/Views/Dashboard.Sheet/Sheets/Dashboard.Sheet.Add.swift
-import SwiftUI
-
-extension Habit.Dashboard.Sheet {
-
-    struct Add: View {
-
-        @Environment(\.colorScheme) var colorScheme
-        @Environment(\.dismiss) private var dismiss
-        @Environment(Habit.Dashboard.Manager.self) private var dashboardManager
-        
-        @FocusState var focusedField: Habit.Dashboard.Sheet.FocusedField?
-
-        @State var habitName = ""
-        @State var habitUnit = ""
-        @State var selectedIcon = "star.fill"
-        @State var selectedColor: Color = .blue
-        @State var showIconPicker = false
-        @State var targetValue: Int?
-        @State var habitKind: Habit.Kind = .good
-        
-        let horizontalPadding: CGFloat = 16
-        let columns = Array(repeating: GridItem(.flexible(), spacing: 16), count: 6)
-
-        var body: some View {
-            NavigationStack {
-                Habit.Dashboard.Sheet(
-                    initial: .init(
-                        name: "",
-                        unit: "",
-                        icon: "star.fill",
-                        color: .blue,
-                        target: nil,
-                        kind: .good
-                    ),
-                    submitLabel: String(localized: "Add Habit"),
-                    submitIcon: "plus",
-                    onSubmit: { newHabit in
-                        dashboardManager.addHabit(newHabit)
-                        dismiss()
-                    }
-                )
-                .toolbar { closeButton }
-                .presentationBackground {
-                    Rectangle()
-                        .fill(.thickMaterial)
-                        .padding(.bottom, -100)
-                }
-                .presentationDetents([.large])
-                .interactiveDismissDisabled()
-                .navigationTitle("Add Habit")
-                .navigationBarTitleDisplayMode(.inline)
-            }
-        }
-        
-    }
-    
-}
-
-extension Habit.Dashboard.Sheet.Add {
-    
-    @ToolbarContentBuilder
-    private var closeButton: some ToolbarContent {
-        ToolbarItem(placement: .cancellationAction) {
-            if #available(iOS 26, *) {
-                Button(role: .cancel) {
-                    dismiss()
-                } label: {
-                    Image(systemName: "xmark")
-                        .font(.headline)
-                        .fontWeight(.semibold)
-                }
-                .tint(.red)
-            } else {
-                Button(role: .cancel) {
-                    dismiss()
-                } label: {
-                    Image(systemName: "xmark")
-                        .font(.headline)
-                        .fontWeight(.semibold)
-                        .padding(2)
-                }
-                .buttonStyle(.bordered)
-                .buttonBorderShape(.circle)
-                .tint(.red)
-                .padding(.trailing, -4)
-            }
-        }
-    }
-    
-}
-
-extension Habit.Dashboard.Sheet.Add {
-    
-    private var isFormValid: Bool {
-        !habitName.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty &&
-        !habitUnit.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty &&
-        targetValue != nil && targetValue! > 0
-    }
-    
-    private func addHabit() {
-        guard isFormValid else { return }
-        guard let targetValue else { return }
-        
-        let habit = Habit(
-            name: habitName.trimmingCharacters(in: .whitespacesAndNewlines),
-            unit: habitUnit.trimmingCharacters(in: .whitespacesAndNewlines),
-            icon: selectedIcon,
-            color: selectedColor,
-            target: targetValue,
-            kind: habitKind
-        )
-        
-        dashboardManager.addHabit(habit)
-        dismiss()
-    }
-
-}
-// ./Habit Rabbit/Screens/Dashboard/Views/Dashboard.Sheet/Sheets/Dashboard.Sheet.Edit.swift
-import SwiftUI
-
-extension Habit.Dashboard.Sheet {
-
-    struct Edit: View {
-
-        @Environment(\.colorScheme) var colorScheme
-        @Environment(\.dismiss) private var dismiss
-        @Environment(Habit.Dashboard.Manager.self) private var dashboardManager
-        
-        let habit: Habit
-        
-        @FocusState var focusedField: Habit.Dashboard.Sheet.FocusedField?
-
-        @State var habitName: String
-        @State var habitUnit: String
-        @State var selectedIcon: String
-        @State var selectedColorIndex: Int
-        @State var showIconPicker = false
-        @State var targetValue: Int?
-        @State var habitKind: Habit.Kind
-        
-        let horizontalPadding: CGFloat = 16
-        let columns = Array(repeating: GridItem(.flexible(), spacing: 16), count: 6)
-
-        init(habit: Habit) {
-            self.habit = habit
-            self._habitName = State(initialValue: habit.name)
-            self._habitUnit = State(initialValue: habit.unit)
-            self._selectedIcon = State(initialValue: habit.icon)
-            self._selectedColorIndex = State(initialValue: Edit.colorIndex(for: habit.color))
-            self._targetValue = State(initialValue: habit.target)
-            self._habitKind = State(initialValue: habit.kind)
-        }
-
-        var body: some View {
-            NavigationStack {
-                Habit.Dashboard.Sheet(
-                    initial: .init(
-                        name: habit.name,
-                        unit: habit.unit,
-                        icon: habit.icon,
-                        color: habit.color,
-                        target: habit.target,
-                        kind: habit.kind
-                    ),
-                    submitLabel: "Update Habit",
-                    submitIcon: "checkmark",
-                    onSubmit: { newHabit in
-                        dashboardManager.updateHabit(habit, with: newHabit)
-                        dismiss()
-                    }
-                )
-                .toolbar { closeButtonToolbar }
-                .presentationBackground {
-                    Rectangle()
-                        .fill(.thickMaterial)
-                        .padding(.bottom, -100)
-                }
-                .presentationDetents([.large])
-                .interactiveDismissDisabled()
-                .navigationTitle("Edit Habit")
-                .navigationBarTitleDisplayMode(.inline)
-            }
-        }
-        
-    }
-    
-}
-
-extension Habit.Dashboard.Sheet.Edit {
-
-    private var isFormValid: Bool {
-        !habitName.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty &&
-        !habitUnit.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty &&
-        targetValue != nil && targetValue! > 0
-    }
-
-    @ToolbarContentBuilder
-    private var closeButtonToolbar: some ToolbarContent {
-        ToolbarItem(placement: .cancellationAction) {
-            if #available(iOS 26, *) {
-                Button(role: .cancel) {
-                    dismiss()
-                } label: {
-                    Image(systemName: "xmark")
-                        .font(.headline)
-                        .fontWeight(.semibold)
-                }
-                .tint(.red)
-            } else {
-                Button(role: .cancel) {
-                    dismiss()
-                } label: {
-                    Image(systemName: "xmark")
-                        .font(.headline)
-                        .fontWeight(.semibold)
-                        .padding(2)
-                }
-                .buttonStyle(.bordered)
-                .buttonBorderShape(.circle)
-                .tint(.red)
-                .padding(.trailing, -4)
-            }
-        }
-    }
-
-    private var updateButton: some View {
-        Button(role: .none) {
-            updateHabit()
-        } label: {
-            Label("Update Habit", systemImage: "checkmark")
-                .fontWeight(.semibold)
-        }
-        .buttonStyle(.borderedProminent)
-        .buttonBorderShape(.capsule)
-        .tint(.blue)
-        .disabled(!isFormValid)
-    }
-    
-    private func updateHabit() {
-        guard isFormValid else { return }
-        guard let targetValue else { return }
-        
-        dashboardManager.updateHabit(
-            habit,
-            name: habitName.trimmingCharacters(in: .whitespacesAndNewlines),
-            unit: habitUnit.trimmingCharacters(in: .whitespacesAndNewlines),
-            icon: selectedIcon,
-            color: Habit.Dashboard.Sheet.availableColors[selectedColorIndex],
-            target: targetValue,
-            kind: habitKind
-        )
-        dismiss()
-    }
-    
-    static func colorIndex(for color: Color) -> Int {
-        // Convert the color to a comparable format and find the best match
-        // For now, we'll use a simple approach by comparing against known colors
-        let availableColors = Habit.Dashboard.Sheet.availableColors
-        
-        // Try to match by creating UIColors and comparing their components
-        let targetUIColor = UIColor(color)
-        var targetRed: CGFloat = 0, targetGreen: CGFloat = 0, targetBlue: CGFloat = 0, targetAlpha: CGFloat = 0
-        targetUIColor.getRed(&targetRed, green: &targetGreen, blue: &targetBlue, alpha: &targetAlpha)
-        
-        var bestMatchIndex = 0
-        var bestDistance = CGFloat.greatestFiniteMagnitude
-        
-        for (index, availableColor) in availableColors.enumerated() {
-            let availableUIColor = UIColor(availableColor)
-            var red: CGFloat = 0, green: CGFloat = 0, blue: CGFloat = 0, alpha: CGFloat = 0
-            availableUIColor.getRed(&red, green: &green, blue: &blue, alpha: &alpha)
-            
-            // Calculate Euclidean distance in RGB space
-            let distance = sqrt(
-                pow(targetRed - red, 2) +
-                pow(targetGreen - green, 2) +
-                pow(targetBlue - blue, 2)
-            )
-            
-            if distance < bestDistance {
-                bestDistance = distance
-                bestMatchIndex = index
-            }
-        }
-        
-        return bestMatchIndex
-    }
-
-}
-// ./Habit Rabbit/Screens/DetailView/DetailView.Manager.swift
-import SwiftUI
-import SwiftData
-
-extension Habit.Card.DetailView {
-    
-    @Observable
-    class Manager {
-
-        private let habit: Habit
-        private let modelContext: ModelContext
-        
-        private(set) var values: [Habit.Value] = []
-        private(set) var isLoading = false
-        private(set) var canLoadMore = false
-        
-        private let pageSize = 100
-        private var currentOffset = 0
-        
-        init(for habit: Habit, using modelContext: ModelContext) {
-            self.habit = habit
-            self.modelContext = modelContext
-            loadInitialValues()
-        }
-        
-        var name: String { habit.name }
-        var unit: String { habit.unit }
-        var icon: String { habit.icon }
-        var color: Color { habit.color }
-        var target: Int { habit.target }
-        var kind: Habit.Kind { habit.kind }
-    
-    }
-    
-}
-
-extension Habit.Card.DetailView.Manager {
-    
-    func loadInitialValues() {
-        loadValues(reset: true)
-    }
-    
-    func loadMoreValues() {
-        guard !isLoading && canLoadMore else { return }
-        loadValues(reset: false)
-    }
-    
-    private func loadValues(reset: Bool) {
-        isLoading = true
-        
-        if reset {
-            currentOffset = 0
-            values = []
-        }
-        
-        let habitID = habit.id
-        
-        let predicate = #Predicate<Habit.Value> {
-            $0.habit?.persistentModelID == habitID
-            && $0.currentValue > 0
-        }
-        
-        let dateSort = SortDescriptor(\Habit.Value.date, order: .reverse)
-        
-        var descriptor = FetchDescriptor(predicate: predicate, sortBy: [dateSort])
-        descriptor.fetchLimit = pageSize
-        descriptor.fetchOffset = currentOffset
-        descriptor.relationshipKeyPathsForPrefetching = [\Habit.Value.habit]
-        
-        do {
-            let fetchedValues = try modelContext.fetch(descriptor)
-            
-            if reset {
-                values = fetchedValues
-            } else {
-                values.append(contentsOf: fetchedValues)
-            }
-            
-            currentOffset += fetchedValues.count
-            canLoadMore = fetchedValues.count == pageSize
-        } catch {
-            canLoadMore = false
-        }
-        
-        isLoading = false
-    }
-    
-    func resetValue(_ value: Habit.Value) {
-        value.currentValue = 0
-        try? modelContext.save()
-    }
-    
-    func updateValue(_ value: Habit.Value, to newValue: Int) {
-        value.currentValue = newValue
-        try? modelContext.save()
-    }
-    
-}
-// ./Habit Rabbit/Screens/DetailView/DetailView.swift
-import SwiftUI
-import SwiftData
-
-extension Habit.Card {
-
-    struct DetailView: View {
-
-        @Environment(\.colorScheme) var colorScheme
-        @Environment(Habit.Card.Manager.self) var cardManager
-        @Environment(Habit.Dashboard.Manager.self) var dashboardManager
-
-        @State var detailManager: Habit.Card.DetailView.Manager?
-        var values: [Habit.Value] { detailManager?.values ?? [] }
-        
-        @State var editingValue: Habit.Value?
-        @State var editValueText: String = ""
-        
-        var body: some View {
-            Group {
-                if let detailManager {
-                    valuesList
-                        .safeAreaInset(edge: .bottom, spacing: 0) { loadMoreButton }
-                        .contentMargins(.top, 16)
-                        .environment(detailManager)
-                } else {
-                    loadingView
-                }
-            }
-            .navigationTitle(cardManager.habit.name)
-            .navigationBarTitleDisplayMode(.inline)
-            .onAppear { setupDetailManager() }
-            .alert("Edit Value",
-                isPresented: .constant(editingValue != nil),
-                actions: { editValueAlert },
-                message: { editValueMessage }
-            )
-        }
-
-    }
-
-}
-
-extension Habit.Card.DetailView {
-    
-    func setupDetailManager() {
-        if detailManager == nil {
-            detailManager = Habit.Card.DetailView.Manager(
-                for: cardManager.habit,
-                using: dashboardManager.modelContext
-            )
-        }
-    }
-    
-}
-// ./Habit Rabbit/Screens/DetailView/Views/DetailView.loadingViews.swift
-import SwiftUI
-
-extension Habit.Card.DetailView {
-
-    var loadingView: some View {
-        ProgressView()
-            .frame(maxWidth: .infinity, maxHeight: .infinity)
-    }
-    
-    @ViewBuilder
-    var emptyView: some View {
-        if values.isEmpty {
-            ContentUnavailableView(
-                "No Values",
-                systemImage: "text.page.slash",
-                description: Text("Start tracking to see your progress history here.")
-            )
-            .frame(height: 200)
-            .frame(maxHeight: .infinity, alignment: .top)
-            .padding(.top, 16)
-        }
-    }
-    
-    @ViewBuilder
-    var loadMoreButton: some View {
-        if detailManager?.canLoadMore ?? false {
-            Button {
-                detailManager?.loadMoreValues()
-            } label: {
-                HStack {
-                    if detailManager?.isLoading == true {
-                        ProgressView()
-                            .scaleEffect(0.8)
-                    } else {
-                        Text("Load More Values")
-                    }
-                }
-                .frame(maxWidth: .infinity)
-                .padding()
-                .background(.regularMaterial, in: RoundedRectangle(cornerRadius: 12))
-            }
-            .disabled(detailManager?.isLoading == true)
-            .padding(.horizontal)
-            .padding(.bottom, 8)
-        }
-    }
-
-}
-// ./Habit Rabbit/Screens/DetailView/Views/DetailView.valueList.swift
-import SwiftUI
-
-extension Habit.Card.DetailView {
-
-    @ViewBuilder
-    var valuesList: some View {
-        List(values) { value in
-            valueRow(for: value)
-                .swipeActions(edge: .trailing, allowsFullSwipe: false) {
-                    swipeButtons(for: value)
-                }
-                .contextMenu {
-                    swipeButtons(for: value)
-                }
-        }
-        .safeAreaInset(edge: .top) { emptyView }
-    }
-    
-    func valueRow(for value: Habit.Value) -> some View {
-        HStack {
-            Habit.Card.Cube(
-                value: value,
-                habit: cardManager.habit
-            )
-            Text(verbatim: "\(value.date.formatted2)")
-            Spacer()
-            Text(verbatim: "\(value.currentValue)")
-        }
-    }
-
-}
-
-extension Habit.Card.DetailView {
-    
-    @ViewBuilder
-    func swipeButtons(for value: Habit.Value) -> some View {
-        Button("Edit", systemImage: "pencil") {
-            editingValue = value
-            editValueText = "\(value.currentValue)"
-        }
-        .tint(.blue)
-        .labelStyle(.iconOnly)
-        
-        Button("Reset", systemImage: "trash") {
-            detailManager?.resetValue(value)
-        }
-        .tint(.red)
-        .labelStyle(.iconOnly)
-    }
-    
-    @ViewBuilder
-    var editValueMessage: some View {
-        if let value = editingValue {
-            Text("Enter new value for \(value.date.formatted2)")
-        }
-    }
-    
-    @ViewBuilder
-    var editValueAlert: some View {
-        TextField("Value", text: $editValueText)
-            .keyboardType(.numberPad)
-        Button("Cancel", action: cancelEdit)
-        Button("Save", action: saveEdit)
-    }
-    
-    private func cancelEdit() {
-        editingValue = nil
-        editValueText = ""
-    }
-    
-    private func saveEdit() {
-        if let value = editingValue,
-           let newValue = Int(editValueText) {
-            detailManager?.updateValue(value, to: newValue)
-        }
-        editingValue = nil
-        editValueText = ""
-    }
-    
-}
-// ./Habit Rabbit/Views/ProgressButton.swift
-import SwiftUI
-
-extension Habit {
-    
-    struct ProgressButton: View {
-        
-        @Environment(\.colorScheme) private var colorScheme
-        @Environment(\.cardMode) var cardMode
-        
-        @Environment(Habit.Card.Manager.self) private var cardManager
-        
-        var mode: Habit.Card.Mode {
-            cardMode ?? cardManager.mode
-        }
-        
-        var body: some View {
-            Button {
-                cardManager.dailyValue?.currentValue += 1
-            } label: {
-                ZStack {
-                    Circle()
-                        .fill(.quaternary)
-                    Circle()
-                        .fill(cardManager.color.gradient)
-                        .brightness(buttonBrightness)
-                        .clipShape(.capsule)
-                        .padding(3)
-                        .animation(.default, value: buttonBrightness)
-                    
-                    Image(systemName: "plus")
-                        .font(.title)
-                        .fontWeight(.medium)
-                        .foregroundStyle(.white)
-                }
-            }
-            .buttonStyle(.plain)
-            .sensoryFeedback(.increase, trigger: cardManager.dailyValue?.currentValue)
-        }
-        
-    }
-    
-}
-
-extension Habit.ProgressButton {
-    
-    var buttonBrightness: Double {
-        let isDark = colorScheme == .dark
-        let exceedsTarget = cardManager.currentValue(for: mode) > cardManager.habit.target
-        
-        return switch (cardManager.habit.kind, isDark, exceedsTarget) {
-            case (.good, true, true)   :  0.1   // exceeding good habit in dark mode: brighter
-            case (.good, true, false)  : -0.1   // not exceeding good habit in dark mode: darker
-            case (.good, false, true)  : -0.1   // exceeding good habit in light mode: darker
-            case (.good, false, false) :  0.1   // not exceeding good habit in light mode: brighter
-            case (.bad, _, _)          :  0     // bad habits: no adjustment
-        }
-    }
-    
-}
-// ./Habit Rabbit/Views/ProgressLabel.swift
-import SwiftUI
-
-extension Habit {
-
-    struct ProgressLabel: View {
-
-        @Environment(\.colorScheme) var colorScheme
-
-        let value: Int
-        let target: Int
-        let unit: String
-
-        var body: some View {
-            VStack(spacing: 2) {
-                (
-                    Text(verbatim: "\(value)")
-                        .foregroundStyle(.primary.opacity(colorScheme == .dark ? 1 : 0.8))
-                    +
-                    Text(verbatim: " / ")
-                        .foregroundStyle(.primary.opacity(0.6))
-                    +
-                    Text(verbatim: "\(target)")
-                        .foregroundStyle(.primary.opacity(0.6))
-                )
-                .font(.title2)
-                .fontWeight(.semibold)
-                .monospacedDigit()
-                .contentTransition(.numericText())
-                
-                Text(verbatim: unit.pluralized(count: target))
-                    .font(.footnote)
-                    .fontWeight(.medium)
-                    .foregroundStyle(.secondary)
-            }
-            .frame(maxWidth: .infinity)
-            .minimumScaleFactor(0.7)
-            .lineLimit(1)
-            .padding(.horizontal, 2)
-        }
-
-    }
-    
-}
-// ./Habit Rabbit/Views/SegmentedControl.swift
-import SwiftUI
-
-struct SegmentedControl<T: Hashable>: View {
-
-    @Binding var selection: T
-    let options: [(value: T, icon: String, text: String, color: Color)]
-    
-    @State private var selectedIndex: Int = 0
-    
-    private var selectedOptionColor: Color {
-        guard let index = options.firstIndex(where: { $0.value == selection }) else { return .blue }
-        return options[index].color
-    }
-    
-    var body: some View {
-        GeometryReader { geometry in
-            let segmentWidth = geometry.size.width / CGFloat(options.count)
-            
-            ZStack {
-                // Background
-                RoundedRectangle(cornerRadius: 10)
-                    .fill(.quaternary)
-                
-                // Moving selected background
-                RoundedRectangle(cornerRadius: 10)
-                    .fill(selectedOptionColor)
-                    .frame(width: segmentWidth - 4, height: geometry.size.height - 4)
-                    .offset(x: CGFloat(selectedIndex) * segmentWidth - geometry.size.width / 2 + segmentWidth / 2)
-                
-                // Segment buttons
-                HStack(spacing: 0) {
-                    ForEach(options.enumerated, id: \.offset) { index, option in
-                        Button {
-                            withAnimation {
-                                selection = option.value
-                                selectedIndex = index
-                            }
-                        } label: {
-                            HStack(spacing: 6) {
-                                Image(systemName: option.icon)
-                                    .font(.system(size: 16, weight: .semibold))
-                                Text(option.text)
-                                    .font(.system(size: 18, weight: .semibold))
-                            }
-                            .foregroundColor(selection == option.value ? .white : .secondary)
-                            .frame(maxWidth: .infinity, maxHeight: .infinity)
-                            .contentShape(.rect)
-                        }
-                        .buttonStyle(.plain)
-                    }
-                }
-            }
-        }
-        .frame(height: 44)
-        .padding(2)
-        .onAppear {
-            if let index = options.firstIndex(where: { $0.value == selection }) {
-                selectedIndex = index
-            }
-        }
-        .onChange(of: selection) { _, newValue in
-            if let index = options.firstIndex(where: { $0.value == newValue }) {
-                selectedIndex = index
-            }
-        }
-    }
-    
-}
-// ./Habit Rabbit/Views/WeekdaySymbol.swift
-import SwiftUI
-
-extension Habit {
-    
-    struct WeekdaySymbol: View {
-        
-        let symbol: String
-        let color: Color
-        
-        var body: some View {
-            Text(symbol)
-                .font(.caption2)
-                .fontWeight(.medium)
-                .foregroundStyle(color)
-                .lineLimit(1)
-        }
-        
     }
     
 }
@@ -2970,10 +949,12 @@ import SwiftUI
 
 extension Habit.Card {
     
-    enum Mode: String, CaseIterable, RawRepresentable {
+    enum Mode: String, CaseIterable, RawRepresentable, Identifiable {
         case daily = "daily"
         case weekly = "weekly"
         case monthly = "monthly"
+        
+        var id: Self { self }
         
         var localizedTitle: LocalizedStringKey {
             switch self {
@@ -3333,6 +1314,7 @@ extension Habit.Card {
                     .environment(\.cardOffset, cardIndex)
                     .matchedTransitionSource(id: cardManager.habit.id, in: habitTransition)
             }
+            .fontDesign(.rounded)
             .buttonStyle(.plain)
             .background { Habit.Card.shadowEffect(colorScheme) }
         }
@@ -3379,7 +1361,1986 @@ extension Habit.Card {
     }
     
 }
-// ./Habit Rabbit/Views/ProgressBar/ProgressBar.geometry.swift
+// ./Habit Rabbit/Views/Dashboard/Dashboard.Manager.swift
+import SwiftUI
+import SwiftData
+
+extension Habit.Dashboard {
+    
+    @Observable
+    class Manager {
+
+        var lastDay: Date
+        var modelContext: ModelContext
+        
+        var lastDayIndex: Int
+        let weekdaySymbols: [String]
+                
+        var modeCache: Habit.Card.Mode?
+        var mode: Habit.Card.Mode {
+            get { loadMode() }
+            set { saveMode(newValue) }
+        }
+        
+        @ObservationIgnored
+        var cardManagerCache: [PersistentIdentifier: Habit.Card.Manager] = [:]
+        var cardManagers: [Habit.Card.Manager] = []
+                
+        init(
+            mode: Habit.Card.Mode? = nil,
+            lastDay: Date = .now.startOfDay,
+            using modelContext: ModelContext
+        ) {
+            self.lastDay = lastDay
+            self.weekdaySymbols = Calendar.current.weekdaySymbols
+            self.lastDayIndex = Calendar.current.weekdayIndex(for: lastDay)
+            self.modelContext = modelContext
+            
+            if let mode {
+                self.modeCache = mode
+                UserDefaults.standard.set(mode.rawValue, forKey: "dashboardMode")
+            }
+                                        
+            refreshCardManagers()
+        }
+        
+    }
+    
+}
+// ./Habit Rabbit/Views/Dashboard/Dashboard.swift
+import SwiftUI
+
+extension Habit {
+    
+    struct Dashboard: View {
+        
+        @Environment(\.colorScheme) var colorScheme
+        @Environment(Habit.Dashboard.Manager.self) var dashboardManager
+
+        @State var showAddSheet = false
+        @State var editingHabit: Habit?
+        
+        @Namespace var unionNamespace
+        
+        var cardManagers: [Habit.Card.Manager] { dashboardManager.cardManagers }
+
+        var body: some View {
+            NavigationStack {
+                ScrollView {
+                    LazyVGrid(columns: columns, spacing: 16) {
+                        ForEach(cardManagers.enumerated, id: \.element.habit.id) { index, cardManager in
+                            Habit.Card.NavigationButton(editingHabit: $editingHabit)
+                                .environment(cardManager)
+                                .environment(dashboardManager)
+                                .environment(\.cardOffset, index)
+                        }
+                    }
+                    .safeAreaInset(edge: .top, spacing: 0) { emptyView }
+                    .safeAreaPadding(.top, 10)
+                    .padding(.horizontal, 16)
+                    .padding(.bottom, 16)
+                }
+                .scrollEdgeEffectHidden(for: .bottom)
+                .safeAreaPadding(.top, 6)
+                .safeAreaBar(edge: .top) { controls }
+                .safeAreaBar(edge: .bottom, alignment: .trailing) { addButton }
+                .toolbar { title }
+                .toolbarRole(.browser)
+                .toolbarTitleDisplayMode(.inline)
+                .animation(.default, value: cardManagers.count)
+                .sheet(isPresented: $showAddSheet) { Sheet.Add() }
+                .sheet(item: $editingHabit) { Sheet.Edit(habit: $0) }
+            }
+            .tint(colorScheme == .dark ? .white : .black)
+            .sensoryFeedback(.selection, trigger: dashboardManager.mode)
+            .sensoryFeedback(.selection, trigger: dashboardManager.lastDay)
+            .onCalendarDayChanged { dashboardManager.setLastDay(to: .now) }
+        }
+        
+        private let columns = [
+            GridItem(.flexible(), spacing: 16),
+            GridItem(.flexible(), spacing: 16),
+        ]
+        
+    }
+    
+}
+// ./Habit Rabbit/Views/Dashboard/Manager/Dashboard.Manager.cardManagers.swift
+import SwiftUI
+import SwiftData
+
+extension Habit.Dashboard.Manager {
+    
+    // clear all card managers from cache
+    func deleteCardManagers() {
+        cardManagerCache.removeAll()
+    }
+    
+    // rebuild all card managers from scratch
+    func refreshCardManagers() {
+        var newCache: [PersistentIdentifier: Habit.Card.Manager] = [:]
+        
+        let query = FetchDescriptor<Habit>(sortBy: [SortDescriptor(\.date)])
+        
+        guard let habits = try? modelContext.fetch(query) else { return }
+        
+        for habit in habits {
+            if let cachedManager = cardManagerCache[habit.id] {
+                newCache[habit.id] = cachedManager
+                continue
+            }
+            
+            newCache[habit.id] = Habit.Card.Manager(
+                for: habit,
+                until: lastDay,
+                mode: mode,
+                using: modelContext
+            )
+        }
+        
+        self.cardManagerCache = newCache
+        self.cardManagers = habits.compactMap { newCache[$0.id] }
+    }
+    
+}
+
+extension Habit.Dashboard.Manager {
+    
+    func updateMode(to newMode: Habit.Card.Mode) {
+        if newMode == mode { return }
+        mode = newMode
+        synchronizeCardModes()
+    }
+    
+    func synchronizeCardModes() {
+        cardManagers.forEach { $0.updateMode(to: mode) }
+    }
+    
+}
+// ./Habit Rabbit/Views/Dashboard/Manager/Dashboard.Manager.habitOperations.swift
+import SwiftUI
+
+extension Habit.Dashboard.Manager {
+    
+    func addHabit(_ habit: Habit) {
+        addHabits([habit])
+    }
+    
+    func addHabits(_ habits: [Habit]) {
+        habits.forEach { modelContext.insert(habit: $0) }
+        try? modelContext.save()
+        refreshCardManagers()
+    }
+    
+}
+
+extension Habit.Dashboard.Manager {
+    
+    func updateHabit(
+        _ habit: Habit,
+        with newHabit: Habit
+    ) {
+        updateHabit(
+            habit,
+            name: newHabit.name,
+            unit: newHabit.unit,
+            icon: newHabit.icon,
+            color: newHabit.color,
+            target: newHabit.target,
+            kind: newHabit.kind
+        )
+    }
+    
+    func updateHabit(
+        _ habit: Habit,
+        name: String,
+        unit: String,
+        icon: String,
+        color: Color,
+        target: Int,
+        kind: Habit.Kind
+    ) {
+        habit.name = name
+        habit.unit = unit
+        habit.icon = icon
+        habit.target = target
+        habit.kind = kind
+        habit.colorData = (try? NSKeyedArchiver.archivedData(
+            withRootObject: UIColor(color),
+            requiringSecureCoding: false)
+        ) ?? Data()
+        
+        guard let _ = try? modelContext.save() else { return }
+        refreshCardManagers()
+    }
+    
+}
+
+extension Habit.Dashboard.Manager {
+    
+    func addExampleHabits(count: Int) {
+        let templates = Habit.examples
+        guard !templates.isEmpty else { return }
+        
+        let habits = (0..<count).map { i in
+            let template = templates[i % templates.count]
+            return Habit(
+                name: template.name,
+                unit: template.unit,
+                icon: template.icon,
+                color: template.color,
+                target: template.target,
+                kind: template.kind
+            )
+        }
+        
+        addHabits(habits)
+    }
+
+    func randomizeAllHabits() {
+        cardManagers.forEach { $0.randomizeMonthlyValues() }
+    }
+    
+    func resetLatestHabits() {
+        cardManagers.forEach { $0.resetDailyValue() }
+    }
+    
+    func deleteAllHabits() throws {
+        try modelContext.delete(model: Habit.self)
+        try modelContext.save()
+        refreshCardManagers()
+    }
+    
+    func deleteAllData() {
+        modelContext.container.deleteAllData()
+        refreshCardManagers()
+    }
+    
+}
+// ./Habit Rabbit/Views/Dashboard/Manager/Dashboard.Manager.lastDayOperations.swift
+import SwiftUI
+
+extension Habit.Dashboard.Manager {
+    
+    typealias Direction = Habit.Card.Manager.DayShiftDirection
+    
+    func shiftLastDay(to direction: Direction) {
+        let offset = direction == .tomorrow ? 1 : -1
+        lastDay = Calendar.current.date(byAdding: .day, value: offset, to: lastDay)!
+        lastDayIndex = Calendar.current.weekdayIndex(for: lastDay)
+        
+        for cardManager in cardManagers {
+            cardManager.shiftLastDay(to: direction)
+        }
+    }
+    
+    func setLastDay(to date: Date) {
+        guard !date.isSameDay(as: lastDay) else { return }
+        let date = date.startOfDay
+        
+        let dayDifference = Calendar.current.dateComponents([.day], from: lastDay, to: date).day!
+        
+        switch dayDifference {
+            case  1: shiftLastDay(to: .tomorrow)
+            case -1: shiftLastDay(to: .yesterday)
+            default:
+                lastDay = date
+                lastDayIndex = Calendar.current.weekdayIndex(for: date)
+                deleteCardManagers()
+                refreshCardManagers()
+        }
+    }
+    
+}
+
+extension Habit.Dashboard.Manager {
+    
+    func weekdaySymbol(for date: Date) -> String {
+        let index = Calendar.current.weekdayIndex(for: date)
+        guard weekdaySymbols.indices.contains(index) else { return "?" }
+        return weekdaySymbols[index]
+    }
+    
+}
+// ./Habit Rabbit/Views/Dashboard/Manager/Dashboard.Manager.modePersistance.swift
+import SwiftUI
+
+extension Habit.Dashboard.Manager {
+    
+    func loadMode() -> Habit.Card.Mode {
+        if let modeCache { return modeCache }
+        else if let rawValue = UserDefaults.standard.string(forKey: "dashboardMode"),
+                let mode = Habit.Card.Mode(rawValue: rawValue) {
+            modeCache = mode
+            return mode
+        } else {
+            modeCache = .daily
+            return .daily
+        }
+    }
+    
+    func saveMode(_ newMode: Habit.Card.Mode) {
+        modeCache = newMode
+        UserDefaults.standard.set(newMode.rawValue, forKey: "dashboardMode")
+        synchronizeCardModes()
+    }
+    
+}
+// ./Habit Rabbit/Views/Dashboard/Views/Dashboard.addButton.swift
+import SwiftUI
+
+extension Habit.Dashboard {
+    
+    var addButton: some View {
+        Button {
+            showAddSheet = true
+        } label: {
+            Image(systemName: "plus")
+                .font(.title)
+                .fontWeight(.medium)
+                .padding()
+        }
+        .buttonStyle(.glass)
+        .clipShape(.circle)
+        .buttonBorderShape(.circle)
+        .sensoryFeedback(.selection, trigger: showAddSheet)
+    }
+    
+}
+// ./Habit Rabbit/Views/Dashboard/Views/Dashboard.controls.swift
+import SwiftUI
+
+extension Habit.Dashboard {
+    
+    var controls: some View {
+        HStack(spacing: 16) {
+            GlassEffectContainer {
+                HStack(spacing: -10) {
+                    Button("Back", systemImage: "chevron.left") {
+                        dashboardManager.shiftLastDay(to: .yesterday)
+                    }
+                    Button("Forward", systemImage: "chevron.right") {
+                        dashboardManager.shiftLastDay(to: .tomorrow)
+                    }
+                }
+                .fontWeight(.semibold)
+                .labelStyle(.iconOnly)
+                .controlSize(.large)
+                .buttonStyle(.glass)
+                .glassEffectUnion(id: "group", namespace: unionNamespace)
+            }
+            
+            @Bindable var manager = dashboardManager
+            Picker("View Mode", selection: $manager.mode) {
+                ForEach(Habit.Card.Mode.allCases) { item in
+                    Text(item.localizedTitle)
+                }
+            }
+            .glassEffect()
+            .pickerStyle(.segmented)
+            .controlSize(.large)
+        }
+        .fontDesign(.rounded)
+        .padding(.horizontal, 16)
+        .padding(.leading, 6)
+        .padding(.top, 24)
+        .padding(.bottom, 4)
+    }
+    
+}
+// ./Habit Rabbit/Views/Dashboard/Views/Dashboard.debug.swift
+import SwiftUI
+
+extension Habit.Dashboard {
+    
+    var debugToolbarMenu: some ToolbarContent {
+        ToolbarTitleMenu {
+            addExampleButton
+            randomizeButton
+            resetLatestButton
+            Divider()
+            killDatabaseButton
+            deleteHabitsButton
+        }
+    }
+    
+}
+
+extension Habit.Dashboard {
+    
+    var addExampleButton: some View {
+        Menu {
+            ForEach([1, 2, 4, 8, 20, 50, 100], id: \.self) { count in
+                Button(String("\(count)")) {
+                    dashboardManager.addExampleHabits(count: count)
+                }
+            }
+        } label: {
+            Label("Add Examples", systemImage: "plus")
+        }
+    }
+    
+    var randomizeButton: some View {
+        Button("Randomize All", systemImage: "sparkles") {
+            dashboardManager.randomizeAllHabits()
+        }
+    }
+    
+    var resetLatestButton: some View {
+        Button("Reset Latest", systemImage: "0.circle") {
+            dashboardManager.resetLatestHabits()
+        }
+    }
+    
+}
+
+extension Habit.Dashboard {
+    
+    var killDatabaseButton: some View {
+        Button("Kill Database", systemImage: "xmark", role: .destructive) {
+            dashboardManager.deleteAllData()
+        }
+    }
+    
+    var deleteHabitsButton: some View {
+        Button("Delete All", systemImage: "trash", role: .destructive) {
+            try? dashboardManager.deleteAllHabits()
+        }
+    }
+    
+}
+// ./Habit Rabbit/Views/Dashboard/Views/Dashboard.empty.swift
+import SwiftUI
+
+extension Habit.Dashboard {
+    
+    @ViewBuilder
+    var emptyView: some View {
+        if cardManagers.isEmpty {
+            ContentUnavailableView(
+                "No Habits",
+                systemImage: "rectangle.portrait.slash.fill",
+                description: Text("Create your first habit to get started!")
+            )
+        }
+    }
+    
+}
+// ./Habit Rabbit/Views/Dashboard/Views/Dashboard.title.swift
+import SwiftUI
+
+extension Habit.Dashboard {
+    
+    var title: some ToolbarContent {
+        ToolbarItem(placement: .principal) {
+            VStack(alignment: .leading, spacing: 0) {
+                Text(verbatim: "Habit Rabbit")
+                    .font(.largeTitle)
+                Text(verbatim: dashboardManager.lastDay.formatted(.weekdayDate))
+                    .font(.callout)
+                    .foregroundStyle(.secondary)
+                    .fontDesign(.monospaced)
+            }
+            .fontWeight(.semibold)
+            .frame(maxWidth: .infinity, alignment: .leading)
+            .padding(.top, 12)
+            .padding(.leading, 4)
+        }
+    }
+    
+}
+// ./Habit Rabbit/Views/Dashboard/Views/Dashboard.Sheet/Dashboard.Sheet.keyboard.swift
+import SwiftUI
+
+extension Habit.Dashboard.Sheet {
+    
+    enum FocusedField: CaseIterable {
+        case habitName
+        case habitUnit
+        case target
+        case icon
+    }
+    
+    func advanceToNextField(from currentField: FocusedField? = nil) {
+        let currentField = currentField ?? focusedField
+        guard let currentField else { return }
+        let nextField = currentField.next
+        
+        if nextField == .icon {
+            focusedField = .icon
+            showIconPicker = true
+            focusedField = nil
+        } else {
+            focusedField = nextField
+        }
+    }
+    
+    func advanceToPreviousField() {
+        guard let currentField = focusedField else { return }
+        focusedField = currentField.previous
+    }
+    
+    var keyboardButtons: some ToolbarContent {
+        ToolbarItem(placement: .keyboard){
+            HStack {
+                Button("Previous") { advanceToPreviousField() }
+                    .disabled(focusedField?.isFirst == true)
+                    .fontWeight(.semibold)
+                
+                Button("Next") { advanceToNextField() }
+                    .disabled(focusedField?.isLast == true)
+                    .fontWeight(.semibold)
+                
+                Spacer()
+                
+                Button("Done") { focusedField = nil }
+                    .fontWeight(.semibold)
+            }
+        }
+    }
+    
+}
+// ./Habit Rabbit/Views/Dashboard/Views/Dashboard.Sheet/Dashboard.Sheet.swift
+import SwiftUI
+import SwiftData
+
+extension Habit.Dashboard {
+    
+    struct Sheet: View {
+        
+        @Environment(\.colorScheme) var colorScheme
+        
+        let initial: InitialValues
+        let submitLabel: String
+        let submitIcon: String
+        let onSubmit: (Habit) -> ()
+        
+        @FocusState var focusedField: FocusedField?
+        
+        @State var name: String
+        @State var unit: String
+        @State var icon: String
+        @State var selectedColorIndex: Int
+        @State var showIconPicker = false
+        @State var targetValue: Int?
+        @State var kind: Habit.Kind
+        
+        let horizontalPadding: CGFloat = 16
+        
+        struct InitialValues {
+            
+            var name: String
+            var unit: String
+            var icon: String
+            var color: Color
+            var target: Int?
+            var kind: Habit.Kind
+            
+        }
+        
+        init(
+            initial: InitialValues,
+            submitLabel: String,
+            submitIcon: String,
+            onSubmit: @escaping (Habit) -> ()
+        ) {
+            self.initial = initial
+            self.submitLabel = submitLabel
+            self.submitIcon = submitIcon
+            self.onSubmit = onSubmit
+            self._name = State(initialValue: initial.name)
+            self._unit = State(initialValue: initial.unit)
+            self._icon = State(initialValue: initial.icon)
+            let colorIndex = Edit.colorIndex(for: initial.color)
+            self._selectedColorIndex = State(initialValue: colorIndex)
+            self._targetValue = State(initialValue: initial.target)
+            self._kind = State(initialValue: initial.kind)
+        }
+    }
+}
+
+extension Habit.Dashboard.Sheet {
+
+    var body: some View {
+        ScrollView {
+            VStack(spacing: 14) {
+                kindSection
+                nameSection
+                Divider()
+                unitSection
+                Divider()
+                targetSection
+                Divider()
+                iconSection
+                Divider()
+                colorSection
+            }
+            .padding(horizontalPadding)
+            .padding(.horizontal, horizontalPadding)
+        }
+        .scrollBounceBehavior(.basedOnSize)
+        .overlay(alignment: .bottom) {
+            Button(role: .none) {
+                handleSubmit()
+            } label: {
+                Label(submitLabel, systemImage: submitIcon)
+                    .fontWeight(.semibold)
+            }
+            .buttonStyle(.borderedProminent)
+            .buttonBorderShape(.capsule)
+            .tint(.blue)
+            .disabled(!isFormValid)
+            .padding(.vertical, 32)
+        }
+        .ignoresSafeArea(.keyboard)
+        .toolbar { keyboardButtons }
+        .sheet(isPresented: $showIconPicker) { iconPickerSheet }
+    }
+
+}
+
+
+extension Habit.Dashboard.Sheet {
+
+    private var isFormValid: Bool {
+        guard !name.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty else { return false }
+        guard !unit.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty else { return false }
+        guard let targetValue, targetValue > 0 else { return false }
+        return true
+    }
+    
+    private func handleSubmit() {
+        guard isFormValid, let targetValue else { return }
+        let habit = Habit(
+            name: name.trimmingCharacters(in: .whitespacesAndNewlines),
+            unit: unit.trimmingCharacters(in: .whitespacesAndNewlines),
+            icon: icon,
+            color: Self.availableColors[selectedColorIndex],
+            target: targetValue,
+            kind: kind
+        )
+        onSubmit(habit)
+    }
+    
+}
+// ./Habit Rabbit/Views/Dashboard/Views/Dashboard.Sheet/Sections/Dashboard.Sheet.color.swift
+import SwiftUI
+
+extension Habit.Dashboard.Sheet {
+
+    var colorSection: some View {
+        VStack(alignment: .leading, spacing: 12) {
+            Text("Color")
+                .font(.headline)
+                .fontWeight(.semibold)
+                .foregroundStyle(.secondary)
+            
+            colorPicker
+        }
+    }
+    
+    private var colorPicker: some View {
+        ScrollView(.horizontal, showsIndicators: false) {
+            HStack(spacing: 12) {
+                ForEach(Self.availableColors.enumerated, id: \.offset) { index, clr in
+                    Button {
+                        selectedColorIndex = index
+                    } label: {
+                        Circle()
+                            .fill(clr.gradient)
+                            .frame(width: 44, height: 44)
+                            .overlay {
+                                if selectedColorIndex == index {
+                                    Circle()
+                                        .strokeBorder(.primary, lineWidth: 3)
+                                }
+                            }
+                    }
+                    .buttonStyle(.plain)
+                }
+            }
+        }
+        .contentMargins(.horizontal, horizontalPadding * 2)
+        .padding(.horizontal, -horizontalPadding * 2)
+    }
+    
+    static let availableColors: [Color] = [
+        .blue,
+        .orange,
+        .green,
+        .pink,
+        .mint,
+        .purple,
+        .yellow,
+        .red,
+        .teal,
+        .indigo,
+        .brown,
+        .gray,
+        .cyan,
+    ]
+
+}
+// ./Habit Rabbit/Views/Dashboard/Views/Dashboard.Sheet/Sections/Dashboard.Sheet.icon.swift
+import SwiftUI
+
+extension Habit.Dashboard.Sheet {
+    
+    var iconSection: some View {
+        VStack(alignment: .leading, spacing: 12) {
+            Text("Icon")
+                .font(.headline)
+                .fontWeight(.semibold)
+                .foregroundStyle(.secondary)
+            
+            iconPickerButton
+                .font(.title3)
+                .fontWeight(.semibold)
+        }
+        .frame(maxWidth: .infinity, alignment: .leading)
+    }
+    
+    private var iconPickerButton: some View {
+        Button {
+            showIconPicker = true
+        } label: {
+            HStack(alignment: .lastTextBaseline) {
+                Image(systemName: icon)
+                    .font(.title2)
+                    .foregroundStyle(colorScheme == .light ? .black : .white)
+                    .padding(.leading, 1)
+                
+                Text("Change")
+                    .font(.subheadline)
+                    .fontWeight(.bold)
+                    .foregroundStyle(.secondary)
+            }
+        }
+        .buttonStyle(.plain)
+    }
+    
+    var iconPickerSheet: some View {
+        NavigationStack {
+            ScrollView {
+                LazyVGrid(columns: columns, spacing: 10) {
+                    ForEach(Self.commonIcons, id: \.self) { icon in
+                        Button {
+                            Task {
+                                self.icon = icon
+                                try? await Task.sleep(for: .milliseconds(100))
+                                showIconPicker = false
+                                focusedField = nil
+                            }
+                        } label: {
+                            Image(systemName: icon)
+                                .font(.title3)
+                                .frame(width: 44, height: 44)
+                                .padding(4)
+                                .background {
+                                    switch self.icon == icon {
+                                        case true:  Circle().fill(.blue)
+                                        case false: Habit.Card.Background(in: .circle).showShadows(false)
+                                    }
+                                }
+                        }
+                        .buttonStyle(.plain)
+                    }
+                }
+                .padding(.vertical, 32)
+                .padding(.horizontal, 16)
+            }
+            .toolbar { closeButton }
+        }
+        .presentationDetents([.large])
+        .presentationBackground {
+            Rectangle()
+                .fill(.thickMaterial)
+                .padding(.bottom, -100)
+        }
+    }
+    
+    private var closeButton: some ToolbarContent {
+        ToolbarItem(placement: .cancellationAction) {
+            Button(role: .cancel) {
+                showIconPicker = false
+                focusedField = nil
+            } label: {
+                Image(systemName: "xmark")
+                    .font(.headline)
+                    .fontWeight(.semibold)
+            }
+            .tint(.red)
+        }
+    }
+    
+    var columns: [GridItem] {
+        Array(repeating: GridItem(.flexible(), spacing: 16), count: 6)
+    }
+    
+    static let commonIcons: [String] = [
+        // communitction
+        "microphone.fill",
+        "message.fill",
+        "quote.closing",
+        "phone.fill",
+        "video.fill",
+        "envelope.front.fill",
+        "envelope.fill",
+        "waveform",
+        "recordingtape",
+        "shippingbox.fill",
+        "clock.fill",
+        "alarm.fill",
+        "hourglass",
+        
+        
+        // eat & drink
+        "cup.and.saucer.fill",
+        "mug.fill",
+        "takeoutbag.and.cup.and.straw.fill",
+        "wineglass.fill",
+        "waterbottle.fill",
+        "birthday.cake.fill",
+        "carrot.fill",
+        "fork.knife",
+        "scalemass.fill",
+        
+        // personal
+        "shower.fill",
+        "bathtub.fill",
+        "comb.fill",
+        "sunglasses",
+        
+        "frying.pan.fill",
+        "bed.double.fill",
+        "washer.fill",
+        "dryer.fill",
+        "dishwasher.fill",
+        "oven.fill",
+        "stove.fill",
+        "refrigerator.fill",
+        "toilet.fill",
+        "teddybear.fill",
+        "gift.fill",
+        
+        
+        // leasure
+        "videoprojector.fill",
+        "party.popper.fill",
+        "balloon.2.fill",
+        "laser.burst",
+        "popcorn.fill",
+        "stroller.fill",
+        "movieclapper",
+        "ticket.fill",
+        "film.stack.fill",
+        "gamecontroller.fill",
+        "paintpalette.fill",
+        
+        // nature
+        "tree.fill",
+        "fossil.shell.fill",
+        
+        
+        // games
+        "puzzlepiece.extension.fill",
+        "theatermasks.fill",
+        "theatermask.and.paintbrush.fill",
+        
+        // weather
+        "sun.max.fill",
+        "sunrise.fill",
+        "sunset.fill",
+        "sun.horizon.fill",
+        "sun.rain.fill",
+        "moon.fill",
+        "moon.stars.fill",
+        "cloud",
+        "smoke.fill",
+        "cloud.rain.fill",
+        "cloud.bolt.fill",
+        "cloud.sun.fill",
+        "wind",
+        "snowflake",
+        "tornado",
+        "thermometer.high",
+        "degreesign.fahrenheit",
+        "degreesign.celsius",
+        "rainbow",
+        
+        // maps
+        "figure.walk",
+        "figure.wave",
+        "cart.fill",
+        "basket.fill",
+        "creditcard.fill",
+        "wallet.bifold.fill",
+        "wand.and.sparkles.inverse",
+        
+        "location.fill",
+        "mappin",
+        "map.fill",
+        "car.fill",
+        "bus.fill",
+        "tram.fill",
+        "bicycle",
+        "fuelpump.fill",
+        "licenseplate.fill",
+        "point.bottomleft.forward.to.point.topright.scurvepath.fill",
+        "binoculars.fill",
+        "tent.fill",
+        "signpost.right.fill",
+        "fuelpump.fill",
+        
+        // office
+        "door.left.hand.open",
+        "door.left.hand.closed",
+        "door.sliding.right.hand.open",
+        "door.sliding.right.hand.closed",
+        "door.garage.open",
+        "door.garage.closed",
+        "air.purifier.fill",
+        "heater.vertical.fill",
+        "spigot.fill",
+        
+        "pencil.and.scribble",
+        "rectangle.and.pencil.and.ellipsis",
+        "highlighter",
+        "square.and.pencil",
+        "eraser.fill",
+        "paperplane.fill",
+        "tray.full.fill",
+        "tray.2.fill",
+        "archivebox.fill",
+        "externaldrive.fill",
+        "document.fill",
+        "document.on.document.fill",
+        "list.bullet.clipboard.fill",
+        "pencil.and.list.clipboard",
+        "note.text",
+        "calendar",
+        "book.fill",
+        "text.book.closed.fill",
+        "magazine.fill",
+        "newspaper.fill",
+        "books.vertical.fill",
+        "menucard.fill",
+        "bookmark.fill",
+        "paperclip",
+        "link",
+        "gauge.with.dots.needle.bottom.0percent",
+        "dice.fill",
+        "printer.fill",
+        "scanner.fill",
+        "headset",
+        "radio.fill",
+        "battery.100percent",
+        "battery.100percent.bolt",
+        
+        // wear
+        "graduationcap.fill",
+        "backpack.fill",
+        "bag.fill",
+        "handbag.fill",
+        "briefcase.fill",
+        "suitcase.fill",
+        "suitcase.cart.fill",
+        "suitcase.rolling.fill",
+        
+        // tools
+        "ruler.fill",
+        "flashlight.on.fill",
+        "camera.fill",
+        "web.camera.fill",
+        "gear",
+        "scissors",
+        "paintbrush.fill",
+        "paintbrush.pointed.fill",
+        "level.fill",
+        "wrench.adjustable.fill",
+        "hammer.fill",
+        "screwdriver.fill",
+        "eyedropper.halffull",
+        "lightbulb.fill",
+        "fan.fill",
+        "poweroutlet.strip.fill",
+        "powerplug.fill",
+        "lock.fill",
+        "lock.open.fill",
+        "key.fill",
+        "pin.fill",
+        
+        // sport
+        "dumbbell.fill",
+        "soccerball.inverse",
+        "baseball.fill",
+        "basketball.fill",
+        "american.football.fill",
+        "tennis.racket",
+        "tennisball.fill",
+        "volleyball.fill",
+        "skateboard",
+        "skis.fill",
+        "snowboard.fill",
+        "surfboard.fill",
+        "rosette",
+        "medal.fill",
+        "medal.star.fill",
+        "shield.fill",
+        "trophy.fill",
+        "sailboat.fill",
+        "helmet.fill",
+        "hat.cap.fill",
+        "tshirt.fill",
+        "jacket.fill",
+        "coat.fill",
+        "shoe.fill",
+        "hat.widebrim.fill",
+        "crown.fill",
+        
+        // music
+        "pianokeys.inverse",
+        "guitars.fill",
+        
+        // medical
+        "inhaler.fill",
+        "cross.case.fill",
+        "syringe.fill",
+        "pill.fill",
+        "cross.vial.fill",
+        
+        // other
+        "tag.fill",
+        "lasso",
+        "trash",
+        "folder.fill",
+        "megaphone.fill",
+        "speaker.wave.2.fill",
+        "bell.fill",
+        "music.microphone",
+        "magnifyingglass",
+        "flag.fill",
+        "flag.pattern.checkered",
+        "flag.2.crossed.fill",
+    ]
+    
+}
+// ./Habit Rabbit/Views/Dashboard/Views/Dashboard.Sheet/Sections/Dashboard.Sheet.kind.swift
+import SwiftUI
+
+extension Habit.Dashboard.Sheet {
+
+    var kindSection: some View {
+        VStack(alignment: .leading, spacing: 8) {
+            Text("Habit")
+                .font(.headline)
+                .fontWeight(.semibold)
+                .foregroundStyle(.secondary)
+            
+            SegmentedControl(
+                selection: $kind,
+                options: [
+                    (value: Habit.Kind.good, icon: "hand.thumbsup.fill", text: String(localized: "Good"), color: .green),
+                    (value: Habit.Kind.bad, icon: "hand.raised.fill", text: String(localized: "Bad"), color: .red)
+                ]
+            )
+        }
+        .frame(maxWidth: .infinity, alignment: .leading)
+    }
+    
+}
+// ./Habit Rabbit/Views/Dashboard/Views/Dashboard.Sheet/Sections/Dashboard.Sheet.name.swift
+import SwiftUI
+
+extension Habit.Dashboard.Sheet {
+    
+    var nameSection: some View {
+        VStack(alignment: .leading, spacing: 8) {
+            Text("Name")
+                .font(.headline)
+                .fontWeight(.semibold)
+                .foregroundStyle(.secondary)
+            
+            TextField("Stretching", text: $name)
+                .textFieldStyle(.plain)
+                .font(.title)
+                .fontWeight(.semibold)
+                .focused($focusedField, equals: .habitName)
+                .onSubmit {
+                    Task {
+                        try? await Task.sleep(for: .milliseconds(300))
+                        advanceToNextField(from: .habitName)
+                    }
+                }
+                .submitLabel(.next)
+                .autocorrectionDisabled()
+        }
+        .frame(maxWidth: .infinity, alignment: .leading)
+    }
+    
+}
+// ./Habit Rabbit/Views/Dashboard/Views/Dashboard.Sheet/Sections/Dashboard.Sheet.target.swift
+import SwiftUI
+
+extension Habit.Dashboard.Sheet {
+
+    var targetSection: some View {
+        VStack(alignment: .leading, spacing: 8) {
+            Text("Target")
+                .font(.headline)
+                .fontWeight(.semibold)
+                .foregroundStyle(.secondary)
+            
+            TextField(String("6"), value: $targetValue, format: .number)
+                .textFieldStyle(.plain)
+                .font(.title)
+                .fontWeight(.semibold)
+                .keyboardType(.numberPad)
+                .focused($focusedField, equals: .target)
+                .onSubmit {
+                    advanceToNextField()
+                }
+        }
+        .frame(maxWidth: .infinity, alignment: .leading)
+    }
+    
+}
+// ./Habit Rabbit/Views/Dashboard/Views/Dashboard.Sheet/Sections/Dashboard.Sheet.unit.swift
+import SwiftUI
+
+extension Habit.Dashboard.Sheet {
+
+    var unitSection: some View {
+        VStack(alignment: .leading, spacing: 8) {
+            Text("Unit")
+                .font(.headline)
+                .fontWeight(.semibold)
+                .foregroundStyle(.secondary)
+            
+            TextField("Sessions", text: $unit)
+                .textFieldStyle(.plain)
+                .font(.title)
+                .fontWeight(.semibold)
+                .focused($focusedField, equals: .habitUnit)
+                .onSubmit {
+                    Task {
+                        try? await Task.sleep(for: .milliseconds(300))
+                        advanceToNextField(from: .habitUnit)
+                    }
+                }
+                .submitLabel(.next)
+                .autocorrectionDisabled()
+        }
+        .frame(maxWidth: .infinity, alignment: .leading)
+    }
+
+}
+// ./Habit Rabbit/Views/Dashboard/Views/Dashboard.Sheet/Sheets/Dashboard.Sheet.Add.swift
+import SwiftUI
+
+extension Habit.Dashboard.Sheet {
+
+    struct Add: View {
+
+        @Environment(\.colorScheme) var colorScheme
+        @Environment(\.dismiss) private var dismiss
+        @Environment(Habit.Dashboard.Manager.self) private var dashboardManager
+        
+        @FocusState var focusedField: Habit.Dashboard.Sheet.FocusedField?
+
+        @State var habitName = ""
+        @State var habitUnit = ""
+        @State var selectedIcon = "star.fill"
+        @State var selectedColor: Color = .blue
+        @State var showIconPicker = false
+        @State var targetValue: Int?
+        @State var habitKind: Habit.Kind = .good
+        
+        let horizontalPadding: CGFloat = 16
+        let columns = Array(repeating: GridItem(.flexible(), spacing: 16), count: 6)
+
+        var body: some View {
+            NavigationStack {
+                Habit.Dashboard.Sheet(
+                    initial: .init(
+                        name: "",
+                        unit: "",
+                        icon: "star.fill",
+                        color: .blue,
+                        target: nil,
+                        kind: .good
+                    ),
+                    submitLabel: String(localized: "Add Habit"),
+                    submitIcon: "plus",
+                    onSubmit: { newHabit in
+                        dashboardManager.addHabit(newHabit)
+                        dismiss()
+                    }
+                )
+                .toolbar { closeButton }
+                .presentationBackground {
+                    Rectangle()
+                        .fill(.thickMaterial)
+                        .padding(.bottom, -100)
+                }
+                .presentationDetents([.large])
+                .interactiveDismissDisabled()
+                .navigationTitle("Add Habit")
+                .navigationBarTitleDisplayMode(.inline)
+            }
+        }
+        
+    }
+    
+}
+
+extension Habit.Dashboard.Sheet.Add {
+    
+    private var closeButton: some ToolbarContent {
+        ToolbarItem(placement: .cancellationAction) {
+            Button(role: .cancel) {
+                dismiss()
+            } label: {
+                Image(systemName: "xmark")
+                    .font(.headline)
+                    .fontWeight(.semibold)
+            }
+            .tint(.red)
+        }
+    }
+    
+}
+
+extension Habit.Dashboard.Sheet.Add {
+    
+    private var isFormValid: Bool {
+        !habitName.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty &&
+        !habitUnit.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty &&
+        targetValue != nil && targetValue! > 0
+    }
+    
+    private func addHabit() {
+        guard isFormValid else { return }
+        guard let targetValue else { return }
+        
+        let habit = Habit(
+            name: habitName.trimmingCharacters(in: .whitespacesAndNewlines),
+            unit: habitUnit.trimmingCharacters(in: .whitespacesAndNewlines),
+            icon: selectedIcon,
+            color: selectedColor,
+            target: targetValue,
+            kind: habitKind
+        )
+        
+        dashboardManager.addHabit(habit)
+        dismiss()
+    }
+
+}
+// ./Habit Rabbit/Views/Dashboard/Views/Dashboard.Sheet/Sheets/Dashboard.Sheet.Edit.swift
+import SwiftUI
+
+extension Habit.Dashboard.Sheet {
+
+    struct Edit: View {
+
+        @Environment(\.colorScheme) var colorScheme
+        @Environment(\.dismiss) private var dismiss
+        @Environment(Habit.Dashboard.Manager.self) private var dashboardManager
+        
+        let habit: Habit
+        
+        @FocusState var focusedField: Habit.Dashboard.Sheet.FocusedField?
+
+        @State var habitName: String
+        @State var habitUnit: String
+        @State var selectedIcon: String
+        @State var selectedColorIndex: Int
+        @State var showIconPicker = false
+        @State var targetValue: Int?
+        @State var habitKind: Habit.Kind
+        
+        let horizontalPadding: CGFloat = 16
+        let columns = Array(repeating: GridItem(.flexible(), spacing: 16), count: 6)
+
+        init(habit: Habit) {
+            self.habit = habit
+            self._habitName = State(initialValue: habit.name)
+            self._habitUnit = State(initialValue: habit.unit)
+            self._selectedIcon = State(initialValue: habit.icon)
+            self._selectedColorIndex = State(initialValue: Edit.colorIndex(for: habit.color))
+            self._targetValue = State(initialValue: habit.target)
+            self._habitKind = State(initialValue: habit.kind)
+        }
+
+        var body: some View {
+            NavigationStack {
+                Habit.Dashboard.Sheet(
+                    initial: .init(
+                        name: habit.name,
+                        unit: habit.unit,
+                        icon: habit.icon,
+                        color: habit.color,
+                        target: habit.target,
+                        kind: habit.kind
+                    ),
+                    submitLabel: "Update Habit",
+                    submitIcon: "checkmark",
+                    onSubmit: { newHabit in
+                        dashboardManager.updateHabit(habit, with: newHabit)
+                        dismiss()
+                    }
+                )
+                .toolbar { closeButtonToolbar }
+                .presentationBackground {
+                    Rectangle()
+                        .fill(.thickMaterial)
+                        .padding(.bottom, -100)
+                }
+                .presentationDetents([.large])
+                .interactiveDismissDisabled()
+                .navigationTitle("Edit Habit")
+                .navigationBarTitleDisplayMode(.inline)
+            }
+        }
+        
+    }
+    
+}
+
+extension Habit.Dashboard.Sheet.Edit {
+
+    private var isFormValid: Bool {
+        !habitName.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty &&
+        !habitUnit.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty &&
+        targetValue != nil && targetValue! > 0
+    }
+
+    private var closeButtonToolbar: some ToolbarContent {
+        ToolbarItem(placement: .cancellationAction) {
+            Button(role: .cancel) {
+                dismiss()
+            } label: {
+                Image(systemName: "xmark")
+                    .font(.headline)
+                    .fontWeight(.semibold)
+            }
+            .tint(.red)
+        }
+    }
+
+    private var updateButton: some View {
+        Button(role: .none) {
+            updateHabit()
+        } label: {
+            Label("Update Habit", systemImage: "checkmark")
+                .fontWeight(.semibold)
+        }
+        .buttonStyle(.borderedProminent)
+        .buttonBorderShape(.capsule)
+        .tint(.blue)
+        .disabled(!isFormValid)
+    }
+    
+    private func updateHabit() {
+        guard isFormValid else { return }
+        guard let targetValue else { return }
+        
+        dashboardManager.updateHabit(
+            habit,
+            name: habitName.trimmingCharacters(in: .whitespacesAndNewlines),
+            unit: habitUnit.trimmingCharacters(in: .whitespacesAndNewlines),
+            icon: selectedIcon,
+            color: Habit.Dashboard.Sheet.availableColors[selectedColorIndex],
+            target: targetValue,
+            kind: habitKind
+        )
+        dismiss()
+    }
+    
+    static func colorIndex(for color: Color) -> Int {
+        // Convert the color to a comparable format and find the best match
+        // For now, we'll use a simple approach by comparing against known colors
+        let availableColors = Habit.Dashboard.Sheet.availableColors
+        
+        // Try to match by creating UIColors and comparing their components
+        let targetUIColor = UIColor(color)
+        var targetRed: CGFloat = 0, targetGreen: CGFloat = 0, targetBlue: CGFloat = 0, targetAlpha: CGFloat = 0
+        targetUIColor.getRed(&targetRed, green: &targetGreen, blue: &targetBlue, alpha: &targetAlpha)
+        
+        var bestMatchIndex = 0
+        var bestDistance = CGFloat.greatestFiniteMagnitude
+        
+        for (index, availableColor) in availableColors.enumerated() {
+            let availableUIColor = UIColor(availableColor)
+            var red: CGFloat = 0, green: CGFloat = 0, blue: CGFloat = 0, alpha: CGFloat = 0
+            availableUIColor.getRed(&red, green: &green, blue: &blue, alpha: &alpha)
+            
+            // Calculate Euclidean distance in RGB space
+            let distance = sqrt(
+                pow(targetRed - red, 2) +
+                pow(targetGreen - green, 2) +
+                pow(targetBlue - blue, 2)
+            )
+            
+            if distance < bestDistance {
+                bestDistance = distance
+                bestMatchIndex = index
+            }
+        }
+        
+        return bestMatchIndex
+    }
+
+}
+// ./Habit Rabbit/Views/DetailView/DetailView.Manager.swift
+import SwiftUI
+import SwiftData
+
+extension Habit.Card.DetailView {
+    
+    @Observable
+    class Manager {
+
+        private let habit: Habit
+        private let modelContext: ModelContext
+        
+        private(set) var values: [Habit.Value] = []
+        private(set) var isLoading = false
+        private(set) var canLoadMore = false
+        
+        private let pageSize = 100
+        private var currentOffset = 0
+        
+        init(for habit: Habit, using modelContext: ModelContext) {
+            self.habit = habit
+            self.modelContext = modelContext
+            loadInitialValues()
+        }
+        
+        var name: String { habit.name }
+        var unit: String { habit.unit }
+        var icon: String { habit.icon }
+        var color: Color { habit.color }
+        var target: Int { habit.target }
+        var kind: Habit.Kind { habit.kind }
+    
+    }
+    
+}
+
+extension Habit.Card.DetailView.Manager {
+    
+    func loadInitialValues() {
+        loadValues(reset: true)
+    }
+    
+    func loadMoreValues() {
+        guard !isLoading && canLoadMore else { return }
+        loadValues(reset: false)
+    }
+    
+    private func loadValues(reset: Bool) {
+        isLoading = true
+        
+        if reset {
+            currentOffset = 0
+            values = []
+        }
+        
+        let habitID = habit.id
+        
+        let predicate = #Predicate<Habit.Value> {
+            $0.habit?.persistentModelID == habitID
+            && $0.currentValue > 0
+        }
+        
+        let dateSort = SortDescriptor(\Habit.Value.date, order: .reverse)
+        
+        var descriptor = FetchDescriptor(predicate: predicate, sortBy: [dateSort])
+        descriptor.fetchLimit = pageSize
+        descriptor.fetchOffset = currentOffset
+        descriptor.relationshipKeyPathsForPrefetching = [\Habit.Value.habit]
+        
+        do {
+            let fetchedValues = try modelContext.fetch(descriptor)
+            
+            if reset {
+                values = fetchedValues
+            } else {
+                values.append(contentsOf: fetchedValues)
+            }
+            
+            currentOffset += fetchedValues.count
+            canLoadMore = fetchedValues.count == pageSize
+        } catch {
+            canLoadMore = false
+        }
+        
+        isLoading = false
+    }
+    
+    func resetValue(_ value: Habit.Value) {
+        value.currentValue = 0
+        try? modelContext.save()
+    }
+    
+    func updateValue(_ value: Habit.Value, to newValue: Int) {
+        value.currentValue = newValue
+        try? modelContext.save()
+    }
+    
+}
+// ./Habit Rabbit/Views/DetailView/DetailView.swift
+import SwiftUI
+import SwiftData
+
+extension Habit.Card {
+
+    struct DetailView: View {
+
+        @Environment(\.colorScheme) var colorScheme
+        @Environment(Habit.Card.Manager.self) var cardManager
+        @Environment(Habit.Dashboard.Manager.self) var dashboardManager
+
+        @State var detailManager: Habit.Card.DetailView.Manager?
+        var values: [Habit.Value] { detailManager?.values ?? [] }
+        
+        @State var editingValue: Habit.Value?
+        @State var editValueText: String = ""
+        
+        var body: some View {
+            Group {
+                if let detailManager {
+                    valuesList
+                        .safeAreaInset(edge: .bottom, spacing: 0) { loadMoreButton }
+                        .contentMargins(.top, 16)
+                        .environment(detailManager)
+                } else {
+                    loadingView
+                }
+            }
+            .navigationTitle(cardManager.habit.name)
+            .navigationBarTitleDisplayMode(.inline)
+            .onAppear { setupDetailManager() }
+            .alert("Edit Value",
+                isPresented: .constant(editingValue != nil),
+                actions: { editValueAlert },
+                message: { editValueMessage }
+            )
+        }
+
+    }
+
+}
+
+extension Habit.Card.DetailView {
+    
+    func setupDetailManager() {
+        if detailManager == nil {
+            detailManager = Habit.Card.DetailView.Manager(
+                for: cardManager.habit,
+                using: dashboardManager.modelContext
+            )
+        }
+    }
+    
+}
+// ./Habit Rabbit/Views/DetailView/Views/DetailView.loadingViews.swift
+import SwiftUI
+
+extension Habit.Card.DetailView {
+
+    var loadingView: some View {
+        ProgressView()
+            .frame(maxWidth: .infinity, maxHeight: .infinity)
+    }
+    
+    @ViewBuilder
+    var emptyView: some View {
+        if values.isEmpty {
+            ContentUnavailableView(
+                "No Values",
+                systemImage: "text.page.slash",
+                description: Text("Start tracking to see your progress history here.")
+            )
+            .frame(height: 200)
+            .frame(maxHeight: .infinity, alignment: .top)
+            .padding(.top, 16)
+        }
+    }
+    
+    @ViewBuilder
+    var loadMoreButton: some View {
+        if detailManager?.canLoadMore ?? false {
+            Button {
+                detailManager?.loadMoreValues()
+            } label: {
+                HStack {
+                    if detailManager?.isLoading == true {
+                        ProgressView()
+                            .scaleEffect(0.8)
+                    } else {
+                        Text("Load More Values")
+                    }
+                }
+                .frame(maxWidth: .infinity)
+                .padding()
+                .background(.regularMaterial, in: RoundedRectangle(cornerRadius: 12))
+            }
+            .disabled(detailManager?.isLoading == true)
+            .padding(.horizontal)
+            .padding(.bottom, 8)
+        }
+    }
+
+}
+// ./Habit Rabbit/Views/DetailView/Views/DetailView.valueList.swift
+import SwiftUI
+
+extension Habit.Card.DetailView {
+
+    @ViewBuilder
+    var valuesList: some View {
+        List(values) { value in
+            valueRow(for: value)
+                .swipeActions(edge: .trailing, allowsFullSwipe: false) {
+                    swipeButtons(for: value)
+                }
+                .contextMenu {
+                    swipeButtons(for: value)
+                }
+        }
+        .safeAreaInset(edge: .top) { emptyView }
+    }
+    
+    func valueRow(for value: Habit.Value) -> some View {
+        HStack {
+            Habit.Card.Cube(
+                value: value,
+                habit: cardManager.habit
+            )
+            Text(verbatim: "\(value.date.formatted(.date))")
+            Spacer()
+            Text(verbatim: "\(value.currentValue)")
+        }
+    }
+
+}
+
+extension Habit.Card.DetailView {
+    
+    @ViewBuilder
+    func swipeButtons(for value: Habit.Value) -> some View {
+        Button("Edit", systemImage: "pencil") {
+            editingValue = value
+            editValueText = "\(value.currentValue)"
+        }
+        .tint(.blue)
+        .labelStyle(.iconOnly)
+        
+        Button("Reset", systemImage: "trash") {
+            detailManager?.resetValue(value)
+        }
+        .tint(.red)
+        .labelStyle(.iconOnly)
+    }
+    
+    @ViewBuilder
+    var editValueMessage: some View {
+        if let value = editingValue {
+            Text("Enter new value for \(value.date.formatted(.date))")
+        }
+    }
+    
+    @ViewBuilder
+    var editValueAlert: some View {
+        TextField("Value", text: $editValueText)
+            .keyboardType(.numberPad)
+        Button("Cancel", action: cancelEdit)
+        Button("Save", action: saveEdit)
+    }
+    
+    private func cancelEdit() {
+        editingValue = nil
+        editValueText = ""
+    }
+    
+    private func saveEdit() {
+        if let value = editingValue,
+           let newValue = Int(editValueText) {
+            detailManager?.updateValue(value, to: newValue)
+        }
+        editingValue = nil
+        editValueText = ""
+    }
+    
+}
+// ./Habit Rabbit/Views/Other/ProgressButton.swift
+import SwiftUI
+
+extension Habit {
+    
+    struct ProgressButton: View {
+        
+        @Environment(\.colorScheme) private var colorScheme
+        @Environment(\.cardMode) var cardMode
+        
+        @Environment(Habit.Card.Manager.self) private var cardManager
+        
+        var mode: Habit.Card.Mode {
+            cardMode ?? cardManager.mode
+        }
+        
+        var body: some View {
+            Button {
+                cardManager.dailyValue?.currentValue += 1
+            } label: {
+                ZStack {
+                    Circle()
+                        .fill(.quaternary)
+                    Circle()
+                        .fill(cardManager.color.gradient)
+                        .brightness(buttonBrightness)
+                        .clipShape(.capsule)
+                        .padding(3)
+                        .animation(.default, value: buttonBrightness)
+                    
+                    Image(systemName: "plus")
+                        .font(.title)
+                        .fontWeight(.medium)
+                        .foregroundStyle(.white)
+                }
+            }
+            .buttonStyle(.plain)
+            .sensoryFeedback(.increase, trigger: cardManager.dailyValue?.currentValue)
+        }
+        
+    }
+    
+}
+
+extension Habit.ProgressButton {
+    
+    var buttonBrightness: Double {
+        let isDark = colorScheme == .dark
+        let exceedsTarget = cardManager.currentValue(for: mode) > cardManager.habit.target
+        
+        return switch (cardManager.habit.kind, isDark, exceedsTarget) {
+            case (.good, true, true)   :  0.1   // exceeding good habit in dark mode: brighter
+            case (.good, true, false)  : -0.1   // not exceeding good habit in dark mode: darker
+            case (.good, false, true)  : -0.1   // exceeding good habit in light mode: darker
+            case (.good, false, false) :  0.1   // not exceeding good habit in light mode: brighter
+            case (.bad, _, _)          :  0     // bad habits: no adjustment
+        }
+    }
+    
+}
+// ./Habit Rabbit/Views/Other/ProgressLabel.swift
+import SwiftUI
+
+extension Habit {
+
+    struct ProgressLabel: View {
+
+        @Environment(\.colorScheme) var colorScheme
+
+        let value: Int
+        let target: Int
+        let unit: String
+
+        var body: some View {
+            switch target {
+                case   ...99: singleLineLabel
+                case ...9999: multiLineLabel
+                default: multiLineLabelSmall
+            }
+        }
+
+    }
+    
+}
+
+extension Habit.ProgressLabel {
+    
+    var singleLineLabel: some View {
+        VStack(spacing: 2) {
+            (
+                Text(verbatim: "\(value)")
+                    .foregroundStyle(.primary.opacity(colorScheme == .dark ? 1 : 0.8))
+                +
+                Text(verbatim: " / ")
+                    .foregroundStyle(.primary.opacity(0.6))
+                +
+                Text(verbatim: "\(target)")
+                    .foregroundStyle(.primary.opacity(0.6))
+            )
+            .font(.title2)
+            .fontWeight(.semibold)
+            .monospacedDigit()
+            .contentTransition(.numericText())
+            
+            Text(verbatim: unit.pluralized(count: target))
+                .font(.footnote)
+                .fontWeight(.medium)
+                .foregroundStyle(.secondary)
+        }
+        .frame(maxWidth: .infinity)
+        .minimumScaleFactor(0.7)
+        .lineLimit(1)
+        .padding(.horizontal, 2)
+    }
+    
+    var multiLineLabel: some View {
+        VStack(spacing: 0) {
+            Text("\(value)")
+                .foregroundStyle(.primary.opacity(colorScheme == .dark ? 1 : 0.8))
+                .overlay(alignment: .trailing) {
+                    Text("/")
+                        .foregroundStyle(.primary.opacity(0.6))
+                        .offset(x: 12)
+                }
+                
+            Text("\(target)")
+                .foregroundStyle(.primary.opacity(0.6))
+            
+            Text(verbatim: unit.pluralized(count: target))
+                .font(.footnote)
+                .fontWeight(.medium)
+                .foregroundStyle(.secondary)
+                .padding(.top, 2)
+                .offset(x: 2)
+        }
+        .font(.title3)
+        .fontWeight(.semibold)
+        .monospacedDigit()
+        .contentTransition(.numericText())
+        .minimumScaleFactor(0.7)
+        .lineLimit(1)
+        .offset(x: -2)
+    }
+    
+    var multiLineLabelSmall: some View {
+        VStack(spacing: 0) {
+            Text("\(value)")
+                .foregroundStyle(.primary.opacity(colorScheme == .dark ? 1 : 0.8))
+                .overlay(alignment: .trailing) {
+                    Text("/")
+                        .foregroundStyle(.primary.opacity(0.6))
+                        .offset(x: 10)
+                }
+                
+            Text("\(target)")
+                .foregroundStyle(.primary.opacity(0.6))
+            
+            Text(verbatim: unit.pluralized(count: target))
+                .font(.footnote)
+                .fontWeight(.medium)
+                .foregroundStyle(.secondary)
+                .padding(.top, 2)
+                .offset(x: 2)
+        }
+        .font(.headline)
+        .fontWeight(.semibold)
+        .monospacedDigit()
+        .contentTransition(.numericText())
+        .minimumScaleFactor(0.7)
+        .lineLimit(1)
+        .offset(x: -2)
+    }
+    
+}
+// ./Habit Rabbit/Views/Other/SegmentedControl.swift
+import SwiftUI
+
+struct SegmentedControl<T: Hashable>: View {
+
+    @Binding var selection: T
+    let options: [(value: T, icon: String, text: String, color: Color)]
+    
+    @State private var selectedIndex: Int = 0
+    
+    private var selectedOptionColor: Color {
+        guard let index = options.firstIndex(where: { $0.value == selection }) else { return .blue }
+        return options[index].color
+    }
+    
+    var body: some View {
+        GeometryReader { geometry in
+            let segmentWidth = geometry.size.width / CGFloat(options.count)
+            
+            ZStack {
+                // Background
+                RoundedRectangle(cornerRadius: 10)
+                    .fill(.quaternary)
+                
+                // Moving selected background
+                RoundedRectangle(cornerRadius: 10)
+                    .fill(selectedOptionColor)
+                    .frame(width: segmentWidth - 4, height: geometry.size.height - 4)
+                    .offset(x: CGFloat(selectedIndex) * segmentWidth - geometry.size.width / 2 + segmentWidth / 2)
+                
+                // Segment buttons
+                HStack(spacing: 0) {
+                    ForEach(options.enumerated, id: \.offset) { index, option in
+                        Button {
+                            withAnimation {
+                                selection = option.value
+                                selectedIndex = index
+                            }
+                        } label: {
+                            HStack(spacing: 6) {
+                                Image(systemName: option.icon)
+                                    .font(.system(size: 16, weight: .semibold))
+                                Text(option.text)
+                                    .font(.system(size: 18, weight: .semibold))
+                            }
+                            .foregroundColor(selection == option.value ? .white : .secondary)
+                            .frame(maxWidth: .infinity, maxHeight: .infinity)
+                            .contentShape(.rect)
+                        }
+                        .buttonStyle(.plain)
+                    }
+                }
+            }
+        }
+        .frame(height: 44)
+        .padding(2)
+        .onAppear {
+            if let index = options.firstIndex(where: { $0.value == selection }) {
+                selectedIndex = index
+            }
+        }
+        .onChange(of: selection) { _, newValue in
+            if let index = options.firstIndex(where: { $0.value == newValue }) {
+                selectedIndex = index
+            }
+        }
+    }
+    
+}
+// ./Habit Rabbit/Views/Other/WeekdaySymbol.swift
+import SwiftUI
+
+extension Habit {
+    
+    struct WeekdaySymbol: View {
+        
+        let symbol: String
+        let color: Color
+        
+        var body: some View {
+            Text(symbol)
+                .font(.caption2)
+                .fontWeight(.medium)
+                .foregroundStyle(color)
+                .lineLimit(1)
+        }
+        
+    }
+    
+}
+// ./Habit Rabbit/Views/Other/ProgressBar/ProgressBar.geometry.swift
 import SwiftUI
 
 extension Habit.ProgressBar {
@@ -3444,7 +3405,7 @@ extension Habit.ProgressBar {
     }
     
 }
-// ./Habit Rabbit/Views/ProgressBar/ProgressBar.style.swift
+// ./Habit Rabbit/Views/Other/ProgressBar/ProgressBar.style.swift
 import SwiftUI
 
 extension Habit.ProgressBar {
@@ -3483,7 +3444,7 @@ extension Habit.ProgressBar {
     }
     
 }
-// ./Habit Rabbit/Views/ProgressBar/ProgressBar.swift
+// ./Habit Rabbit/Views/Other/ProgressBar/ProgressBar.swift
 import SwiftUI
 
 extension Habit {
