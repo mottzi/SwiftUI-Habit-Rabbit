@@ -17,17 +17,17 @@ struct SegmentedControl<T: Hashable>: View {
             let segmentWidth = geometry.size.width / CGFloat(options.count)
             
             ZStack {
-                // Background
+                // background
                 RoundedRectangle(cornerRadius: 10)
                     .fill(.quaternary)
                 
-                // Moving selected background
+                // moving selected background
                 RoundedRectangle(cornerRadius: 10)
                     .fill(selectedOptionColor)
                     .frame(width: segmentWidth - 4, height: geometry.size.height - 4)
                     .offset(x: CGFloat(selectedIndex) * segmentWidth - geometry.size.width / 2 + segmentWidth / 2)
                 
-                // Segment buttons
+                // segment buttons
                 HStack(spacing: 0) {
                     ForEach(options.enumerated, id: \.offset) { index, option in
                         Button {
