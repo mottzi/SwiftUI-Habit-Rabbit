@@ -2,17 +2,40 @@ import SwiftUI
 
 extension Habit.Dashboard {
     
-    var debugToolbarButton: some ToolbarContent {
+    var toolbarTitle: some ToolbarContent {
+        ToolbarItem(placement: .principal) {
+            VStack(alignment: .leading, spacing: -4) {
+                Text(verbatim: "Habit Rabbit")
+                    .font(.largeTitle)
+                    .fontWeight(.semibold)
+                Text(verbatim: dashboardManager.lastDay.formatted(.weekdayDate))
+                    .font(.callout)
+                    .fontWeight(.medium)
+                    .foregroundStyle(.secondary)
+            }
+            .frame(maxWidth: .infinity, alignment: .leading)
+            .padding(.top, 12)
+            .padding(.leading, 4)
+        }
+    }
+    
+    var toolbarDebugButton: some ToolbarContent {
         ToolbarItem(placement: .topBarTrailing) {
-            Menu {
+            Menu("Debug", systemImage: "gear") {
                 addExampleButton
                 randomizeButton
                 resetLatestButton
                 Divider()
                 killDatabaseButton
                 deleteHabitsButton
-            } label: {
-                Label("Debug", systemImage: "gear")
+            }
+        }
+    }
+    
+    var toolbarAddHabitButton: some ToolbarContent {
+        ToolbarItem(placement: .topBarTrailing) {
+            Button("Add Habit", systemImage: "plus") {
+                showAddSheet = true
             }
         }
     }
@@ -22,14 +45,12 @@ extension Habit.Dashboard {
 extension Habit.Dashboard {
     
     var addExampleButton: some View {
-        Menu {
+        Menu("Add Examples", systemImage: "plus") {
             ForEach([1, 2, 4, 8, 20, 50, 100], id: \.self) { count in
                 Button(String("\(count)")) {
                     dashboardManager.addExampleHabits(count: count)
                 }
             }
-        } label: {
-            Label("Add Examples", systemImage: "plus")
         }
     }
     
@@ -45,10 +66,6 @@ extension Habit.Dashboard {
         }
     }
     
-}
-
-extension Habit.Dashboard {
-    
     var killDatabaseButton: some View {
         Button("Kill Database", systemImage: "xmark", role: .destructive) {
             dashboardManager.deleteAllData()
@@ -60,5 +77,11 @@ extension Habit.Dashboard {
             try? dashboardManager.deleteAllHabits()
         }
     }
+    
+}
+
+extension Habit.Dashboard {
+    
+
     
 }

@@ -5,7 +5,6 @@ extension Habit.Card {
     @ViewBuilder
     var contextMenuButtons: some View {
         Button("Edit", systemImage: "pencil") {
-            //onEdit(cardManager.habit)
             editingHabit = cardManager.habit
         }
         
