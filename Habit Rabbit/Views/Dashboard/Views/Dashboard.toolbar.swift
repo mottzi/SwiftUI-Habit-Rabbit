@@ -2,6 +2,19 @@ import SwiftUI
 
 extension Habit.Dashboard {
     
+    @ToolbarContentBuilder
+    var toolbar: some ToolbarContent {
+        toolbarTitle
+        #if DEBUG
+        toolbarDebugButton
+        #endif
+        toolbarAddHabitButton
+    }
+    
+}
+
+extension Habit.Dashboard {
+    
     var toolbarTitle: some ToolbarContent {
         ToolbarItem(placement: .principal) {
             VStack(alignment: .leading, spacing: -4) {
@@ -19,6 +32,10 @@ extension Habit.Dashboard {
         }
     }
     
+}
+
+extension Habit.Dashboard {
+    
     var toolbarDebugButton: some ToolbarContent {
         ToolbarItem(placement: .topBarTrailing) {
             Menu("Debug", systemImage: "gear") {
@@ -28,14 +45,6 @@ extension Habit.Dashboard {
                 Divider()
                 killDatabaseButton
                 deleteHabitsButton
-            }
-        }
-    }
-    
-    var toolbarAddHabitButton: some ToolbarContent {
-        ToolbarItem(placement: .topBarTrailing) {
-            Button("Add Habit", systemImage: "plus") {
-                showAddSheet = true
             }
         }
     }
@@ -82,6 +91,12 @@ extension Habit.Dashboard {
 
 extension Habit.Dashboard {
     
-
+    var toolbarAddHabitButton: some ToolbarContent {
+        ToolbarItem(placement: .topBarTrailing) {
+            Button("Add Habit", systemImage: "plus") {
+                showAddSheet = true
+            }
+        }
+    }
     
 }

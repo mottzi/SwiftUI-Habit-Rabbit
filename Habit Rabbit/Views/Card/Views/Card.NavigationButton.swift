@@ -15,7 +15,7 @@ extension Habit.Card {
         
         var body: some View {
             NavigationLink {
-                Habit.Card.DetailView()
+                DetailView()
                     .environment(cardManager)
                     .environment(dashboardManager)
                     .navigationTransition(.zoom(sourceID: cardManager.habit.id, in: habitTransition))
