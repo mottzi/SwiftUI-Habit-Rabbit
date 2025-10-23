@@ -26,20 +26,18 @@ extension Habit.ProgressLabel {
     
     var singleLineLabel: some View {
         VStack(spacing: 2) {
-            (
-                Text(verbatim: "\(value)")
-                    .foregroundStyle(.primary.opacity(colorScheme == .dark ? 1 : 0.8))
-                +
-                Text(verbatim: " / ")
-                    .foregroundStyle(.primary.opacity(0.6))
-                +
-                Text(verbatim: "\(target)")
-                    .foregroundStyle(.primary.opacity(0.6))
-            )
-            .font(.title2)
-            .fontWeight(.semibold)
-            .monospacedDigit()
-            .contentTransition(.numericText())
+            let valueText = Text(verbatim: "\(value)")
+                .foregroundStyle(.primary.opacity(colorScheme == .dark ? 1 : 0.8))
+            let slashText = Text(verbatim: " / ")
+                .foregroundStyle(.primary.opacity(0.6))
+            let targetText = Text(verbatim: "\(target)")
+                .foregroundStyle(.primary.opacity(0.6))
+            
+            Text("\(valueText)\(slashText)\(targetText)")
+                .font(.title2)
+                .fontWeight(.semibold)
+                .monospacedDigit()
+                .contentTransition(.numericText())
             
             Text(verbatim: unit.pluralized(count: target))
                 .font(.footnote)

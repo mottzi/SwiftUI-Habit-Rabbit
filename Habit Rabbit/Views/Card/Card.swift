@@ -80,20 +80,18 @@ extension Habit.Card {
                 .lineLimit(1)
             
             if mode != .daily {
-                (
-                    Text(verbatim: "\(cardManager.currentValue(for: mode))")
-                        .foregroundStyle(.primary.opacity(colorScheme == .dark ? 1 : 0.8))
-                    +
-                    Text(verbatim: " / ")
-                        .foregroundStyle(.primary.opacity(0.6))
-                    +
-                    Text(verbatim: "\(cardManager.currentTarget(for: mode))")
-                        .foregroundStyle(.primary.opacity(0.6))
-                )
-                .font(.subheadline)
-                .fontWeight(.semibold)
-                .monospacedDigit()
-                .contentTransition(.numericText())
+                let valueText = Text(verbatim: "\(cardManager.currentValue(for: mode))")
+                    .foregroundStyle(.primary.opacity(colorScheme == .dark ? 1 : 0.8))
+                let slashText = Text(verbatim: " / ")
+                    .foregroundStyle(.primary.opacity(0.6))
+                let targetText = Text(verbatim: "\(cardManager.currentTarget(for: mode))")
+                    .foregroundStyle(.primary.opacity(0.6))
+                
+                Text("\(valueText)\(slashText)\(targetText)")
+                    .font(.subheadline)
+                    .fontWeight(.semibold)
+                    .monospacedDigit()
+                    .contentTransition(.numericText())
             }
         }
         .frame(maxHeight: .infinity, alignment: .bottom)
