@@ -17,10 +17,10 @@ extension Habit.Dashboard {
     
     var toolbarTitle: some ToolbarContent {
         ToolbarItem(placement: .principal) {
-            VStack(alignment: .leading, spacing: -4) {
+            VStack(alignment: .leading, spacing: -1) {
                 Text(verbatim: "Habit Rabbit")
                     .font(.largeTitle)
-                    .fontWeight(.semibold)
+                    .fontWeight(.bold)
                 Text(verbatim: dashboardManager.lastDay.formatted(.weekdayDate))
                     .font(.callout)
                     .fontWeight(.medium)

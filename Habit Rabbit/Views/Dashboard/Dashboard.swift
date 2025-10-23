@@ -26,13 +26,12 @@ extension Habit {
                         }
                     }
                     .safeAreaInset(edge: .top, spacing: 0) { emptyView }
-                    .safeAreaPadding(.top, 4)
+                    .safeAreaPadding(.top, 0)
                     .padding(.horizontal, 16)
                     .padding(.bottom, 16)
                 }
                 .scrollEdgeEffectHidden(for: .bottom)
-                .safeAreaPadding(.top, 6)
-                .safeAreaBar(edge: .top) { controls }
+                .safeAreaBar(edge: .top, spacing: 0) { controls }
                 .toolbar { toolbar }
                 .toolbarRole(.browser)
                 .toolbarTitleDisplayMode(.inline)

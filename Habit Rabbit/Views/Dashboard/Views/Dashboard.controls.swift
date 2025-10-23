@@ -3,7 +3,7 @@ import SwiftUI
 extension Habit.Dashboard {
     
     var controls: some View {
-        HStack(spacing: 12) {
+        HStack(spacing: 10) {
             GlassEffectContainer {
                 HStack(spacing: -10) {
                     Button("Back", systemImage: "chevron.left") {
@@ -32,8 +32,8 @@ extension Habit.Dashboard {
         }
         .fontDesign(.rounded)
         .padding(.horizontal, 16)
-        .padding(.top, 20)
-        .padding(.bottom, 8)
+        .padding(.top, 16)
+        .padding(.bottom, 16)
     }
     
 }

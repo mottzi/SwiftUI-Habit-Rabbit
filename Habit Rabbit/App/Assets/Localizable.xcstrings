@@ -790,34 +790,6 @@
         }
       }
     },
-    "Randomize" : {
-      "localizations" : {
-        "de" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Randomisieren"
-          }
-        },
-        "es" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Aleatorio"
-          }
-        },
-        "fr" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Aléatoire"
-          }
-        },
-        "it" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Casuale"
-          }
-        }
-      }
-    },
     "Randomize All" : {
       "localizations" : {
         "de" : {
@@ -842,34 +814,6 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Tutto casuale"
-          }
-        }
-      }
-    },
-    "Randomize Name" : {
-      "localizations" : {
-        "de" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Name randomisieren"
-          }
-        },
-        "es" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Nombre aleatorio"
-          }
-        },
-        "fr" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Nom aléatoire"
-          }
-        },
-        "it" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Nome casuale"
           }
         }
       }
