@@ -29,7 +29,7 @@ The interface leverages custom rendering and modern SwiftUI transition APIs to c
 
 * **View Transitions:** Layout morphing—such as switching a card between Daily, Weekly, and Monthly views—is handled seamlessly using `.geometryGroup()`, `.matchedGeometryEffect()`, and `.transition(.blurReplace)`.
   
-<video src="https://github.com/user-attachments/assets/02f49f3b-1ba2-48b6-b16c-1cc8aef65f12" width="60%" controls></video>
+<video src="https://github.com/user-attachments/assets/02f49f3b-1ba2-48b6-b16c-1cc8aef65f12" width="400px" controls></video>
 
 * **Custom Layouts & Drawing:** The custom `ProgressBar` includes a math function that applies a power curve to adjust mid-range values, visually offsetting the shortening caused by SwiftUI's rounded capsule caps. Additionally, the monthly view dynamically calculates column indexes to align data to the correct weekdays on the fly.
 * **Context-Aware Theming:** Visual elements adjust based on both the environment (Light/Dark mode) and the data state. For example, completing a target modifies the brightness and border width depending on whether the app is in dark mode or if the habit is considered a "good" or "bad" habit.
