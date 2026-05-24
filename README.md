@@ -12,28 +12,43 @@ Habit Rabbit is a SwiftUI demo project showcasing modern iOS development pattern
 
 The app avoids massive views by keeping domain logic decoupled and utilizing the `@Observable` macro alongside Swift's Environment:
 
-* **Global vs. Local State:** A central `Dashboard.Manager` handles global events (like date shifts and view modes) and is injected at the app root via `.environment(dashboardManager)`. Individual cards use their own `Card.Manager` instances, which localizes state updates and minimizes unnecessary redraws across the dashboard.
-* **Namespaced Organization:** Domain logic is organized using nested types and extensions (e.g., `Habit.Dashboard.Manager`, `Habit.Card.DetailView`). Manager responsibilities are split across targeted files (like `.valueOperations`, `.lastDayOperations`, and `.viewData`) to keep the codebase maintainable.
+* **Global vs. Local State:**
+
+  A central `Dashboard.Manager` handles global events (like date shifts and changes in daily | weekly | monthly modes) and is injected at the app root via `.environment(dashboardManager)`. Individual cards use their own `Card.Manager` instances, which localizes state updates and minimizes unnecessary redraws across the dashboard.
+
+* **Namespaced Organization:**
+
+  Domain logic is organized using nested types and extensions (e.g., `Habit.Dashboard.Manager`, `Habit.Card.DetailView`). Manager responsibilities are split across targeted files (like `.valueOperations`, `.lastDayOperations`, and `.viewData`) to keep the codebase maintainable.
 
 ## Data Persistence with SwiftData
 
-SwiftData is used to handle data efficiently and maintain a smooth scrolling experience:
+SwiftData is used to handle data persistance efficiently and maintain a smooth scrolling experience:
 
-* **Relational Models:** The schema separates the `Habit` definition from its historical `Habit.Value` entries, utilizing cascade delete rules to maintain data integrity.
-* **Caching & Prefetching:** The `Card.Manager` implements a local dictionary cache to prefetch active rolling windows (e.g., a 30-day core with 14-day buffers). This allows for smooth pagination through dates without constantly querying the persistent store.
-* **Targeted Fetching:** Custom `FetchDescriptor` extensions calculate date boundaries dynamically, ensuring the database only fetches the data the view currently requires.
+* **Relational Models:**
+  The schema separates the `Habit` definition from its historical `Habit.Value` entries, utilizing cascade delete rules to maintain data integrity.
+
+* **Caching & Prefetching:**
+  The `Card.Manager` implements a local dictionary cache to prefetch active rolling windows (e.g., a 30-day core with 14-day buffers). This allows for smooth pagination through dates without constantly querying the persistent store.
+  
+* **Targeted Fetching:**
+  Custom `FetchDescriptor` extensions calculate date boundaries dynamically, ensuring the database only fetches the data the view currently requires.
 
 ## UI Styling & Animations
 
-The interface leverages custom rendering and modern SwiftUI transition APIs to create a responsive feel:
+The interface has custom components and uses modern SwiftUI transition APIs to create a responsive feel:
 
-* **View Transitions:** Layout morphing—such as switching a card between Daily, Weekly, and Monthly views—is handled seamlessly using `.geometryGroup()`, `.matchedGeometryEffect()`, and `.transition(.blurReplace)`.
+* **View Transitions:** Layout morphing like switching a card between daily, weekly, and monthly views is handled seamlessly using `.geometryGroup()`, `.matchedGeometryEffect()`, and `.transition(.blurReplace)`.
   
 <video src="https://github.com/user-attachments/assets/02f49f3b-1ba2-48b6-b16c-1cc8aef65f12" width="400px" controls></video>
 
-* **Custom Layouts & Drawing:** The custom `ProgressBar` includes a math function that applies a power curve to adjust mid-range values, visually offsetting the shortening caused by SwiftUI's rounded capsule caps. Additionally, the monthly view dynamically calculates column indexes to align data to the correct weekdays on the fly.
-* **Context-Aware Theming:** Visual elements adjust based on both the environment (Light/Dark mode) and the data state. For example, completing a target modifies the brightness and border width depending on whether the app is in dark mode or if the habit is considered a "good" or "bad" habit.
-* **Micro-Interactions:** Numeric labels use `.monospacedDigit()` and `.contentTransition(.numericText())` for clean tick-ups when logging data. Relevant data triggers are also tied to haptic feedback via `.sensoryFeedback`.
+* **Custom Components:**
+  The custom `ProgressBar` includes a math function that applies a power curve to adjust mid-range values, visually offsetting the shortening caused by SwiftUI's rounded capsule caps. Additionally, the monthly view dynamically calculates column indexes to align data to the correct weekdays on the fly.
+  
+* **Context-Aware Theming:**
+  Visual elements adjust based on both the environment (light/dark mode) and the data state. For example, completing a target modifies the brightness and border width depending on whether the app is in dark mode or if the habit is considered a "good" or "bad" habit.
+  
+* **Micro-Interactions:**
+  Numeric labels use `.monospacedDigit()` and `.contentTransition(.numericText())` for clean tick-ups when logging data. Relevant data triggers are also tied to haptic feedback via `.sensoryFeedback`.
 
 ## Navigating the Codebase
 
