@@ -28,6 +28,9 @@ SwiftData is used to handle data efficiently and maintain a smooth scrolling exp
 The interface leverages custom rendering and modern SwiftUI transition APIs to create a responsive feel:
 
 * **View Transitions:** Layout morphing—such as switching a card between Daily, Weekly, and Monthly views—is handled seamlessly using `.geometryGroup()`, `.matchedGeometryEffect()`, and `.transition(.blurReplace)`.
+  
+<video src="https://github.com/user-attachments/assets/02f49f3b-1ba2-48b6-b16c-1cc8aef65f12" width="60%" controls></video>
+
 * **Custom Layouts & Drawing:** The custom `ProgressBar` includes a math function that applies a power curve to adjust mid-range values, visually offsetting the shortening caused by SwiftUI's rounded capsule caps. Additionally, the monthly view dynamically calculates column indexes to align data to the correct weekdays on the fly.
 * **Context-Aware Theming:** Visual elements adjust based on both the environment (Light/Dark mode) and the data state. For example, completing a target modifies the brightness and border width depending on whether the app is in dark mode or if the habit is considered a "good" or "bad" habit.
 * **Micro-Interactions:** Numeric labels use `.monospacedDigit()` and `.contentTransition(.numericText())` for clean tick-ups when logging data. Relevant data triggers are also tied to haptic feedback via `.sensoryFeedback`.
